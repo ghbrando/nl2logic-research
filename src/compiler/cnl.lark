@@ -1,0 +1,47 @@
+// cnl.lark — Controlled Natural Language grammar for NL2Logic
+// Translates CNL sentences to SUO-KIF s-expressions via CNLToKIF Transformer
+
+start       : sentence+
+
+sentence    : assertion
+            | quantified
+            | conditional
+
+// ── Assertions ────────────────────────────────────────────────────────────
+
+assertion   : unary_assert
+            | nary_assert
+            | binary_assert
+
+unary_assert : term "is-a" CLASS_TERM        -> instance_assert
+             | CLASS_TERM "subclass-of" CLASS_TERM -> subclass_assert
+
+binary_assert : RELATION term term
+
+nary_assert   : RELATION "[" term ("," term)+ "]"
+
+// ── Quantifiers ───────────────────────────────────────────────────────────
+
+quantified  : "every" VAR "is-a" CLASS_TERM ("implies" sentence)?  -> every
+            | "some"  VAR "is-a" CLASS_TERM                         -> some
+            | "no"    VAR "is-a" CLASS_TERM ("implies" sentence)?   -> no
+
+// ── Conditionals ──────────────────────────────────────────────────────────
+
+conditional : "if" condition "then" sentence
+
+condition   : assertion ("and" assertion)*
+
+// ── Terms ─────────────────────────────────────────────────────────────────
+
+term        : VAR
+            | CLASS_TERM
+
+// ── Terminals ─────────────────────────────────────────────────────────────
+
+VAR         : /\?[a-z][a-zA-Z0-9_]*/
+CLASS_TERM  : /[A-Z][a-zA-Z0-9_]*/
+RELATION    : /[a-z][a-zA-Z0-9]*/
+
+%ignore /\s+/
+%ignore /\/\/[^\n]*/

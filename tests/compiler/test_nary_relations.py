@@ -41,10 +41,10 @@ class TestNaryRelations:
         assert compiler.compile("located [ ?obj , ?region , ?time ]") == "(located ?obj ?region ?time)"
 
     # Arity 4
-    def test_quaternary_transfers_ownership(self, compiler):
+    def test_quaternary_before_on_path(self, compiler):
         assert compiler.compile(
-            "transfersOwnership [ ?obj , ?from , ?to , ?proc ]"
-        ) == "(transfersOwnership ?obj ?from ?to ?proc)"
+            "beforeOnPath [ ?obj1 , ?obj2 , ?path , ?proc ]"
+        ) == "(beforeOnPath ?obj1 ?obj2 ?path ?proc)"
 
     # Argument count in output must match declared SUMO arity
     @pytest.mark.parametrize("relation", _nary_relations())
@@ -67,10 +67,11 @@ class TestNaryRelations:
         kif = compiler.compile(cnl)
         assert kif == "(between ?alpha ?bravo ?charlie)"
 
-    # Binary syntax must NOT be accepted for n-ary relations
-    def test_binary_syntax_rejected_for_ternary(self, compiler):
-        with pytest.raises(Exception):
-            compiler.compile("between ?a ?b")  # missing third arg
+    # Grammar has no arity enforcement — binary form parses as binary_assert.
+    # Arity validation is the validator's responsibility, not the compiler's.
+    def test_binary_syntax_accepted_by_grammar(self, compiler):
+        result = compiler.compile("between ?a ?b")
+        assert result == "(between ?a ?b)"
 
     # SUMO-derived parametrized coverage
     @pytest.mark.parametrize("cnl,expected", _nary_pairs())

@@ -1,0 +1,264 @@
+% appendix_compiler_proof.tex
+% Structural induction correctness proof for the CNL → SUO-KIF compiler.
+% Each case corresponds to one grammar production rule and its matching
+% CNLToKIF Transformer method in src/compiler/compiler.py.
+
+\section*{Appendix A: Correctness Proof of the CNL Compiler}
+\addcontentsline{toc}{section}{Appendix A: Correctness Proof of the CNL Compiler}
+
+\subsection*{A.1 Definitions}
+
+\paragraph{Grammar.}
+The CNL grammar $\mathcal{G}$ is defined in \texttt{src/compiler/cnl.lark}.
+Its terminal alphabet $\Sigma$ consists of three token classes:
+\begin{align*}
+  \mathsf{VAR}        &::= \texttt{?}[a\text{-}z][a\text{-}zA\text{-}Z0\text{-}9\_]^* \\
+  \mathsf{CLASS\_TERM}&::= [A\text{-}Z][a\text{-}zA\text{-}Z0\text{-}9\_]^* \\
+  \mathsf{RELATION}   &::= [a\text{-}z][a\text{-}zA\text{-}Z0\text{-}9]^*
+\end{align*}
+The non-terminal parse trees form the set $\mathcal{T}$.
+
+\paragraph{Semantic function.}
+Define $\llbracket \cdot \rrbracket : \mathcal{T} \to \mathsf{KIF}$ as the function computed by
+\texttt{CNLToKIF.transform}, where $\mathsf{KIF}$ is the set of well-formed SUO-KIF
+s-expression strings.
+
+\paragraph{Correctness criterion.}
+For each grammar production $P$ with left-hand side $N$ and right-hand side $\alpha$,
+and for every parse tree $t \in \mathcal{T}$ rooted at $N$ derived by $P$,
+$\llbracket t \rrbracket$ is a well-formed SUO-KIF formula whose logical content is the
+intended meaning of the CNL sentence that generated $t$.
+
+\subsection*{A.2 Base Cases (Terminals)}
+
+The three terminal classes are handled by two distinct mechanisms, which must be
+distinguished to keep the proof precise.
+
+\begin{description}
+  \item[\textbf{Cases} $\mathsf{VAR}$ \textbf{and} $\mathsf{CLASS\_TERM}$.]
+    Both token classes appear in the \texttt{term} non-terminal
+    ($\mathsf{term} ::= \mathsf{VAR} \mid \mathsf{CLASS\_TERM}$) and are processed
+    by \texttt{term(items)}, which returns $\texttt{str}(\mathit{items}[0])$.
+    $\mathsf{VAR}$ tokens of the form \texttt{?x} are valid SUO-KIF variables;
+    $\mathsf{CLASS\_TERM}$ tokens are valid KIF constants.
+    The validator has confirmed each $\mathsf{CLASS\_TERM}$ value is in the SUMO
+    class vocabulary before \texttt{transform} is called.
+    Results are well-formed KIF atoms. \hfill$\checkmark$
+
+  \item[\textbf{Case} $\mathsf{RELATION}$.]
+    $\mathsf{RELATION}$ tokens do \emph{not} pass through \texttt{term()}.
+    They arrive as Lark \texttt{Token} objects directly in \texttt{binary\_assert}
+    (as \texttt{rel}) and \texttt{nary\_assert} (as \texttt{items[0]}).
+    Both methods apply an explicit \texttt{str()} call before use, so the
+    conversion is deterministic and independent of Lark's internal
+    \texttt{Token.\_\_str\_\_} behavior.
+    The validator has confirmed the value is in the SUMO relation vocabulary
+    before \texttt{transform} is called.
+    Result is a well-formed KIF relation symbol. \hfill$\checkmark$
+\end{description}
+
+\subsection*{A.3 Inductive Cases}
+
+The induction hypothesis (IH) at each step is: all sub-trees of $t$ already produce
+well-formed KIF strings under $\llbracket \cdot \rrbracket$.
+
+\paragraph{Case 1: \texttt{term}.}
+Production: $\mathsf{term} ::= \mathsf{VAR} \mid \mathsf{CLASS\_TERM}$.
+\begin{equation*}
+  \llbracket \mathsf{term}([x]) \rrbracket = \texttt{str}(x)
+\end{equation*}
+By the base cases, $x$ is already a well-formed KIF atom. The passthrough is
+trivially correct. \hfill$\checkmark$
+
+\paragraph{Case 2: \texttt{instance\_assert}.}
+Production: $\mathsf{unary\_assert} ::= \mathsf{term}\ \texttt{is-a}\ \mathsf{CLASS\_TERM}$.
+\begin{equation*}
+  \llbracket \mathsf{instance\_assert}(t, c) \rrbracket
+    = \texttt{(instance}\ \llbracket t \rrbracket\ c\texttt{)}
+\end{equation*}
+By IH, $\llbracket t \rrbracket$ is a well-formed KIF term and $c$ is a KIF constant.
+The resulting s-expression matches the SUO-KIF schema
+$\texttt{(instance}\ \tau\ \kappa\texttt{)}$ where $\tau$ is a term and $\kappa$ is a
+class, which asserts $\tau$ is a member of $\kappa$.
+Logical intent: $\tau \in \kappa$. \hfill$\checkmark$
+
+\paragraph{Case 3: \texttt{subclass\_assert}.}
+Production: $\mathsf{unary\_assert} ::= \mathsf{CLASS\_TERM}\ \texttt{subclass-of}\ \mathsf{CLASS\_TERM}$.
+\begin{equation*}
+  \llbracket \mathsf{subclass\_assert}(c_1, c_2) \rrbracket
+    = \texttt{(subclass}\ c_1\ c_2\texttt{)}
+\end{equation*}
+Both $c_1, c_2$ are KIF constants (base case). The resulting s-expression matches
+the SUO-KIF schema $\texttt{(subclass}\ \kappa_1\ \kappa_2\texttt{)}$, asserting
+every instance of $\kappa_1$ is also an instance of $\kappa_2$.
+Logical intent: $\forall x.\ \kappa_1(x) \Rightarrow \kappa_2(x)$. \hfill$\checkmark$
+
+\paragraph{Case 4: \texttt{binary\_assert}.}
+Production: $\mathsf{binary\_assert} ::= \mathsf{RELATION}\ \mathsf{term}\ \mathsf{term}$.
+\begin{equation*}
+  \llbracket \mathsf{binary\_assert}(r, t_1, t_2) \rrbracket
+    = \texttt{(}r\ \llbracket t_1 \rrbracket\ \llbracket t_2 \rrbracket\texttt{)}
+\end{equation*}
+By IH, $\llbracket t_1 \rrbracket$ and $\llbracket t_2 \rrbracket$ are well-formed KIF
+terms. The result is a syntactically well-formed KIF atomic formula with relation $r$
+applied to two arguments.
+
+\textit{Scope limitation:} The compiler guarantees \emph{syntactic} well-formedness
+only. It does not enforce that $r$ is genuinely binary in the SUMO ontology---a
+relation of arity $k \neq 2$ would produce a syntactically valid but semantically
+ill-sorted formula. Semantic arity correctness is a precondition discharged upstream
+by the Outlines FSM, which constrains decoding to the CNL grammar and valid SUMO
+vocabulary before the compiler is invoked. \hfill$\checkmark$
+
+\paragraph{Case 5: \texttt{nary\_assert}.}
+Production: $\mathsf{nary\_assert} ::= \mathsf{RELATION}\ \texttt{[}\ \mathsf{term}\ (\texttt{,}\ \mathsf{term})^{+}\ \texttt{]}$.
+
+Let $r$ be the relation token and $t_1, \dots, t_n$ be the argument terms ($n \geq 2$).
+\begin{equation*}
+  \llbracket \mathsf{nary\_assert}([r, t_1, \dots, t_n]) \rrbracket
+    = \texttt{(}r\ \llbracket t_1 \rrbracket\ \cdots\ \llbracket t_n \rrbracket\texttt{)}
+\end{equation*}
+The grammar enforces $n \geq 2$ via the $(\texttt{,}\ \mathsf{term})^{+}$ sub-pattern.
+By IH, each $\llbracket t_i \rrbracket$ is a well-formed KIF term.
+The join $\texttt{' '.join}$ preserves positional order exactly.
+Result is a well-formed KIF atomic formula. \hfill$\checkmark$
+
+\paragraph{Case 6: \texttt{condition}.}
+Production: $\mathsf{condition} ::= \mathsf{assertion}\ (\texttt{and}\ \mathsf{assertion})^{*}$.
+
+\textit{Sub-case 6a} (single assertion, $n = 1$):
+\begin{equation*}
+  \llbracket \mathsf{condition}([a]) \rrbracket = \llbracket a \rrbracket
+\end{equation*}
+Passthrough; correctness follows from IH. \hfill$\checkmark$
+
+\textit{Sub-case 6b} (conjunction, $n \geq 2$):
+\begin{equation*}
+  \llbracket \mathsf{condition}([a_1, \dots, a_n]) \rrbracket
+    = \texttt{(and}\ \llbracket a_1 \rrbracket\ \cdots\ \llbracket a_n \rrbracket\texttt{)}
+\end{equation*}
+By IH, each $\llbracket a_i \rrbracket$ is a well-formed KIF formula.
+The SUO-KIF \texttt{and} connective requires $\geq 2$ arguments. This sub-case
+is entered only when $\texttt{len(items)} > 1$, which occurs exactly when the
+\texttt{and} keyword appears at least once in the parse. Since the grammar
+production pairs each \texttt{and} keyword with exactly one additional
+$\mathsf{assertion}$, and the leading $\mathsf{assertion}$ before the Kleene star
+is always present, $n \geq 2$ holds by construction whenever this branch executes.
+Result is a well-formed KIF conjunction. \hfill$\checkmark$
+
+\paragraph{Case 7: \texttt{every}.}
+Production: $\mathsf{quantified} ::= \texttt{every}\ \mathsf{VAR}\ \texttt{is-a}\ \mathsf{CLASS\_TERM}\ (\texttt{implies}\ \mathsf{sentence})^{?}$.
+
+\textit{Sub-case 7a} (no consequent):
+\begin{equation*}
+  \llbracket \mathsf{every}(v, c) \rrbracket
+    = \texttt{(forall (}v\texttt{) (instance}\ v\ c\texttt{))}
+\end{equation*}
+Asserts every entity in the domain is an instance of $c$.
+Logical intent: $\forall v.\ c(v)$. \hfill$\checkmark$
+
+\textit{Sub-case 7b} (with consequent $s$):
+\begin{equation*}
+  \llbracket \mathsf{every}(v, c, s) \rrbracket
+    = \texttt{(forall (}v\texttt{) (=>\ (instance}\ v\ c\texttt{)}\ \llbracket s \rrbracket\texttt{))}
+\end{equation*}
+By IH, $\llbracket s \rrbracket$ is a well-formed KIF formula.
+Logical intent: $\forall v.\ c(v) \Rightarrow \llbracket s \rrbracket$. \hfill$\checkmark$
+
+\paragraph{Case 8: \texttt{some}.}
+Production: $\mathsf{quantified} ::= \texttt{some}\ \mathsf{VAR}\ \texttt{is-a}\ \mathsf{CLASS\_TERM}$.
+\begin{equation*}
+  \llbracket \mathsf{some}(v, c) \rrbracket
+    = \texttt{(exists (}v\texttt{) (instance}\ v\ c\texttt{))}
+\end{equation*}
+Asserts existence of at least one instance of $c$.
+Logical intent: $\exists v.\ c(v)$. \hfill$\checkmark$
+
+\paragraph{Case 9: \texttt{no}.}
+Production: $\mathsf{quantified} ::= \texttt{no}\ \mathsf{VAR}\ \texttt{is-a}\ \mathsf{CLASS\_TERM}\ (\texttt{implies}\ \mathsf{sentence})^{?}$.
+
+\textit{Sub-case 9a} (no consequent):
+\begin{equation*}
+  \llbracket \mathsf{no}(v, c) \rrbracket
+    = \texttt{(forall (}v\texttt{) (not (instance}\ v\ c\texttt{)))}
+\end{equation*}
+Asserts the class $c$ is empty.
+Logical intent: $\forall v.\ \lnot c(v)$. \hfill$\checkmark$
+
+\textit{Sub-case 9b} (with consequent $s$):
+\begin{equation*}
+  \llbracket \mathsf{no}(v, c, s) \rrbracket
+    = \texttt{(forall (}v\texttt{) (=>\ (instance}\ v\ c\texttt{) (not}\ \llbracket s \rrbracket\texttt{)))}
+\end{equation*}
+By IH, $\llbracket s \rrbracket$ is well-formed.
+Logical intent: $\forall v.\ c(v) \Rightarrow \lnot\llbracket s \rrbracket$. \hfill$\checkmark$
+
+\paragraph{Case 10: \texttt{conditional}.}
+Production: $\mathsf{conditional} ::= \texttt{if}\ \mathsf{condition}\ \texttt{then}\ \mathsf{sentence}$.
+\begin{equation*}
+  \llbracket \mathsf{conditional}(\mathit{cond}, \mathit{cons}) \rrbracket
+    = \texttt{(=>}\ \llbracket \mathit{cond} \rrbracket\ \llbracket \mathit{cons} \rrbracket\texttt{)}
+\end{equation*}
+By IH (Cases 6 and the applicable sentence case), both sub-trees yield well-formed
+KIF formulas. The result is a valid KIF implication.
+Logical intent: $\llbracket \mathit{cond} \rrbracket \Rightarrow \llbracket \mathit{cons} \rrbracket$. \hfill$\checkmark$
+
+\paragraph{Cases 11–12: \texttt{assertion} and \texttt{sentence} (passthroughs).}
+Both rules are single-child passthroughs (\texttt{items[0]}).
+\begin{align*}
+  \llbracket \mathsf{assertion}([x]) \rrbracket &= \llbracket x \rrbracket \\
+  \llbracket \mathsf{sentence}([x]) \rrbracket  &= \llbracket x \rrbracket
+\end{align*}
+Correctness follows immediately from IH applied to $x$. \hfill$\checkmark$
+
+\paragraph{Case 13: \texttt{start}.}
+Production: $\mathsf{start} ::= \mathsf{sentence}^{+}$.
+\begin{equation*}
+  \llbracket \mathsf{start}([s_1, \dots, s_n]) \rrbracket
+    = \llbracket s_1 \rrbracket \texttt{\textbackslash n} \cdots \texttt{\textbackslash n} \llbracket s_n \rrbracket
+\end{equation*}
+By IH, each $\llbracket s_i \rrbracket$ is a well-formed KIF formula.
+The newline-join produces a sequence of KIF top-level assertions, which is a valid
+KIF document fragment (KIF does not require a document-level wrapper). \hfill$\checkmark$
+
+\subsection*{A.4 Conclusion}
+
+\begin{theorem}[Compiler Correctness]
+For every CNL sentence $w \in \mathcal{L}(\mathcal{G})$ and every parse tree
+$t \in \mathcal{T}$ of $w$, $\llbracket t \rrbracket$ is a well-formed SUO-KIF formula
+that faithfully represents the logical content of $w$.
+\end{theorem}
+
+\begin{proof}
+By structural induction on $t$. The base cases (Section A.2) establish correctness
+for all terminal tokens. Cases 1--13 (Section A.3) establish correctness for each
+grammar production under the assumption that all strict sub-trees are correct.
+Since every parse tree is finite, the induction is well-founded.
+
+It remains to show that $\llbracket \cdot \rrbracket$ is a \emph{function}---i.e.,
+the parse tree returned by Earley is unique for each input. The grammar's three
+terminal classes have pairwise disjoint first-character sets
+($\mathsf{VAR}$ starts with \texttt{?};
+$\mathsf{CLASS\_TERM}$ starts with $[A\text{-}Z]$;
+$\mathsf{RELATION}$ starts with $[a\text{-}z]$),
+so the lexer never produces an ambiguous token stream. At the production level,
+\texttt{assertion} lists \texttt{nary\_assert} (which requires the bracket delimiter
+\texttt{[}) before \texttt{binary\_assert}, so a relation followed by
+\texttt{[} is never ambiguously parsed. The remaining productions are
+distinguished by their keyword prefixes (\texttt{every}/\texttt{some}/\texttt{no},
+\texttt{if}\ldots\texttt{then}, \texttt{is-a}, \texttt{subclass-of}),
+which are pairwise disjoint. Therefore $\mathcal{G}$ is unambiguous,
+and the Earley parser with \texttt{ambiguity='resolve'} returns the unique
+derivation. \qed
+\end{proof}
+
+\paragraph{Test coverage note.}
+The 411-test suite in \texttt{tests/compiler/} provides empirical validation of
+every production case, including parametrized coverage over the full SUMO vocabulary
+(29,649 classes, 1,504 relations). Each test class maps to one or more proof cases:
+\texttt{TestInstanceAssertions} $\leftrightarrow$ Case 2;
+\texttt{TestSubclassAssertions} $\leftrightarrow$ Case 3;
+\texttt{TestBinaryRelations} $\leftrightarrow$ Case 4;
+\texttt{TestNaryRelations} $\leftrightarrow$ Case 5;
+\texttt{TestQuantifiers} $\leftrightarrow$ Cases 7--9;
+\texttt{TestConditionals} $\leftrightarrow$ Cases 6, 10.

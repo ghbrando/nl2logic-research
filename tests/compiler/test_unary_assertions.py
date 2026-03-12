@@ -50,10 +50,10 @@ class TestInstanceAssertions:
 class TestSubclassAssertions:
 
     def test_basic_subclass(self, compiler):
-        assert compiler.compile("Agent subclass-of Entity") == "(subclass Agent Entity)"
+        assert compiler.compile("Process subclass-of Entity") == "(subclass Process Entity)"
 
     def test_subclass_military(self, compiler):
-        assert compiler.compile("MilitaryUnit subclass-of Agent") == "(subclass MilitaryUnit Agent)"
+        assert compiler.compile("MilitaryUnit subclass-of Entity") == "(subclass MilitaryUnit Entity)"
 
     @pytest.mark.parametrize("cnl,expected", _subclass_pairs())
     def test_subclass_sumo_classes(self, compiler, cnl, expected):
