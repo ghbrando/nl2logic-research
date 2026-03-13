@@ -106,7 +106,20 @@ def clean_page_text(raw_text: str) -> str:
 
     cleaned_lines: list[str] = []
     for line in repaired_lines:
-        cleaned = clean_line(line)
+        normalized = unicodedata.normalize("NFKC", line).replace("\u00ad", "")
+        normalized = re.sub(r"(?<=\w)-\s+(?=\w)", "", normalized)
+        normalized = _INLINE_WHITESPACE_RE.sub(" ", normalized).strip()
+
+        looks_like_preservable_heading = (
+            bool(normalized)
+            and not _PURE_NUMERIC_RE.fullmatch(normalized)
+            and not any(pattern.fullmatch(normalized) for pattern in _FM_HEADER_PATTERNS)
+            and is_section_heading(normalized)
+        )
+        if looks_like_preservable_heading:
+            cleaned = normalized
+        else:
+            cleaned = clean_line(line)
         if cleaned is None:
             continue
         if cleaned == "":

@@ -132,6 +132,11 @@ class TestCleanPageText:
 
         assert clean_page_text(raw) == "The battalion conducts operations to support the brigade."
 
+    def test_short_all_caps_heading_is_preserved_even_if_clean_line_would_discard_it(self):
+        raw = "TASKS\nThe battalion conducts reconnaissance operations."
+
+        assert clean_page_text(raw) == "TASKS\nThe battalion conducts reconnaissance operations."
+
     def test_header_lines_removed_and_surrounding_lines_preserved(self):
         raw = "FM 2-0\nThe battalion collects intelligence.\n42\nThe brigade acts decisively."
 
@@ -253,6 +258,43 @@ class TestExtractPages:
 
 
 class TestExtractSentences:
+    def test_all_caps_section_heading_is_attached_to_following_sentence(self, monkeypatch, scratch_dir):
+        pdf_path = scratch_dir / "fm2-0.pdf"
+        pdf_path.write_text("placeholder", encoding="utf-8")
+        fake_pdfplumber = _FakePdfPlumberModule(
+            pages=[
+                _FakePage(
+                    text="TASKS\nThe battalion conducts reconnaissance operations to support the brigade."
+                )
+            ]
+        )
+        docs_by_text = {
+            "The battalion conducts reconnaissance operations to support the brigade.": _FakeDoc(
+                ["The battalion conducts reconnaissance operations to support the brigade."]
+            )
+        }
+        fake_spacy = _FakeSpacyModule(docs_by_text)
+
+        def fake_import(name: str):
+            if name == "pdfplumber":
+                return fake_pdfplumber
+            if name == "spacy":
+                return fake_spacy
+            raise AssertionError(f"Unexpected import: {name}")
+
+        monkeypatch.setattr(extractor_module, "import_module", fake_import)
+
+        sentences = extract_sentences(pdf_path)
+
+        assert sentences == [
+            DocSentence(
+                sentence="The battalion conducts reconnaissance operations to support the brigade.",
+                page_number=1,
+                position=0,
+                section="TASKS",
+            )
+        ]
+
     def test_duplicate_sentences_are_deduplicated_and_metadata_is_attached(self, monkeypatch, scratch_dir):
         pdf_path = scratch_dir / "fm2-0.pdf"
         pdf_path.write_text("placeholder", encoding="utf-8")
