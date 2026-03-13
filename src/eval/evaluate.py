@@ -21,6 +21,7 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from src.compiler.compiler import CNLCompiler
+from src.eval.model_predictor import DEFAULT_MODEL_PATH, ModelPredictor
 
 DEFAULT_GOLD_PATH = _REPO_ROOT / "data" / "eval" / "gold_pairs.jsonl"
 
@@ -81,6 +82,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=Path,
         default=DEFAULT_GOLD_PATH,
         help=f"Gold JSONL path (default: {DEFAULT_GOLD_PATH})",
+    )
+    parser.add_argument(
+        "--model-path",
+        type=Path,
+        default=DEFAULT_MODEL_PATH,
+        help=f"Model checkpoint path for NL->CNL prediction (default: {DEFAULT_MODEL_PATH})",
     )
     return parser.parse_args(argv)
 
@@ -219,7 +226,8 @@ def print_report(report: EvaluationReport) -> None:
 def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
     pairs = load_gold_pairs(args.gold_path)
-    report = evaluate_pairs(pairs)
+    predictor = ModelPredictor(args.model_path)
+    report = evaluate_pairs(pairs, predictor=predictor)
     print_report(report)
 
 
