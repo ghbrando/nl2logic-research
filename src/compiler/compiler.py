@@ -29,6 +29,9 @@ class CNLToKIF(Transformer):
     def assertion(self, items):
         return items[0]
 
+    def atomic_assertion(self, items):
+        return items[0]
+
     def condition(self, items):
         if len(items) == 1:
             return items[0]
@@ -56,6 +59,10 @@ class CNLToKIF(Transformer):
         rel  = str(items[0])
         args = items[1:]
         return f"({rel} {' '.join(args)})"
+
+    @v_args(inline=True)
+    def negated_assertion(self, assertion):
+        return f"(not {assertion})"
 
     # ── Quantifiers ────────────────────────────────────────────────────────
 

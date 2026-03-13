@@ -1,5 +1,5 @@
 % appendix_compiler_proof.tex
-% Structural induction correctness proof for the CNL → SUO-KIF compiler.
+% Structural induction correctness proof for the CNL -> SUO-KIF compiler.
 % Each case corresponds to one grammar production rule and its matching
 % CNLToKIF Transformer method in src/compiler/compiler.py.
 
@@ -120,19 +120,38 @@ Let $r$ be the relation token and $t_1, \dots, t_n$ be the argument terms ($n \g
 \end{equation*}
 The grammar enforces $n \geq 2$ via the $(\texttt{,}\ \mathsf{term})^{+}$ sub-pattern.
 By IH, each $\llbracket t_i \rrbracket$ is a well-formed KIF term.
-The join $\texttt{' '.join}$ preserves positional order exactly.
+The join \texttt{' '.join} preserves positional order exactly.
 Result is a well-formed KIF atomic formula. \hfill$\checkmark$
 
-\paragraph{Case 6: \texttt{condition}.}
+\paragraph{Case 6: \texttt{atomic\_assertion}.}
+Production: $\mathsf{atomic\_assertion} ::= \mathsf{unary\_assert} \mid \mathsf{nary\_assert} \mid \mathsf{binary\_assert}$.
+\begin{equation*}
+  \llbracket \mathsf{atomic\_assertion}([a]) \rrbracket = \llbracket a \rrbracket
+\end{equation*}
+This is a single-child passthrough. By IH, $\llbracket a \rrbracket$ is already a
+well-formed KIF atomic formula, so the passthrough is correct. \hfill$\checkmark$
+
+\paragraph{Case 7: \texttt{negated\_assertion}.}
+Production: $\mathsf{assertion} ::= \texttt{not}\ \mathsf{atomic\_assertion}$.
+\begin{equation*}
+  \llbracket \mathsf{negated\_assertion}(a) \rrbracket
+    = \texttt{(not}\ \llbracket a \rrbracket\texttt{)}
+\end{equation*}
+By IH, $\llbracket a \rrbracket$ is a well-formed KIF atomic formula.
+SUO-KIF permits \texttt{not} applied to a well-formed formula, so the result is a
+well-formed negated formula. Logical intent: $\lnot \llbracket a \rrbracket$.
+\hfill$\checkmark$
+
+\paragraph{Case 8: \texttt{condition}.}
 Production: $\mathsf{condition} ::= \mathsf{assertion}\ (\texttt{and}\ \mathsf{assertion})^{*}$.
 
-\textit{Sub-case 6a} (single assertion, $n = 1$):
+\textit{Sub-case 8a} (single assertion, $n = 1$):
 \begin{equation*}
   \llbracket \mathsf{condition}([a]) \rrbracket = \llbracket a \rrbracket
 \end{equation*}
 Passthrough; correctness follows from IH. \hfill$\checkmark$
 
-\textit{Sub-case 6b} (conjunction, $n \geq 2$):
+\textit{Sub-case 8b} (conjunction, $n \geq 2$):
 \begin{equation*}
   \llbracket \mathsf{condition}([a_1, \dots, a_n]) \rrbracket
     = \texttt{(and}\ \llbracket a_1 \rrbracket\ \cdots\ \llbracket a_n \rrbracket\texttt{)}
@@ -146,10 +165,10 @@ $\mathsf{assertion}$, and the leading $\mathsf{assertion}$ before the Kleene sta
 is always present, $n \geq 2$ holds by construction whenever this branch executes.
 Result is a well-formed KIF conjunction. \hfill$\checkmark$
 
-\paragraph{Case 7: \texttt{every}.}
+\paragraph{Case 9: \texttt{every}.}
 Production: $\mathsf{quantified} ::= \texttt{every}\ \mathsf{VAR}\ \texttt{is-a}\ \mathsf{CLASS\_TERM}\ (\texttt{implies}\ \mathsf{sentence})^{?}$.
 
-\textit{Sub-case 7a} (no consequent):
+\textit{Sub-case 9a} (no consequent):
 \begin{equation*}
   \llbracket \mathsf{every}(v, c) \rrbracket
     = \texttt{(forall (}v\texttt{) (instance}\ v\ c\texttt{))}
@@ -157,7 +176,7 @@ Production: $\mathsf{quantified} ::= \texttt{every}\ \mathsf{VAR}\ \texttt{is-a}
 Asserts every entity in the domain is an instance of $c$.
 Logical intent: $\forall v.\ c(v)$. \hfill$\checkmark$
 
-\textit{Sub-case 7b} (with consequent $s$):
+\textit{Sub-case 9b} (with consequent $s$):
 \begin{equation*}
   \llbracket \mathsf{every}(v, c, s) \rrbracket
     = \texttt{(forall (}v\texttt{) (=>\ (instance}\ v\ c\texttt{)}\ \llbracket s \rrbracket\texttt{))}
@@ -165,7 +184,7 @@ Logical intent: $\forall v.\ c(v)$. \hfill$\checkmark$
 By IH, $\llbracket s \rrbracket$ is a well-formed KIF formula.
 Logical intent: $\forall v.\ c(v) \Rightarrow \llbracket s \rrbracket$. \hfill$\checkmark$
 
-\paragraph{Case 8: \texttt{some}.}
+\paragraph{Case 10: \texttt{some}.}
 Production: $\mathsf{quantified} ::= \texttt{some}\ \mathsf{VAR}\ \texttt{is-a}\ \mathsf{CLASS\_TERM}$.
 \begin{equation*}
   \llbracket \mathsf{some}(v, c) \rrbracket
@@ -174,10 +193,10 @@ Production: $\mathsf{quantified} ::= \texttt{some}\ \mathsf{VAR}\ \texttt{is-a}\
 Asserts existence of at least one instance of $c$.
 Logical intent: $\exists v.\ c(v)$. \hfill$\checkmark$
 
-\paragraph{Case 9: \texttt{no}.}
+\paragraph{Case 11: \texttt{no}.}
 Production: $\mathsf{quantified} ::= \texttt{no}\ \mathsf{VAR}\ \texttt{is-a}\ \mathsf{CLASS\_TERM}\ (\texttt{implies}\ \mathsf{sentence})^{?}$.
 
-\textit{Sub-case 9a} (no consequent):
+\textit{Sub-case 11a} (no consequent):
 \begin{equation*}
   \llbracket \mathsf{no}(v, c) \rrbracket
     = \texttt{(forall (}v\texttt{) (not (instance}\ v\ c\texttt{)))}
@@ -185,7 +204,7 @@ Production: $\mathsf{quantified} ::= \texttt{no}\ \mathsf{VAR}\ \texttt{is-a}\ \
 Asserts the class $c$ is empty.
 Logical intent: $\forall v.\ \lnot c(v)$. \hfill$\checkmark$
 
-\textit{Sub-case 9b} (with consequent $s$):
+\textit{Sub-case 11b} (with consequent $s$):
 \begin{equation*}
   \llbracket \mathsf{no}(v, c, s) \rrbracket
     = \texttt{(forall (}v\texttt{) (=>\ (instance}\ v\ c\texttt{) (not}\ \llbracket s \rrbracket\texttt{)))}
@@ -193,25 +212,27 @@ Logical intent: $\forall v.\ \lnot c(v)$. \hfill$\checkmark$
 By IH, $\llbracket s \rrbracket$ is well-formed.
 Logical intent: $\forall v.\ c(v) \Rightarrow \lnot\llbracket s \rrbracket$. \hfill$\checkmark$
 
-\paragraph{Case 10: \texttt{conditional}.}
+\paragraph{Case 12: \texttt{conditional}.}
 Production: $\mathsf{conditional} ::= \texttt{if}\ \mathsf{condition}\ \texttt{then}\ \mathsf{sentence}$.
 \begin{equation*}
   \llbracket \mathsf{conditional}(\mathit{cond}, \mathit{cons}) \rrbracket
     = \texttt{(=>}\ \llbracket \mathit{cond} \rrbracket\ \llbracket \mathit{cons} \rrbracket\texttt{)}
 \end{equation*}
-By IH (Cases 6 and the applicable sentence case), both sub-trees yield well-formed
+By IH (Cases 8 and the applicable sentence case), both sub-trees yield well-formed
 KIF formulas. The result is a valid KIF implication.
 Logical intent: $\llbracket \mathit{cond} \rrbracket \Rightarrow \llbracket \mathit{cons} \rrbracket$. \hfill$\checkmark$
 
-\paragraph{Cases 11–12: \texttt{assertion} and \texttt{sentence} (passthroughs).}
-Both rules are single-child passthroughs (\texttt{items[0]}).
+\paragraph{Cases 13--14: \texttt{assertion} and \texttt{sentence} (passthroughs).}
+Both rules are single-child passthroughs (\texttt{items[0]}). In the
+\texttt{assertion} case, the single child is either an \texttt{atomic\_assertion}
+or a \texttt{negated\_assertion}.
 \begin{align*}
   \llbracket \mathsf{assertion}([x]) \rrbracket &= \llbracket x \rrbracket \\
   \llbracket \mathsf{sentence}([x]) \rrbracket  &= \llbracket x \rrbracket
 \end{align*}
 Correctness follows immediately from IH applied to $x$. \hfill$\checkmark$
 
-\paragraph{Case 13: \texttt{start}.}
+\paragraph{Case 15: \texttt{start}.}
 Production: $\mathsf{start} ::= \mathsf{sentence}^{+}$.
 \begin{equation*}
   \llbracket \mathsf{start}([s_1, \dots, s_n]) \rrbracket
@@ -231,7 +252,7 @@ that faithfully represents the logical content of $w$.
 
 \begin{proof}
 By structural induction on $t$. The base cases (Section A.2) establish correctness
-for all terminal tokens. Cases 1--13 (Section A.3) establish correctness for each
+for all terminal tokens. Cases 1--15 (Section A.3) establish correctness for each
 grammar production under the assumption that all strict sub-trees are correct.
 Since every parse tree is finite, the induction is well-founded.
 
@@ -242,23 +263,26 @@ terminal classes have pairwise disjoint first-character sets
 $\mathsf{CLASS\_TERM}$ starts with $[A\text{-}Z]$;
 $\mathsf{RELATION}$ starts with $[a\text{-}z]$),
 so the lexer never produces an ambiguous token stream. At the production level,
-\texttt{assertion} lists \texttt{nary\_assert} (which requires the bracket delimiter
-\texttt{[}) before \texttt{binary\_assert}, so a relation followed by
-\texttt{[} is never ambiguously parsed. The remaining productions are
-distinguished by their keyword prefixes (\texttt{every}/\texttt{some}/\texttt{no},
-\texttt{if}\ldots\texttt{then}, \texttt{is-a}, \texttt{subclass-of}),
-which are pairwise disjoint. Therefore $\mathcal{G}$ is unambiguous,
-and the Earley parser with \texttt{ambiguity='resolve'} returns the unique
-derivation. \qed
+\texttt{assertion} is distinguished first by the optional leading keyword
+\texttt{not}; if that keyword is absent, parsing proceeds through the single
+\texttt{atomic\_assertion} branch. Within \texttt{atomic\_assertion},
+\texttt{nary\_assert} (which requires the bracket delimiter \texttt{[}) is listed
+before \texttt{binary\_assert}, so a relation followed by \texttt{[} is never
+ambiguously parsed. The remaining productions are distinguished by their keyword
+prefixes (\texttt{every}/\texttt{some}/\texttt{no}, \texttt{if}\ldots\texttt{then},
+\texttt{is-a}, \texttt{subclass-of}), which are pairwise disjoint. Therefore
+$\mathcal{G}$ is unambiguous, and the Earley parser with
+\texttt{ambiguity='resolve'} returns the unique derivation. \qed
 \end{proof}
 
 \paragraph{Test coverage note.}
-The 411-test suite in \texttt{tests/compiler/} provides empirical validation of
-every production case, including parametrized coverage over the full SUMO vocabulary
-(29,649 classes, 1,504 relations). Each test class maps to one or more proof cases:
+The compiler test suite in \texttt{tests/compiler/} provides empirical validation
+of every production case, including parametrized coverage over the full SUMO
+vocabulary. Each test class maps to one or more proof cases:
 \texttt{TestInstanceAssertions} $\leftrightarrow$ Case 2;
 \texttt{TestSubclassAssertions} $\leftrightarrow$ Case 3;
 \texttt{TestBinaryRelations} $\leftrightarrow$ Case 4;
 \texttt{TestNaryRelations} $\leftrightarrow$ Case 5;
-\texttt{TestQuantifiers} $\leftrightarrow$ Cases 7--9;
-\texttt{TestConditionals} $\leftrightarrow$ Cases 6, 10.
+\texttt{TestNegation} $\leftrightarrow$ Cases 7, 12;
+\texttt{TestQuantifiers} $\leftrightarrow$ Cases 9--11;
+\texttt{TestConditionals} $\leftrightarrow$ Cases 8, 12.

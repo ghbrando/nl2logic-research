@@ -108,6 +108,9 @@ class TestGrammarAcceptsValidCNL:
     def test_negative_quantifier(self, vocab_parser):
         vocab_parser.parse("no ?x is-a Process")
 
+    def test_negated_atomic_assertion(self, vocab_parser):
+        vocab_parser.parse("not ?x is-a Process")
+
     def test_conditional(self, vocab_parser):
         vocab_parser.parse("if ?x is-a Process then ?x is-a Entity")
 
@@ -156,6 +159,9 @@ class TestValidateOutput:
 
     def test_nary_returns_kif(self, sampler):
         assert sampler.validate_output("between [ ?a , ?b , ?c ]") == "(between ?a ?b ?c)"
+
+    def test_negated_assertion_returns_kif(self, sampler):
+        assert sampler.validate_output("not agent ?x Process") == "(not (agent ?x Process))"
 
     def test_invalid_cnl_raises(self, sampler):
         with pytest.raises(Exception):

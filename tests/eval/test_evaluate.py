@@ -8,10 +8,10 @@ from src.eval.evaluate import (
 
 
 class TestGoldSet:
-    def test_load_gold_pairs_has_30_records_and_balanced_patterns(self):
+    def test_load_gold_pairs_has_36_records_and_balanced_patterns(self):
         pairs = load_gold_pairs(DEFAULT_GOLD_PATH)
 
-        assert len(pairs) == 30
+        assert len(pairs) == 36
 
         counts: dict[str, int] = {}
         for pair in pairs:
@@ -23,6 +23,7 @@ class TestGoldSet:
             "binary": 6,
             "conditional": 6,
             "existential": 6,
+            "negation": 6,
         }
 
     def test_gold_pairs_compile_cleanly(self):
@@ -37,7 +38,7 @@ class TestEvaluatePairs:
 
         report = evaluate_pairs(pairs)
 
-        assert report.total == 30
+        assert report.total == 36
         assert report.cnl_accuracy == 1.0
         assert report.kif_accuracy == 1.0
         assert report.abstain_rate == 0.0

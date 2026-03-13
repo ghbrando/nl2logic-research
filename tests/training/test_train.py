@@ -198,7 +198,7 @@ class TestPatternCoverage:
             "conditional",
             "existential",
         ]
-        assert skipped == ["nary"]
+        assert skipped == ["nary", "negation"]
 
     def test_collect_pattern_coverage_rows_preserves_pattern_labels(self):
         model = FakeModel()
@@ -210,6 +210,7 @@ class TestPatternCoverage:
             TrainingPair(nl="nl", cnl="cnl", pattern="conditional"),
             TrainingPair(nl="nl", cnl="cnl", pattern="existential"),
             TrainingPair(nl="nl", cnl="cnl", pattern="nary"),
+            TrainingPair(nl="nl", cnl="cnl", pattern="negation"),
         ]
 
         rows, skipped = collect_pattern_coverage_rows(
@@ -227,6 +228,8 @@ class TestPatternCoverage:
             "conditional",
             "existential",
             "nary",
+            "negation",
         ]
         assert rows[0]["nl"] == "Something is an instance of Process."
-        assert rows[-1]["nl"] == "The between relation holds among three entities."
+        assert rows[-2]["nl"] == "The between relation holds among three entities."
+        assert rows[-1]["nl"] == "Something is not an instance of Process."

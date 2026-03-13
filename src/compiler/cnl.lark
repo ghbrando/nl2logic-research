@@ -9,9 +9,12 @@ sentence    : assertion
 
 // ── Assertions ────────────────────────────────────────────────────────────
 
-assertion   : unary_assert
-            | nary_assert
-            | binary_assert
+assertion        : atomic_assertion
+                 | "not" atomic_assertion                -> negated_assertion
+
+atomic_assertion : unary_assert
+                 | nary_assert
+                 | binary_assert
 
 unary_assert : term "is-a" CLASS_TERM        -> instance_assert
              | CLASS_TERM "subclass-of" CLASS_TERM -> subclass_assert

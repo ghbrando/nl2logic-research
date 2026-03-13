@@ -47,6 +47,7 @@ PATTERN_COVERAGE_SENTENCES = [
     ("conditional", "Every Process is in the agent relation with an Agent."),
     ("existential", "There exists an instance of MilitaryProcess."),
     ("nary", "The between relation holds among three entities."),
+    ("negation", "Something is not an instance of Process."),
 ]
 
 
