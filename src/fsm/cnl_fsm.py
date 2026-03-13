@@ -209,12 +209,14 @@ class CNLSampler:
         self._outlines_model = None  # lazy-initialised in sample()
         self._confidence_threshold = confidence_threshold
 
-    def _normalise_prompt(self, nl: str) -> str:
+    @staticmethod
+    def _normalise_prompt(nl: str) -> str:
         stripped = _INSTRUCTION_PREFIX_RE.sub("", nl.strip())
         return re.sub(r"\s+", " ", stripped)
 
-    def _unsupported_reasons(self, nl: str) -> list[str]:
-        text = self._normalise_prompt(nl)
+    @classmethod
+    def _unsupported_reasons(cls, nl: str) -> list[str]:
+        text = cls._normalise_prompt(nl)
         reasons: list[str] = []
 
         sentences = [part.strip() for part in _MULTI_SENTENCE_SPLIT_RE.split(text) if part.strip()]
@@ -234,14 +236,15 @@ class CNLSampler:
 
         return reasons
 
-    def abstain_if_unsupported(self, nl: str) -> bool:
+    @classmethod
+    def abstain_if_unsupported(cls, nl: str) -> bool:
         """
         Conservatively abstain on inputs likely outside the supported CNL fragment.
 
         The heuristic is intentionally biased toward false abstains over silent
         semantic errors.
         """
-        return bool(self._unsupported_reasons(nl))
+        return bool(cls._unsupported_reasons(nl))
 
     def _get_outlines_model(self):
         """Lazy-import and initialise the Outlines model wrapper."""
