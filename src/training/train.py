@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 
 DEFAULT_MODEL_NAME = "google/flan-t5-small"
 DEFAULT_DATA_PATH = _REPO_ROOT / "data" / "training_pairs" / "nl_cnl_pairs.jsonl"
+DEFAULT_PREPARED_TRAIN_FILE = _REPO_ROOT / "data" / "training_pairs" / "train_balanced_50k.jsonl"
 DEFAULT_OUTPUT_DIR = _REPO_ROOT / "models" / "flan-t5-small-cnl"
 DEFAULT_LIMIT = 50_000
 DEFAULT_EPOCHS = 3
@@ -81,6 +82,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=Path,
         default=DEFAULT_DATA_PATH,
         help=f"Training-pair JSONL path (default: {DEFAULT_DATA_PATH})",
+    )
+    parser.add_argument(
+        "--train-file",
+        type=Path,
+        default=None,
+        help=(
+            "Prepared training artifact JSONL path. "
+            f"Overrides --data-path when provided, e.g. {DEFAULT_PREPARED_TRAIN_FILE}"
+        ),
     )
     parser.add_argument(
         "--output-dir",
@@ -144,6 +154,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Maximum target token length (default: 128)",
     )
     return parser.parse_args(argv)
+
+
+def resolve_train_file(args: argparse.Namespace) -> Path:
+    train_file = args.train_file or args.data_path
+    if not train_file.exists():
+        raise FileNotFoundError(f"Training-pair file not found: {train_file}")
+    return train_file
 
 
 def format_prompt(nl: str) -> str:
@@ -588,6 +605,8 @@ def print_pattern_coverage_check(rows: list[dict[str, str]], skipped_patterns: l
 
 
 def train(args: argparse.Namespace) -> None:
+    train_file = resolve_train_file(args)
+
     modules = _require_training_dependencies()
     transformers = modules["transformers"]
 
@@ -600,10 +619,11 @@ def train(args: argparse.Namespace) -> None:
     output_dir = args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    pairs = load_training_pairs(args.data_path, limit=args.limit)
+    pairs = load_training_pairs(train_file, limit=args.limit)
     training_pairs, validation_pairs = split_training_pairs(pairs, seed=args.seed)
 
-    print(f"\nLoaded pairs: {len(pairs):,}")
+    print(f"\nTrain file:   {train_file}")
+    print(f"Loaded pairs: {len(pairs):,}")
     print(f"Train split:  {len(training_pairs):,}")
     print(f"Val split:    {len(validation_pairs):,}")
 

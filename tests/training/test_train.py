@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+import shutil
 from contextlib import nullcontext
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 
@@ -14,6 +16,8 @@ from src.training.train import (
     collect_pattern_coverage_rows,
     format_prompt,
     load_training_pairs,
+    parse_args,
+    resolve_train_file,
     split_training_pairs,
 )
 
@@ -86,6 +90,12 @@ def _write_jsonl(path: Path, records: list[dict]) -> None:
             handle.write(json.dumps(record) + "\n")
 
 
+def _make_scratch_dir() -> Path:
+    path = Path(".pytest_tmp_training") / uuid4().hex
+    path.mkdir(parents=True, exist_ok=False)
+    return path
+
+
 class TestLoadTrainingPairs:
     def test_loads_jsonl_records_and_limit(self, tmp_path):
         path = tmp_path / "pairs.jsonl"
@@ -155,6 +165,27 @@ class TestFormatAndSplit:
             ("subclass", "Process subclass-of Entity"),
             ("binary", "agent ?x ?y"),
         }
+
+
+class TestTrainFileResolution:
+    def test_train_file_overrides_data_path(self):
+        scratch_dir = _make_scratch_dir()
+        try:
+            train_file = scratch_dir / "prepared.jsonl"
+            train_file.write_text("", encoding="utf-8")
+
+            args = parse_args(["--train-file", str(train_file)])
+
+            assert resolve_train_file(args) == train_file
+        finally:
+            shutil.rmtree(scratch_dir, ignore_errors=True)
+
+    def test_missing_train_file_raises(self):
+        missing = Path("does-not-exist.jsonl")
+        args = parse_args(["--train-file", str(missing)])
+
+        with pytest.raises(FileNotFoundError, match="Training-pair file not found"):
+            resolve_train_file(args)
 
 
 class TestTokenization:
