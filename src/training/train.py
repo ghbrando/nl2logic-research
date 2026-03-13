@@ -40,6 +40,14 @@ DEFAULT_SOURCE_MAX_LENGTH = 256
 DEFAULT_TARGET_MAX_LENGTH = 128
 DEFAULT_SANITY_CHECK_SAMPLES = 5
 PROMPT_PREFIX = "translate to CNL: "
+PATTERN_COVERAGE_SENTENCES = [
+    ("instance", "Something is an instance of Process."),
+    ("subclass", "Weapon is a type of Artifact."),
+    ("binary", "The agent relation holds between a Process and an Agent."),
+    ("conditional", "Every Process is in the agent relation with an Agent."),
+    ("existential", "There exists an instance of MilitaryProcess."),
+    ("nary", "The between relation holds among three entities."),
+]
 
 
 @dataclass(frozen=True)
@@ -471,6 +479,21 @@ def collect_sanity_check_rows(
 
     compiler = compiler or create_compiler()
     sample = held_out_pairs[:sample_size]
+    return collect_generation_rows(model, tokenizer, sample, compiler=compiler)
+
+
+def collect_generation_rows(
+    model: Any,
+    tokenizer: Any,
+    pairs: list[TrainingPair],
+    *,
+    compiler: "CNLCompiler | None" = None,
+) -> list[dict[str, str]]:
+    if not pairs:
+        return []
+
+    compiler = compiler or create_compiler()
+    sample = list(pairs)
     prompts = [format_prompt(pair.nl) for pair in sample]
     generated_cnls = generate_cnl_outputs(model, tokenizer, prompts)
 
@@ -481,9 +504,38 @@ def collect_sanity_check_rows(
         except Exception as exc:
             kif = f"<compile error: {exc}>"
 
-        rows.append({"nl": pair.nl, "cnl": cnl, "kif": kif})
+        row = {"nl": pair.nl, "cnl": cnl, "kif": kif}
+        if pair.pattern:
+            row["pattern"] = pair.pattern
+        rows.append(row)
 
     return rows
+
+
+def build_pattern_coverage_pairs(all_pairs: list[TrainingPair]) -> tuple[list[TrainingPair], list[str]]:
+    available_patterns = {pair.pattern for pair in all_pairs if pair.pattern}
+    probes: list[TrainingPair] = []
+    skipped_patterns: list[str] = []
+
+    for pattern, nl in PATTERN_COVERAGE_SENTENCES:
+        if pattern not in available_patterns:
+            skipped_patterns.append(pattern)
+            continue
+        probes.append(TrainingPair(nl=nl, cnl="", pattern=pattern))
+
+    return probes, skipped_patterns
+
+
+def collect_pattern_coverage_rows(
+    model: Any,
+    tokenizer: Any,
+    all_pairs: list[TrainingPair],
+    *,
+    compiler: "CNLCompiler | None" = None,
+) -> tuple[list[dict[str, str]], list[str]]:
+    probes, skipped_patterns = build_pattern_coverage_pairs(all_pairs)
+    rows = collect_generation_rows(model, tokenizer, probes, compiler=compiler)
+    return rows, skipped_patterns
 
 
 def print_sanity_check(rows: list[dict[str, str]]) -> None:
@@ -496,6 +548,21 @@ def print_sanity_check(rows: list[dict[str, str]]) -> None:
         print(f"[{index}] NL:  {row['nl']}")
         print(f"    CNL: {row['cnl']}")
         print(f"    KIF: {row['kif']}")
+
+
+def print_pattern_coverage_check(rows: list[dict[str, str]], skipped_patterns: list[str]) -> None:
+    print("\nPattern coverage check:")
+    if not rows:
+        print("No pattern probes available.")
+    else:
+        for index, row in enumerate(rows, start=1):
+            label = row.get("pattern", f"probe-{index}")
+            print(f"[{label}] NL:  {row['nl']}")
+            print(f"    CNL: {row['cnl']}")
+            print(f"    KIF: {row['kif']}")
+
+    if skipped_patterns:
+        print(f"Skipped patterns: {', '.join(skipped_patterns)}")
 
 
 def train(args: argparse.Namespace) -> None:
@@ -559,8 +626,18 @@ def train(args: argparse.Namespace) -> None:
     trainer.save_model(str(output_dir))
     tokenizer.save_pretrained(str(output_dir))
 
-    rows = collect_sanity_check_rows(model, tokenizer, validation_pairs)
+    compiler = create_compiler()
+
+    rows = collect_sanity_check_rows(model, tokenizer, validation_pairs, compiler=compiler)
     print_sanity_check(rows)
+
+    coverage_rows, skipped_patterns = collect_pattern_coverage_rows(
+        model,
+        tokenizer,
+        pairs,
+        compiler=compiler,
+    )
+    print_pattern_coverage_check(coverage_rows, skipped_patterns)
 
 
 def main(argv: list[str] | None = None) -> None:

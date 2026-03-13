@@ -8,8 +8,10 @@ import pytest
 
 from src.training.train import (
     TrainingPair,
+    build_pattern_coverage_pairs,
     build_tokenized_records,
     collect_sanity_check_rows,
+    collect_pattern_coverage_rows,
     format_prompt,
     load_training_pairs,
     split_training_pairs,
@@ -175,3 +177,56 @@ class TestSanityCheck:
         assert rows[1]["cnl"] == "?x is-a Process #2"
         assert model.calls[0]["max_new_tokens"] == 64
         assert model.calls[0]["input_ids"].moved_to == "cuda:0"
+
+
+class TestPatternCoverage:
+    def test_build_pattern_coverage_pairs_skips_nary_when_absent(self):
+        pairs = [
+            TrainingPair(nl="nl", cnl="cnl", pattern="instance"),
+            TrainingPair(nl="nl", cnl="cnl", pattern="subclass"),
+            TrainingPair(nl="nl", cnl="cnl", pattern="binary"),
+            TrainingPair(nl="nl", cnl="cnl", pattern="conditional"),
+            TrainingPair(nl="nl", cnl="cnl", pattern="existential"),
+        ]
+
+        probes, skipped = build_pattern_coverage_pairs(pairs)
+
+        assert [probe.pattern for probe in probes] == [
+            "instance",
+            "subclass",
+            "binary",
+            "conditional",
+            "existential",
+        ]
+        assert skipped == ["nary"]
+
+    def test_collect_pattern_coverage_rows_preserves_pattern_labels(self):
+        model = FakeModel()
+        tokenizer = FakeTokenizer()
+        pairs = [
+            TrainingPair(nl="nl", cnl="cnl", pattern="instance"),
+            TrainingPair(nl="nl", cnl="cnl", pattern="subclass"),
+            TrainingPair(nl="nl", cnl="cnl", pattern="binary"),
+            TrainingPair(nl="nl", cnl="cnl", pattern="conditional"),
+            TrainingPair(nl="nl", cnl="cnl", pattern="existential"),
+            TrainingPair(nl="nl", cnl="cnl", pattern="nary"),
+        ]
+
+        rows, skipped = collect_pattern_coverage_rows(
+            model,
+            tokenizer,
+            pairs,
+            compiler=FakeCompiler(),
+        )
+
+        assert skipped == []
+        assert [row["pattern"] for row in rows] == [
+            "instance",
+            "subclass",
+            "binary",
+            "conditional",
+            "existential",
+            "nary",
+        ]
+        assert rows[0]["nl"] == "Something is an instance of Process."
+        assert rows[-1]["nl"] == "The between relation holds among three entities."
