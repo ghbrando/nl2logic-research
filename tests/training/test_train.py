@@ -134,6 +134,28 @@ class TestFormatAndSplit:
         assert len(train_a) == 9
         assert len(val_a) == 1
 
+    def test_split_keeps_same_pattern_cnl_group_together(self):
+        pairs = [
+            TrainingPair(nl="One", cnl="?x is-a Process", pattern="instance"),
+            TrainingPair(nl="Two", cnl="?x is-a Process", pattern="instance"),
+            TrainingPair(nl="Three", cnl="?x is-a Process", pattern="instance"),
+            TrainingPair(nl="Four", cnl="Process subclass-of Entity", pattern="subclass"),
+            TrainingPair(nl="Five", cnl="Process subclass-of Entity", pattern="subclass"),
+            TrainingPair(nl="Six", cnl="agent ?x ?y", pattern="binary"),
+        ]
+
+        train_pairs, val_pairs = split_training_pairs(pairs, validation_fraction=0.34, seed=7)
+
+        train_groups = {(pair.pattern, pair.cnl) for pair in train_pairs}
+        val_groups = {(pair.pattern, pair.cnl) for pair in val_pairs}
+
+        assert train_groups.isdisjoint(val_groups)
+        assert train_groups | val_groups == {
+            ("instance", "?x is-a Process"),
+            ("subclass", "Process subclass-of Entity"),
+            ("binary", "agent ?x ?y"),
+        }
+
 
 class TestTokenization:
     def test_build_tokenized_records_uses_prompt_prefix_and_labels(self):

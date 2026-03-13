@@ -199,15 +199,36 @@ def split_training_pairs(
     if not 0 < validation_fraction < 1:
         raise ValueError("validation_fraction must be between 0 and 1.")
 
-    shuffled = list(pairs)
-    random.Random(seed).shuffle(shuffled)
+    grouped: dict[tuple[str | None, str], list[TrainingPair]] = {}
+    for pair in pairs:
+        group_key = (pair.pattern, pair.cnl)
+        grouped.setdefault(group_key, []).append(pair)
 
-    validation_size = int(round(len(shuffled) * validation_fraction))
+    if len(grouped) < 2:
+        raise ValueError(
+            "Need at least 2 distinct (pattern, cnl) groups for a grouped 90/10 split."
+        )
+
+    shuffled_groups = list(grouped.values())
+    random.Random(seed).shuffle(shuffled_groups)
+
+    validation_size = int(round(len(pairs) * validation_fraction))
     validation_size = max(1, validation_size)
-    validation_size = min(len(shuffled) - 1, validation_size)
+    validation_size = min(len(pairs) - 1, validation_size)
 
-    validation_pairs = shuffled[:validation_size]
-    training_pairs = shuffled[validation_size:]
+    validation_pairs: list[TrainingPair] = []
+    training_pairs: list[TrainingPair] = []
+
+    for index, group in enumerate(shuffled_groups):
+        remaining_groups = len(shuffled_groups) - index - 1
+        if len(validation_pairs) < validation_size and remaining_groups >= 1:
+            validation_pairs.extend(group)
+        else:
+            training_pairs.extend(group)
+
+    if not validation_pairs or not training_pairs:
+        raise ValueError("Grouped split must leave at least one group on each side.")
+
     return training_pairs, validation_pairs
 
 
