@@ -14,6 +14,7 @@ All tests use SUMO terms known to exist in sumo_classes.jsonl /
 sumo_relations.jsonl so they do not depend on SUMO vocab changes.
 """
 
+import math
 import pytest
 from lark import Lark
 from lark.exceptions import UnexpectedInput
@@ -258,3 +259,91 @@ class TestCNLSamplerSample:
         result = s.sample("translate: every soldier is a combatant")
         mock_outlines_model.assert_called_once()
         assert isinstance(result, str)
+
+
+class FakeTensorBatch:
+    def __init__(self, values):
+        self.values = values
+        self.moved_to = None
+
+    def to(self, device):
+        self.moved_to = device
+        return self
+
+
+class FakeTokenizer:
+    def __init__(self):
+        self.prompts_seen: list[str] = []
+
+    def __call__(self, texts=None, **kwargs):
+        assert texts is not None
+        self.prompts_seen.extend(texts)
+        assert kwargs["return_tensors"] == "pt"
+        return {
+            "input_ids": FakeTensorBatch([[101, 102]]),
+            "attention_mask": FakeTensorBatch([[1, 1]]),
+        }
+
+    def batch_decode(self, sequences, skip_special_tokens=True):
+        assert skip_special_tokens is True
+        return ["?x is-a Process"]
+
+
+class FakeGenerationOutput:
+    def __init__(self, *, sequences, scores):
+        self.sequences = sequences
+        self.scores = scores
+
+
+class FakeConfidenceModel:
+    def __init__(self, scores):
+        self.device = "cuda:0"
+        self._scores = scores
+        self.calls: list[dict] = []
+
+    def generate(self, **kwargs):
+        self.calls.append(kwargs)
+        return FakeGenerationOutput(
+            sequences=[[201, 202, 203]],
+            scores=self._scores,
+        )
+
+
+class TestCNLSamplerConfidence:
+
+    def test_sample_with_confidence_returns_mean_top1_probability(self, grammar_str):
+        scores = [
+            [[0.0, 0.0]],
+            [[math.log(3.0), 0.0]],
+            [[math.log(9.0), 0.0]],
+        ]
+        model = FakeConfidenceModel(scores)
+        tokenizer = FakeTokenizer()
+        sampler = CNLSampler(model, tokenizer, grammar_str=grammar_str)
+
+        cnl, confidence = sampler.sample_with_confidence("translate to CNL: Something is an instance of Process.")
+
+        assert cnl == "?x is-a Process"
+        assert confidence == pytest.approx((0.5 + 0.75 + 0.9) / 3)
+        assert tokenizer.prompts_seen == ["translate to CNL: Something is an instance of Process."]
+        assert model.calls[0]["input_ids"].moved_to == "cuda:0"
+        assert model.calls[0]["max_new_tokens"] == 200
+        assert model.calls[0]["return_dict_in_generate"] is True
+        assert model.calls[0]["output_scores"] is True
+
+    def test_sample_with_confidence_logs_low_confidence_warning(self, grammar_str, caplog):
+        model = FakeConfidenceModel(scores=[[[0.0, 0.0]]])
+        tokenizer = FakeTokenizer()
+        sampler = CNLSampler(
+            model,
+            tokenizer,
+            grammar_str=grammar_str,
+            confidence_threshold=0.7,
+        )
+
+        with caplog.at_level("WARNING"):
+            cnl, confidence = sampler.sample_with_confidence("Something is an instance of Process.")
+
+        assert cnl == "?x is-a Process"
+        assert confidence == pytest.approx(0.5)
+        assert "Low-confidence CNL generation" in caplog.text

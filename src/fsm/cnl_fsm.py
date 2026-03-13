@@ -28,6 +28,7 @@ DGX Spark (Python 3.10 or 3.11) where outlines installs cleanly.
 
 import json
 import logging
+import math
 import re
 import sys
 from pathlib import Path
@@ -193,12 +194,20 @@ class CNLSampler:
     validate_output() is always available.
     """
 
-    def __init__(self, hf_model, tokenizer, *, grammar_str: str | None = None):
+    def __init__(
+        self,
+        hf_model,
+        tokenizer,
+        *,
+        grammar_str: str | None = None,
+        confidence_threshold: float = 0.7,
+    ):
         self._hf_model  = hf_model
         self._tokenizer = tokenizer
         self._grammar   = grammar_str if grammar_str is not None else build_vocabulary_grammar()
         self._compiler  = CNLCompiler()
         self._outlines_model = None  # lazy-initialised in sample()
+        self._confidence_threshold = confidence_threshold
 
     def _normalise_prompt(self, nl: str) -> str:
         stripped = _INSTRUCTION_PREFIX_RE.sub("", nl.strip())
@@ -260,6 +269,62 @@ class CNLSampler:
         self._outlines_model = from_transformers(self._hf_model, self._tokenizer)
         return self._outlines_model
 
+    def _tokenize_prompt(self, prompt: str):
+        encoded = self._tokenizer(
+            [prompt],
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+        )
+        device = getattr(self._hf_model, "device", None)
+        if device is not None:
+            encoded = self._move_batch_to_device(encoded, device)
+        return encoded
+
+    @staticmethod
+    def _move_batch_to_device(batch, device):
+        if hasattr(batch, "to"):
+            return batch.to(device)
+        if isinstance(batch, dict):
+            return {
+                key: value.to(device) if hasattr(value, "to") else value
+                for key, value in batch.items()
+            }
+        return batch
+
+    @staticmethod
+    def _score_row(score_step) -> list[float]:
+        if hasattr(score_step, "detach"):
+            score_step = score_step.detach()
+        if hasattr(score_step, "cpu"):
+            score_step = score_step.cpu()
+        if hasattr(score_step, "tolist"):
+            score_step = score_step.tolist()
+
+        if not isinstance(score_step, (list, tuple)) or not score_step:
+            raise ValueError("Model score step must be a non-empty sequence.")
+
+        row = score_step[0] if isinstance(score_step[0], (list, tuple)) else score_step
+        if not isinstance(row, (list, tuple)) or not row:
+            raise ValueError("Model score row must be a non-empty sequence.")
+
+        return [float(value) for value in row]
+
+    @classmethod
+    def _top1_probability(cls, score_step) -> float:
+        row = cls._score_row(score_step)
+        max_logit = max(row)
+        exponentials = [math.exp(value - max_logit) for value in row]
+        return max(exponentials) / sum(exponentials)
+
+    @classmethod
+    def _mean_top1_probability(cls, scores) -> float:
+        if not scores:
+            raise ValueError("Model generation did not return token scores.")
+
+        probabilities = [cls._top1_probability(score_step) for score_step in scores]
+        return sum(probabilities) / len(probabilities)
+
     def sample(self, prompt: str, max_tokens: int = 200) -> str:
         """
         Run constrained generation and return a CNL string.
@@ -293,6 +358,48 @@ class CNLSampler:
 
         model = self._get_outlines_model()
         return model(prompt, output_type=self._cfg, max_tokens=max_tokens)
+
+    def sample_with_confidence(self, prompt: str, max_tokens: int = 200) -> tuple[str, float]:
+        """
+        Run HuggingFace generation directly and return both the decoded CNL and
+        a confidence score computed as the mean top-1 probability across the
+        generated sequence.
+
+        Low-confidence generations are logged but still returned so the caller
+        can decide whether to abstain.
+        """
+        reasons = self._unsupported_reasons(prompt)
+        if reasons:
+            message = "; ".join(reasons)
+            _LOGGER.warning("Abstaining from CNL generation for unsupported input: %s", message)
+            raise UnsupportedInputError(message)
+
+        encoded = self._tokenize_prompt(prompt)
+        output = self._hf_model.generate(
+            **encoded,
+            max_new_tokens=max_tokens,
+            return_dict_in_generate=True,
+            output_scores=True,
+        )
+        if not hasattr(output, "sequences"):
+            raise ValueError("Model generation result must include sequences.")
+        if not hasattr(output, "scores"):
+            raise ValueError("Model generation result must include token scores.")
+
+        decoded = self._tokenizer.batch_decode(output.sequences, skip_special_tokens=True)
+        if not decoded:
+            raise ValueError("Tokenizer returned no decoded sequences.")
+
+        cnl = decoded[0].strip()
+        confidence = self._mean_top1_probability(output.scores)
+        if confidence < self._confidence_threshold:
+            _LOGGER.warning(
+                "Low-confidence CNL generation: confidence=%.4f threshold=%.4f cnl=%r",
+                confidence,
+                self._confidence_threshold,
+                cnl,
+            )
+        return cnl, confidence
 
     def validate_output(self, cnl: str) -> str:
         """
