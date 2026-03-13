@@ -27,6 +27,7 @@ DGX Spark (Python 3.10 or 3.11) where outlines installs cleanly.
 """
 
 import json
+import logging
 import re
 import sys
 from pathlib import Path
@@ -47,6 +48,26 @@ _SUMO_RELATIONS = _REPO_ROOT / "data" / "training_pairs" / "sumo_relations.jsonl
 # Terminals in cnl.lark that we replace with closed vocabulary alternations.
 _CLASS_TERM_RE_PATTERN  = r"CLASS_TERM\s*:\s*/\[A-Z\]\[a-zA-Z0-9_\]\*/"
 _RELATION_RE_PATTERN    = r"RELATION\s*:\s*/\[a-z\]\[a-zA-Z0-9\]\*/"
+
+_LOGGER = logging.getLogger(__name__)
+_INSTRUCTION_PREFIX_RE = re.compile(r"^\s*translate(?:\s+to\s+\w+)?\s*:\s*", re.IGNORECASE)
+_TOKEN_RE = re.compile(r"[A-Za-z0-9_?'-]+")
+_MULTI_SENTENCE_SPLIT_RE = re.compile(r"[.!?]+")
+_MAX_SUPPORTED_TOKENS = 64
+_UNSUPPORTED_MARKERS = (
+    (re.compile(r"\bit\b", re.IGNORECASE), "pronoun 'it'"),
+    (re.compile(r"\bits\b", re.IGNORECASE), "pronoun 'its'"),
+    (re.compile(r"\bthey\b", re.IGNORECASE), "pronoun 'they'"),
+    (re.compile(r"\bthem\b", re.IGNORECASE), "pronoun 'them'"),
+    (re.compile(r"\btheir\b", re.IGNORECASE), "pronoun 'their'"),
+    (re.compile(r"\bthis unit\b", re.IGNORECASE), "phrase 'this unit'"),
+    (re.compile(r"\bthat unit\b", re.IGNORECASE), "phrase 'that unit'"),
+    (re.compile(r"\bthese units\b", re.IGNORECASE), "phrase 'these units'"),
+    (re.compile(r"\bthose units\b", re.IGNORECASE), "phrase 'those units'"),
+    (re.compile(r"\bformer\b", re.IGNORECASE), "marker 'former'"),
+    (re.compile(r"\blatter\b", re.IGNORECASE), "marker 'latter'"),
+    (re.compile(r"\baforementioned\b", re.IGNORECASE), "marker 'aforementioned'"),
+)
 
 
 # ---------------------------------------------------------------------------
@@ -145,6 +166,10 @@ def validate_base_grammar_lalr() -> None:
 # CNLSampler
 # ---------------------------------------------------------------------------
 
+class UnsupportedInputError(RuntimeError):
+    """Raised when the NL input appears outside the supported CNL fragment."""
+
+
 class CNLSampler:
     """
     Wraps an Outlines-constrained HuggingFace model to produce CNL strings
@@ -174,6 +199,40 @@ class CNLSampler:
         self._grammar   = grammar_str if grammar_str is not None else build_vocabulary_grammar()
         self._compiler  = CNLCompiler()
         self._outlines_model = None  # lazy-initialised in sample()
+
+    def _normalise_prompt(self, nl: str) -> str:
+        stripped = _INSTRUCTION_PREFIX_RE.sub("", nl.strip())
+        return re.sub(r"\s+", " ", stripped)
+
+    def _unsupported_reasons(self, nl: str) -> list[str]:
+        text = self._normalise_prompt(nl)
+        reasons: list[str] = []
+
+        sentences = [part.strip() for part in _MULTI_SENTENCE_SPLIT_RE.split(text) if part.strip()]
+        if len(sentences) > 1:
+            reasons.append("multiple sentences detected")
+
+        token_count = len(_TOKEN_RE.findall(text))
+        if token_count > _MAX_SUPPORTED_TOKENS:
+            reasons.append(
+                f"input length {token_count} tokens exceeds conservative threshold {_MAX_SUPPORTED_TOKENS}"
+            )
+
+        for pattern, label in _UNSUPPORTED_MARKERS:
+            if pattern.search(text):
+                reasons.append(f"unsupported discourse marker: {label}")
+                break
+
+        return reasons
+
+    def abstain_if_unsupported(self, nl: str) -> bool:
+        """
+        Conservatively abstain on inputs likely outside the supported CNL fragment.
+
+        The heuristic is intentionally biased toward false abstains over silent
+        semantic errors.
+        """
+        return bool(self._unsupported_reasons(nl))
 
     def _get_outlines_model(self):
         """Lazy-import and initialise the Outlines model wrapper."""
@@ -219,7 +278,19 @@ class CNLSampler:
         -------
         str
             A CNL sentence string.
+
+        Raises
+        ------
+        UnsupportedInputError
+            If the natural-language input appears outside the supported fragment
+            and the sampler conservatively abstains before generation.
         """
+        reasons = self._unsupported_reasons(prompt)
+        if reasons:
+            message = "; ".join(reasons)
+            _LOGGER.warning("Abstaining from CNL generation for unsupported input: %s", message)
+            raise UnsupportedInputError(message)
+
         model = self._get_outlines_model()
         return model(prompt, output_type=self._cfg, max_tokens=max_tokens)
 

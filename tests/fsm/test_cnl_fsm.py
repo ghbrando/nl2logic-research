@@ -19,7 +19,12 @@ from lark import Lark
 from lark.exceptions import UnexpectedInput
 from unittest.mock import MagicMock
 
-from src.fsm.cnl_fsm import CNLSampler, build_vocabulary_grammar, validate_base_grammar_lalr
+from src.fsm.cnl_fsm import (
+    CNLSampler,
+    UnsupportedInputError,
+    build_vocabulary_grammar,
+    validate_base_grammar_lalr,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -179,6 +184,40 @@ class TestCNLSamplerConstruction:
         # validate_output must work even though outlines isn't importable here
         result = sampler.validate_output("?x is-a Process")
         assert result == "(instance ?x Process)"
+
+
+# ---------------------------------------------------------------------------
+# Abstain heuristic
+# ---------------------------------------------------------------------------
+
+class TestCNLSamplerAbstain:
+
+    def test_single_short_sentence_does_not_abstain(self, sampler):
+        assert sampler.abstain_if_unsupported("Every Process is in the agent relation with an Agent.") is False
+
+    def test_instruction_prefix_is_ignored(self, sampler):
+        assert sampler.abstain_if_unsupported("translate to CNL: Something is an instance of Process.") is False
+
+    def test_multiple_sentences_abstain(self, sampler):
+        assert sampler.abstain_if_unsupported("Process is an Entity. Agent is an Entity.") is True
+
+    def test_long_input_abstains(self, sampler):
+        nl = " ".join(f"token{i}" for i in range(70))
+        assert sampler.abstain_if_unsupported(nl) is True
+
+    def test_coreference_marker_abstains(self, sampler):
+        assert sampler.abstain_if_unsupported("If it advances, the unit attacks.") is True
+
+    def test_sample_logs_warning_and_abstains(self, sampler, caplog):
+        sampler._outlines_model = MagicMock(return_value="?x is-a Process")
+        sampler._cfg = MagicMock()
+
+        with caplog.at_level("WARNING"):
+            with pytest.raises(UnsupportedInputError, match="multiple sentences detected"):
+                sampler.sample("Process is an Entity. Agent is an Entity.")
+
+        sampler._outlines_model.assert_not_called()
+        assert "Abstaining from CNL generation for unsupported input" in caplog.text
 
 
 # ---------------------------------------------------------------------------
