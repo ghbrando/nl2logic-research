@@ -284,5 +284,6 @@ class TestPatternCoverage:
             "negation",
         ]
         assert rows[0]["nl"] == "Something is an instance of Process."
-        assert rows[-2]["nl"] == "The between relation holds among three entities."
-        assert rows[-1]["nl"] == "Something is not an instance of Process."
+        assert rows[2]["nl"] == "The agent relation holds between a MilitaryProcess and an AutonomousAgent."
+        assert rows[-2]["nl"] == "The between relation holds among an Area, a MilitaryUnit, and a Region."
+        assert rows[-1]["nl"] == "A military process does not have an autonomous agent."

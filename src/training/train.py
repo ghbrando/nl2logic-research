@@ -44,11 +44,11 @@ PROMPT_PREFIX = "translate to CNL: "
 PATTERN_COVERAGE_SENTENCES = [
     ("instance", "Something is an instance of Process."),
     ("subclass", "Weapon is a type of Artifact."),
-    ("binary", "The agent relation holds between a Process and an Agent."),
-    ("conditional", "Every Process is in the agent relation with an Agent."),
+    ("binary", "The agent relation holds between a MilitaryProcess and an AutonomousAgent."),
+    ("conditional", "Every MilitaryProcess is in the agent relation with an AutonomousAgent."),
     ("existential", "There exists an instance of MilitaryProcess."),
-    ("nary", "The between relation holds among three entities."),
-    ("negation", "Something is not an instance of Process."),
+    ("nary", "The between relation holds among an Area, a MilitaryUnit, and a Region."),
+    ("negation", "A military process does not have an autonomous agent."),
 ]
 
 

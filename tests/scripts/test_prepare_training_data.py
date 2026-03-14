@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 from uuid import uuid4
 
-from scripts.prepare_training_data import prepare_training_data
+from scripts.prepare_training_data import is_military_focus_pair, prepare_training_data
 from src.training.train import PATTERN_COVERAGE_SENTENCES
 
 
@@ -160,5 +160,41 @@ class TestPrepareTrainingData:
                 "gold_cnl": 1,
                 "probe_nl": 1,
             }
+        finally:
+            shutil.rmtree(scratch_dir, ignore_errors=True)
+
+    def test_prioritizes_military_focus_pairs_within_pattern_cap(self):
+        generator_batches = [
+            (
+                "binary",
+                [
+                    {
+                        "nl": "background relation",
+                        "cnl": "married Person Person",
+                        "kif": "(married Person Person)",
+                        "pattern": "binary",
+                    },
+                    {
+                        "nl": "military relation",
+                        "cnl": "agent Battle AutonomousAgent",
+                        "kif": "(agent Battle AutonomousAgent)",
+                        "pattern": "binary",
+                    },
+                ],
+            ),
+        ]
+
+        scratch_dir = _make_scratch_dir()
+        try:
+            result = prepare_training_data(
+                limit=1,
+                output_path=scratch_dir / "train_balanced.jsonl",
+                generator_batches=generator_batches,
+            )
+
+            assert len(result.pairs) == 1
+            assert result.pairs[0]["cnl"] == "agent Battle AutonomousAgent"
+            assert is_military_focus_pair(result.pairs[0]) is True
+            assert result.focused_counts == {"binary": 1}
         finally:
             shutil.rmtree(scratch_dir, ignore_errors=True)

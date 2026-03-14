@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,7 +27,6 @@ from src.data.generate_pairs import (
     gen_subclass_pairs,
     load_classes,
     load_relations,
-    select_output_pairs,
 )
 from src.eval.evaluate import DEFAULT_GOLD_PATH
 from src.training.train import PATTERN_COVERAGE_SENTENCES
@@ -35,6 +35,35 @@ DEFAULT_LIMIT = 50_000
 DEFAULT_OUTPUT_PATH = _REPO_ROOT / "data" / "training_pairs" / "train_balanced_50k.jsonl"
 DEFAULT_SAMPLE_SIZE = 3
 DEFAULT_SAMPLE_SEED = 42
+_TOKEN_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+MILITARY_FOCUS_CLASSES = {
+    "Area",
+    "Artifact",
+    "Attack",
+    "AutonomousAgent",
+    "Battle",
+    "Communication",
+    "MilitaryOrganization",
+    "MilitaryProcess",
+    "MilitaryUnit",
+    "Order",
+    "Organization",
+    "Plan",
+    "Process",
+    "Region",
+    "Transportation",
+    "Weapon",
+}
+MILITARY_FOCUS_RELATIONS = {
+    "agent",
+    "between",
+    "destination",
+    "instrument",
+    "located",
+    "orientation",
+    "origin",
+    "patient",
+}
 
 
 @dataclass(frozen=True)
@@ -46,6 +75,7 @@ class PreparationResult:
     balanced_cap: int
     samples_by_pattern: dict[str, list[dict]]
     excluded_counts: dict[str, int]
+    focused_counts: dict[str, int]
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -130,6 +160,54 @@ def build_samples_by_pattern(
     return samples
 
 
+def is_military_focus_pair(
+    pair: dict,
+    *,
+    focus_classes: set[str] = MILITARY_FOCUS_CLASSES,
+    focus_relations: set[str] = MILITARY_FOCUS_RELATIONS,
+) -> bool:
+    tokens = set(_TOKEN_RE.findall(pair.get("cnl", "")))
+    return bool(tokens & focus_classes or tokens & focus_relations)
+
+
+def select_prepared_pairs(
+    pairs: list[dict],
+    *,
+    limit: int,
+    seed: int = DEFAULT_SAMPLE_SEED,
+) -> tuple[list[dict], dict[str, int]]:
+    if limit <= 0:
+        selected = list(pairs)
+        return selected, count_pairs_by_pattern([pair for pair in selected if is_military_focus_pair(pair)])
+
+    grouped: dict[str, list[dict]] = {}
+    for pair in pairs:
+        grouped.setdefault(pair["pattern"], []).append(pair)
+
+    if not grouped:
+        return [], {}
+
+    per_pattern_cap = limit // len(grouped)
+    rng = random.Random(seed)
+    selected: list[dict] = []
+    focused_counts: dict[str, int] = {}
+
+    for pattern, bucket in grouped.items():
+        focused = [pair for pair in bucket if is_military_focus_pair(pair)]
+        background = [pair for pair in bucket if not is_military_focus_pair(pair)]
+        rng.shuffle(focused)
+        rng.shuffle(background)
+
+        chosen = focused[:per_pattern_cap]
+        if len(chosen) < per_pattern_cap:
+            chosen.extend(background[: per_pattern_cap - len(chosen)])
+
+        selected.extend(chosen)
+        focused_counts[pattern] = sum(1 for pair in chosen if is_military_focus_pair(pair))
+
+    return selected, focused_counts
+
+
 def _load_gold_overlap_sets(gold_path: Path = DEFAULT_GOLD_PATH) -> tuple[set[str], set[str]]:
     with open(gold_path, encoding="utf-8") as handle:
         records = [json.loads(line) for line in handle if line.strip()]
@@ -205,7 +283,11 @@ def prepare_training_data(
         excluded_nls=excluded_nls,
         excluded_cnls=excluded_cnls,
     )
-    output_pairs = select_output_pairs(all_pairs, limit=limit, balanced=True)
+    output_pairs, focused_counts = select_prepared_pairs(
+        all_pairs,
+        limit=limit,
+        seed=sample_seed,
+    )
     written_counts = count_pairs_by_pattern(output_pairs)
     balanced_cap = limit // len(generated_counts) if generated_counts else 0
     samples_by_pattern = build_samples_by_pattern(
@@ -225,6 +307,7 @@ def prepare_training_data(
         balanced_cap=balanced_cap,
         samples_by_pattern=samples_by_pattern,
         excluded_counts=excluded_counts,
+        focused_counts=focused_counts,
     )
 
 
@@ -239,6 +322,9 @@ def print_preparation_report(result: PreparationResult) -> None:
     print("  Per-pattern counts:")
     for pattern in result.generated_counts:
         print(f"    {pattern:15s}: {result.written_counts.get(pattern, 0):>7,}")
+    print("  Military-focus counts:")
+    for pattern in result.generated_counts:
+        print(f"    {pattern:15s}: {result.focused_counts.get(pattern, 0):>7,}")
 
     print("\nInspection samples:")
     for pattern in result.generated_counts:
