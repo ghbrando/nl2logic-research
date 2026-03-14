@@ -6,6 +6,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from scripts.prepare_training_data import prepare_training_data
+from src.training.train import PATTERN_COVERAGE_SENTENCES
 
 
 def _pair(pattern: str, index: int) -> dict[str, str]:
@@ -95,5 +96,69 @@ class TestPrepareTrainingData:
 
             for count in result.written_counts.values():
                 assert count <= per_pattern_cap
+        finally:
+            shutil.rmtree(scratch_dir, ignore_errors=True)
+
+    def test_excludes_exact_gold_and_probe_overlaps(self):
+        probe_nl = PATTERN_COVERAGE_SENTENCES[0][1]
+        generator_batches = [
+            (
+                "instance",
+                [
+                    {
+                        "nl": "gold nl",
+                        "cnl": "instance cnl keep",
+                        "kif": "(instance keep)",
+                        "pattern": "instance",
+                    },
+                    {
+                        "nl": "safe nl",
+                        "cnl": "gold cnl",
+                        "kif": "(instance gold-cnl)",
+                        "pattern": "instance",
+                    },
+                    {
+                        "nl": probe_nl,
+                        "cnl": "instance cnl probe",
+                        "kif": "(instance probe)",
+                        "pattern": "instance",
+                    },
+                    {
+                        "nl": "clean instance",
+                        "cnl": "instance cnl clean",
+                        "kif": "(instance clean)",
+                        "pattern": "instance",
+                    },
+                ],
+            ),
+            (
+                "negation",
+                [
+                    {
+                        "nl": "clean negation",
+                        "cnl": "negation cnl clean",
+                        "kif": "(not clean)",
+                        "pattern": "negation",
+                    }
+                ],
+            ),
+        ]
+
+        scratch_dir = _make_scratch_dir()
+        try:
+            result = prepare_training_data(
+                limit=10,
+                output_path=scratch_dir / "train_balanced.jsonl",
+                generator_batches=generator_batches,
+                excluded_nls={"gold nl"},
+                excluded_cnls={"gold cnl"},
+            )
+
+            assert [pair["nl"] for pair in result.pairs] == ["clean instance", "clean negation"]
+            assert result.excluded_counts == {
+                "gold_nl": 1,
+                "gold_cnl": 1,
+                "probe_nl": 1,
+            }
         finally:
             shutil.rmtree(scratch_dir, ignore_errors=True)

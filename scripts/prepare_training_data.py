@@ -28,6 +28,8 @@ from src.data.generate_pairs import (
     load_relations,
     select_output_pairs,
 )
+from src.eval.evaluate import DEFAULT_GOLD_PATH
+from src.training.train import PATTERN_COVERAGE_SENTENCES
 
 DEFAULT_LIMIT = 50_000
 DEFAULT_OUTPUT_PATH = _REPO_ROOT / "data" / "training_pairs" / "train_balanced_50k.jsonl"
@@ -43,6 +45,7 @@ class PreparationResult:
     generated_counts: dict[str, int]
     balanced_cap: int
     samples_by_pattern: dict[str, list[dict]]
+    excluded_counts: dict[str, int]
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -85,10 +88,10 @@ def build_generator_batches(
     compiler: CNLCompiler,
 ) -> list[tuple[str, list[dict]]]:
     return [
-        ("instance", gen_instance_pairs(classes, compiler)),
-        ("subclass", gen_subclass_pairs(classes, compiler)),
-        ("binary", gen_binary_pairs(relations, compiler)),
-        ("nary", gen_nary_pairs(relations, compiler)),
+        ("instance", gen_instance_pairs(classes, compiler, include_doc_templates=False)),
+        ("subclass", gen_subclass_pairs(classes, compiler, include_doc_templates=False)),
+        ("binary", gen_binary_pairs(relations, compiler, include_doc_templates=False)),
+        ("nary", gen_nary_pairs(relations, compiler, include_doc_templates=False)),
         ("conditional", gen_conditional_every_pairs(relations, compiler)),
         ("conditional", gen_conditional_if_pairs(relations, compiler)),
         ("existential", gen_existential_pairs(classes, compiler)),
@@ -127,6 +130,53 @@ def build_samples_by_pattern(
     return samples
 
 
+def _load_gold_overlap_sets(gold_path: Path = DEFAULT_GOLD_PATH) -> tuple[set[str], set[str]]:
+    with open(gold_path, encoding="utf-8") as handle:
+        records = [json.loads(line) for line in handle if line.strip()]
+    return (
+        {record["nl"] for record in records if "nl" in record},
+        {record["cnl"] for record in records if "cnl" in record},
+    )
+
+
+def exclude_eval_overlaps(
+    pairs: list[dict],
+    *,
+    excluded_nls: set[str] | None = None,
+    excluded_cnls: set[str] | None = None,
+    probe_sentences: list[tuple[str, str]] = PATTERN_COVERAGE_SENTENCES,
+) -> tuple[list[dict], dict[str, int]]:
+    if excluded_nls is None or excluded_cnls is None:
+        gold_nls, gold_cnls = _load_gold_overlap_sets()
+        if excluded_nls is None:
+            excluded_nls = gold_nls
+        if excluded_cnls is None:
+            excluded_cnls = gold_cnls
+
+    excluded_probe_nls = {nl for _, nl in probe_sentences}
+
+    filtered: list[dict] = []
+    excluded_counts = {
+        "gold_nl": 0,
+        "gold_cnl": 0,
+        "probe_nl": 0,
+    }
+
+    for pair in pairs:
+        if pair["nl"] in excluded_probe_nls:
+            excluded_counts["probe_nl"] += 1
+            continue
+        if pair["nl"] in excluded_nls:
+            excluded_counts["gold_nl"] += 1
+            continue
+        if pair["cnl"] in excluded_cnls:
+            excluded_counts["gold_cnl"] += 1
+            continue
+        filtered.append(pair)
+
+    return filtered, excluded_counts
+
+
 def prepare_training_data(
     *,
     limit: int = DEFAULT_LIMIT,
@@ -134,6 +184,8 @@ def prepare_training_data(
     sample_size: int = DEFAULT_SAMPLE_SIZE,
     sample_seed: int = DEFAULT_SAMPLE_SEED,
     generator_batches: list[tuple[str, list[dict]]] | None = None,
+    excluded_nls: set[str] | None = None,
+    excluded_cnls: set[str] | None = None,
 ) -> PreparationResult:
     if generator_batches is None:
         classes = load_classes(_CLASSES_PATH)
@@ -148,6 +200,11 @@ def prepare_training_data(
         generated_counts[label] = generated_counts.get(label, 0) + len(batch)
         all_pairs.extend(batch)
 
+    all_pairs, excluded_counts = exclude_eval_overlaps(
+        all_pairs,
+        excluded_nls=excluded_nls,
+        excluded_cnls=excluded_cnls,
+    )
     output_pairs = select_output_pairs(all_pairs, limit=limit, balanced=True)
     written_counts = count_pairs_by_pattern(output_pairs)
     balanced_cap = limit // len(generated_counts) if generated_counts else 0
@@ -167,6 +224,7 @@ def prepare_training_data(
         generated_counts=generated_counts,
         balanced_cap=balanced_cap,
         samples_by_pattern=samples_by_pattern,
+        excluded_counts=excluded_counts,
     )
 
 
@@ -175,6 +233,9 @@ def print_preparation_report(result: PreparationResult) -> None:
     print(f"  Output:               {result.output_path}")
     print(f"  Total pairs written:  {len(result.pairs):,}")
     print(f"  Balanced cap/pattern: {result.balanced_cap:,}")
+    print(f"  Excluded gold NL:     {result.excluded_counts['gold_nl']:,}")
+    print(f"  Excluded gold CNL:    {result.excluded_counts['gold_cnl']:,}")
+    print(f"  Excluded probe NL:    {result.excluded_counts['probe_nl']:,}")
     print("  Per-pattern counts:")
     for pattern in result.generated_counts:
         print(f"    {pattern:15s}: {result.written_counts.get(pattern, 0):>7,}")
