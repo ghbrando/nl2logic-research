@@ -1,29 +1,28 @@
 """
-cnl_fsm.py — Stage 2: Outlines FSM integration for NL2Logic.
+cnl_fsm.py - constrained decoding integration for NL2Logic.
 
-Provides two public surfaces:
+This module keeps two grammar builders because the parser/compiler path and
+the constrained-decoding backend accept different syntaxes:
 
-1. build_vocabulary_grammar(classes_path, relations_path) -> str
-   Reads the SUMO vocab JSONL files, replaces the open-ended CLASS_TERM and
-   RELATION terminals in cnl.lark with closed alternations of all known SUMO
-   terms, and verifies the resulting grammar compiles under Lark LALR(1).
-   This grammar string is what gets passed to Outlines CFG-constrained
-   generation, making hallucinated class/relation names physically impossible.
+1. build_vocabulary_grammar(...)
+   Produces the existing Lark grammar with CLASS_TERM and RELATION closed over
+   the SUMO vocabulary. This remains the source of truth for parsing and
+   compiler-side validation.
 
-2. CNLSampler(hf_model, tokenizer, *, grammar_str=None)
-   Wraps an Outlines-constrained HuggingFace model.  Requires outlines>=1.0
-   and Python <3.14.  On Python 3.14 the outlines import guard raises a clear
-   ImportError rather than a cryptic failure.
+2. build_xgrammar_grammar(...)
+   Produces an xgrammar-compatible GBNF grammar that emits the same CNL
+   fragment in a canonical one-line surface form. This is what constrained
+   decoding uses, because xgrammar follows GBNF rather than Lark syntax.
 
-   validate_output(cnl) -> str  delegates to CNLCompiler and is always
-   available regardless of whether outlines is installed.
+3. CNLSampler(...)
+   Wraps an Outlines-constrained HuggingFace model. validate_output() always
+   delegates to CNLCompiler regardless of whether outlines is installed.
 
 Python 3.14 note
 ----------------
-outlines>=1.0 declares Requires-Python <3.14.  All CNL grammar building and
-output validation work without outlines.  The CNLSampler.sample() method is
-the only part that requires a working outlines install.  Training runs on the
-DGX Spark (Python 3.10 or 3.11) where outlines installs cleanly.
+outlines>=1.0 declares Requires-Python <3.14. All grammar building and output
+validation work without outlines. The CNLSampler.sample() method is the only
+part that requires a working outlines install.
 """
 
 import json
@@ -41,14 +40,14 @@ from src.compiler.compiler import CNLCompiler
 # Paths
 # ---------------------------------------------------------------------------
 
-_REPO_ROOT     = Path(__file__).resolve().parents[2]
-_GRAMMAR_PATH  = _REPO_ROOT / "src" / "compiler" / "cnl.lark"
-_SUMO_CLASSES  = _REPO_ROOT / "data" / "training_pairs" / "sumo_classes.jsonl"
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_GRAMMAR_PATH = _REPO_ROOT / "src" / "compiler" / "cnl.lark"
+_SUMO_CLASSES = _REPO_ROOT / "data" / "training_pairs" / "sumo_classes.jsonl"
 _SUMO_RELATIONS = _REPO_ROOT / "data" / "training_pairs" / "sumo_relations.jsonl"
 
 # Terminals in cnl.lark that we replace with closed vocabulary alternations.
-_CLASS_TERM_RE_PATTERN  = r"CLASS_TERM\s*:\s*/\[A-Z\]\[a-zA-Z0-9_\]\*/"
-_RELATION_RE_PATTERN    = r"RELATION\s*:\s*/\[a-z\]\[a-zA-Z0-9\]\*/"
+_CLASS_TERM_RE_PATTERN = r"CLASS_TERM\s*:\s*/\[A-Z\]\[a-zA-Z0-9_\]\*/"
+_RELATION_RE_PATTERN = r"RELATION\s*:\s*/\[a-z\]\[a-zA-Z0-9\]\*/"
 
 _LOGGER = logging.getLogger(__name__)
 _INSTRUCTION_PREFIX_RE = re.compile(r"^\s*translate(?:\s+to\s+\w+)?\s*:\s*", re.IGNORECASE)
@@ -73,10 +72,28 @@ _SUPPORTED_POSSESSIVE_SLOT_RE = re.compile(
     r"\bas\s+its\s+(agent|patient|destination|origin)\b",
     re.IGNORECASE,
 )
+_XGRAMMAR_TEMPLATE = """
+root ::= sentence
+sentence ::= assertion | quantified | conditional
+assertion ::= atomic-assertion | "not " atomic-assertion
+atomic-assertion ::= unary-assert | nary-assert | binary-assert
+unary-assert ::= term " is-a " class-term | class-term " subclass-of " class-term
+binary-assert ::= relation " " term " " term
+nary-assert ::= relation " [ " term (" , " term)+ " ]"
+quantified ::= "every " var " is-a " class-term (" implies " sentence)?
+             | "some " var " is-a " class-term
+             | "no " var " is-a " class-term (" implies " sentence)?
+conditional ::= "if " condition " then " sentence
+condition ::= assertion (" and " assertion)*
+term ::= var | class-term
+var ::= "?" [a-z] [a-zA-Z0-9_]*
+class-term ::= __CLASS_ALTS__
+relation ::= __RELATION_ALTS__
+""".strip()
 
 
 # ---------------------------------------------------------------------------
-# Grammar builder
+# Grammar builders
 # ---------------------------------------------------------------------------
 
 def _load_terms(path: Path, key: str = "term") -> list[str]:
@@ -85,16 +102,29 @@ def _load_terms(path: Path, key: str = "term") -> list[str]:
         return [json.loads(line)[key] for line in f]
 
 
-def _alternation(terms: list[str]) -> str:
+def _sorted_terms(terms: list[str]) -> list[str]:
+    """Sort terms longest-first, then lexicographically for stable output."""
+    return sorted(set(terms), key=lambda term: (-len(term), term))
+
+
+def _lark_regex_alternation(terms: list[str]) -> str:
     """
     Build a Lark regex terminal alternation from a list of string terms.
 
-    Terms are sorted longest-first so that longer matches shadow shorter
-    prefixes (e.g. 'agentName' shadows 'agent').
-    Terms are re.escape'd so special regex characters are treated literally.
+    Terms are sorted longest-first so longer matches shadow shorter prefixes
+    (for example, 'agentName' before 'agent').
     """
-    sorted_terms = sorted(terms, key=len, reverse=True)
-    return "|".join(re.escape(t) for t in sorted_terms)
+    return "|".join(re.escape(term) for term in _sorted_terms(terms))
+
+
+def _quote_gbnf_literal(term: str) -> str:
+    """Quote a literal for GBNF / xgrammar using JSON escaping semantics."""
+    return json.dumps(term)
+
+
+def _gbnf_literal_alternation(terms: list[str]) -> str:
+    """Build a GBNF alternation over exact quoted literals."""
+    return " | ".join(_quote_gbnf_literal(term) for term in _sorted_terms(terms))
 
 
 def build_vocabulary_grammar(
@@ -102,32 +132,21 @@ def build_vocabulary_grammar(
     relations_path: Path = _SUMO_RELATIONS,
 ) -> str:
     """
-    Build a vocabulary-closed CNL grammar string suitable for Outlines CFG
-    constrained generation and Lark LALR(1) parsing.
+    Build the vocabulary-closed Lark grammar used by the compiler/parser path.
 
     Reads the base grammar from cnl.lark and replaces:
       CLASS_TERM : /[A-Z][a-zA-Z0-9_]*/   (open)
       RELATION   : /[a-z][a-zA-Z0-9]*/    (open)
     with closed alternation patterns built from all known SUMO terms.
-
-    Verifies LALR(1) compatibility before returning.
-
-    Raises
-    ------
-    RuntimeError
-        If the resulting grammar is not LALR(1)-compatible.
     """
     base_grammar = _GRAMMAR_PATH.read_text(encoding="utf-8")
 
-    classes   = _load_terms(classes_path)
+    classes = _load_terms(classes_path)
     relations = _load_terms(relations_path)
 
-    class_alt    = _alternation(classes)
-    relation_alt = _alternation(relations)
+    class_alt = _lark_regex_alternation(classes)
+    relation_alt = _lark_regex_alternation(relations)
 
-    # Replace open terminals with closed alternations.
-    # The alternation is wrapped in a non-capturing group so the regex
-    # terminal boundary is unambiguous.
     grammar = re.sub(
         _CLASS_TERM_RE_PATTERN,
         f"CLASS_TERM  : /(?:{class_alt})/",
@@ -142,28 +161,40 @@ def build_vocabulary_grammar(
     return grammar
 
 
+def build_xgrammar_grammar(
+    classes_path: Path = _SUMO_CLASSES,
+    relations_path: Path = _SUMO_RELATIONS,
+) -> str:
+    """
+    Build a closed-vocabulary GBNF grammar for xgrammar-backed generation.
+
+    The constrained grammar intentionally emits a single canonical CNL sentence
+    with exact spacing. That keeps generation backend-compatible and aligns
+    better with exact-match evaluation.
+    """
+    classes = _load_terms(classes_path)
+    relations = _load_terms(relations_path)
+
+    return (
+        _XGRAMMAR_TEMPLATE
+        .replace("__CLASS_ALTS__", _gbnf_literal_alternation(classes))
+        .replace("__RELATION_ALTS__", _gbnf_literal_alternation(relations))
+    )
+
+
 def validate_base_grammar_lalr() -> None:
     """
-    Verify that the *base* CNL grammar (with open-ended terminal regexes, no
-    vocabulary substitution) compiles under Lark LALR(1).
+    Verify that the base CNL grammar (with open terminals) compiles as LALR(1).
 
-    This is a fast check (~ms) used in CI to confirm the grammar's structural
-    skeleton is LALR(1)-compatible before the large vocabulary alternations
-    are injected.  The vocabulary-closed grammar uses Earley at parse time
-    because a 29,649-term alternation makes LALR table construction impractical.
-
-    Raises
-    ------
-    RuntimeError
-        If the base grammar is not LALR(1)-compatible.
+    This is a fast structural check used in CI before the large vocabulary
+    alternations are injected.
     """
     base_grammar = _GRAMMAR_PATH.read_text(encoding="utf-8")
     try:
         Lark(base_grammar, parser="lalr")
     except Exception as exc:
         raise RuntimeError(
-            "Base CNL grammar is not LALR(1)-compatible. "
-            "Details: " + str(exc)
+            "Base CNL grammar is not LALR(1)-compatible. Details: " + str(exc)
         ) from exc
 
 
@@ -177,25 +208,22 @@ class UnsupportedInputError(RuntimeError):
 
 class CNLSampler:
     """
-    Wraps an Outlines-constrained HuggingFace model to produce CNL strings
-    guaranteed parseable by the Lark grammar, then validates them through
-    CNLCompiler to obtain SUO-KIF output.
+    Wrap an Outlines-constrained HuggingFace model to produce canonical CNL.
 
     Parameters
     ----------
     hf_model : transformers.PreTrainedModel
-        A loaded HuggingFace encoder-decoder model (e.g. T5).
+        A loaded HuggingFace encoder-decoder model (for example, T5).
     tokenizer : transformers.PreTrainedTokenizer
         The corresponding tokenizer.
     grammar_str : str, optional
-        Pre-built vocabulary grammar string.  Defaults to calling
-        build_vocabulary_grammar() on construction.
+        Pre-built constrained grammar string. Defaults to build_xgrammar_grammar().
 
     Notes
     -----
-    Requires outlines>=1.0 and Python <3.14.  On Python 3.14 the
-    sample() method raises ImportError with a clear message.
-    validate_output() is always available.
+    Requires outlines>=1.0 and Python <3.14. On Python 3.14 the sample()
+    method raises ImportError with a clear message. validate_output() is
+    always available.
     """
 
     def __init__(
@@ -206,11 +234,12 @@ class CNLSampler:
         grammar_str: str | None = None,
         confidence_threshold: float = 0.7,
     ):
-        self._hf_model  = hf_model
+        self._hf_model = hf_model
         self._tokenizer = tokenizer
-        self._grammar   = grammar_str if grammar_str is not None else build_vocabulary_grammar()
-        self._compiler  = CNLCompiler()
-        self._outlines_model = None  # lazy-initialised in sample()
+        self._grammar = grammar_str if grammar_str is not None else build_xgrammar_grammar()
+        self._compiler = CNLCompiler()
+        self._outlines_model = None
+        self._cfg = None
         self._confidence_threshold = confidence_threshold
 
     @staticmethod
@@ -245,7 +274,7 @@ class CNLSampler:
     @classmethod
     def abstain_if_unsupported(cls, nl: str) -> bool:
         """
-        Conservatively abstain on inputs likely outside the supported CNL fragment.
+        Conservatively abstain on inputs likely outside the supported fragment.
 
         The heuristic is intentionally biased toward false abstains over silent
         semantic errors.
@@ -267,7 +296,7 @@ class CNLSampler:
 
         try:
             from outlines.models import from_transformers  # type: ignore[import]
-            from outlines.types import CFG                 # type: ignore[import]
+            from outlines.types import CFG  # type: ignore[import]
         except ImportError as exc:
             raise ImportError(
                 "outlines is not installed or not importable. "
@@ -336,10 +365,7 @@ class CNLSampler:
 
     def sample(self, prompt: str, max_tokens: int = 200) -> str:
         """
-        Run constrained generation and return a CNL string.
-
-        The Outlines FSM guarantees the output matches the vocabulary grammar,
-        so it is always parseable by CNLCompiler (modulo vocab validation).
+        Run constrained generation and return a canonical CNL string.
 
         Parameters
         ----------
@@ -370,12 +396,10 @@ class CNLSampler:
 
     def sample_with_confidence(self, prompt: str, max_tokens: int = 200) -> tuple[str, float]:
         """
-        Run HuggingFace generation directly and return both the decoded CNL and
-        a confidence score computed as the mean top-1 probability across the
-        generated sequence.
+        Run HuggingFace generation directly and return CNL plus a confidence score.
 
-        Low-confidence generations are logged but still returned so the caller
-        can decide whether to abstain.
+        The confidence is computed as the mean top-1 probability across the
+        generated sequence.
         """
         reasons = self._unsupported_reasons(prompt)
         if reasons:
@@ -414,23 +438,7 @@ class CNLSampler:
         """
         Compile a CNL string to SUO-KIF via CNLCompiler.
 
-        Does not use Outlines — always available regardless of Python version.
-
-        Parameters
-        ----------
-        cnl : str
-            A CNL sentence string.
-
-        Returns
-        -------
-        str
-            Well-formed SUO-KIF s-expression string.
-
-        Raises
-        ------
-        lark.exceptions.UnexpectedInput
-            If `cnl` is not parseable by the CNL grammar.
-        ValueError
-            If `cnl` contains unknown SUMO class or relation terms.
+        Does not use Outlines and is always available regardless of Python
+        version or constrained-decoding backend availability.
         """
         return self._compiler.compile(cnl)

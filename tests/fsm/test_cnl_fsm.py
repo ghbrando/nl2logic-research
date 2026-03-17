@@ -24,6 +24,7 @@ from src.fsm.cnl_fsm import (
     CNLSampler,
     UnsupportedInputError,
     build_vocabulary_grammar,
+    build_xgrammar_grammar,
     validate_base_grammar_lalr,
 )
 
@@ -58,6 +59,35 @@ class TestBuildVocabularyGrammar:
 
     def test_open_relation_regex_replaced(self, grammar_str):
         assert "/[a-z][a-zA-Z0-9]*/" not in grammar_str
+
+
+class TestBuildXGrammarGrammar:
+
+    def test_returns_string(self, constrained_grammar_str):
+        assert isinstance(constrained_grammar_str, str)
+        assert len(constrained_grammar_str) > 100
+
+    def test_uses_gbnf_rule_syntax(self, constrained_grammar_str):
+        assert "root ::= sentence" in constrained_grammar_str
+        assert "class-term ::=" in constrained_grammar_str
+        assert "relation ::=" in constrained_grammar_str
+
+    def test_omits_lark_only_constructs(self, constrained_grammar_str):
+        assert "%ignore" not in constrained_grammar_str
+        assert "//" not in constrained_grammar_str
+        assert "CLASS_TERM  :" not in constrained_grammar_str
+        assert "RELATION    :" not in constrained_grammar_str
+
+    def test_known_vocab_terms_present(self, constrained_grammar_str):
+        assert '"Process"' in constrained_grammar_str
+        assert '"agent"' in constrained_grammar_str
+
+    def test_builder_function_matches_fixture(self, constrained_grammar_str):
+        assert constrained_grammar_str == build_xgrammar_grammar()
+
+    def test_xgrammar_compiles_when_available(self, constrained_grammar_str):
+        xgrammar = pytest.importorskip("xgrammar")
+        xgrammar.Grammar.from_ebnf(constrained_grammar_str)
 
 
 # ---------------------------------------------------------------------------
@@ -249,7 +279,7 @@ class TestCNLSamplerAbstain:
 
 class TestCNLSamplerSample:
 
-    def test_sample_calls_outlines_model(self, grammar_str):
+    def test_sample_calls_outlines_model(self, constrained_grammar_str):
         """
         The outlines model wrapper is lazy-initialised. On Python 3.14 sample()
         raises ImportError — skip in that case so the test doesn't hard-fail
@@ -273,10 +303,10 @@ class TestCNLSamplerSample:
         import src.fsm.cnl_fsm as fsm_module
         original = getattr(fsm_module, "_get_outlines_model", None)
 
-        s = CNLSampler(mock_hf, mock_tok, grammar_str=grammar_str)
+        s = CNLSampler(mock_hf, mock_tok, grammar_str=constrained_grammar_str)
         # Inject mock model directly
         s._outlines_model = mock_outlines_model
-        s._cfg = CFG(grammar_str)
+        s._cfg = CFG(constrained_grammar_str)
 
         result = s.sample("translate: every soldier is a combatant")
         mock_outlines_model.assert_called_once_with(
