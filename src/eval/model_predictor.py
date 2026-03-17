@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import logging
 from contextlib import nullcontext
@@ -21,6 +21,8 @@ _VALID_DECODING_MODES = {"auto", "constrained", "raw"}
 def _is_constrained_backend_error(exc: Exception) -> bool:
     if isinstance(exc, ImportError):
         return True
+    if isinstance(exc, AssertionError):
+        return True
 
     message = str(exc).lower()
     markers = (
@@ -29,6 +31,7 @@ def _is_constrained_backend_error(exc: Exception) -> bool:
         "ebnf lexer error",
         "decoder type",
         "compile_grammar",
+        "accept_token",
     )
     return any(marker in message for marker in markers)
 
