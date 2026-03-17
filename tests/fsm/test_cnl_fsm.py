@@ -312,7 +312,7 @@ class TestCNLSamplerSample:
         mock_outlines_model.assert_called_once_with(
             "translate: every soldier is a combatant",
             output_type=s._cfg,
-            max_tokens=200,
+            max_new_tokens=200,
             backend="xgrammar",
         )
         assert isinstance(result, str)
