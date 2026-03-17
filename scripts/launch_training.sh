@@ -23,8 +23,6 @@ conda activate nl2logic
 
 pip install -q --break-system-packages -r requirements.txt
 pip install -q --break-system-packages transformers peft accelerate sentencepiece
-python -m spacy download en_core_web_lg
-python -m coreferee install en
 
 python - <<'PY'
 import importlib
@@ -44,6 +42,16 @@ if missing:
         + "\nInstall the correct CUDA-enabled PyTorch build on the DGX before launching training.\n"
     )
     raise SystemExit(1)
+
+torch = importlib.import_module("torch")
+if not torch.cuda.is_available():
+    sys.stderr.write(
+        "CUDA is not available in the nl2logic environment.\n"
+        "Install the correct CUDA-enabled PyTorch build on the DGX before launching training.\n"
+    )
+    raise SystemExit(1)
+
+print(f"CUDA devices visible to PyTorch: {torch.cuda.device_count()}")
 PY
 
 # ---------------------------------------------------------------------------
@@ -74,3 +82,4 @@ echo "Remote log file: $REPO_DIR/$LOG_FILE"
 REMOTE
 
 echo "Training started. Attach with: ssh dgx-spark -t tmux attach -t nl2logic-full"
+
