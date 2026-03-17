@@ -1,5 +1,5 @@
-# Scoped
-data/
+# Scoped — only top-level data/ (training artifacts, not src/data or tests/data)
+/data/
 
 
 # Byte-compiled / optimized / DLL files
