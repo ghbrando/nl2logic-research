@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import argparse
 import subprocess
@@ -57,28 +57,24 @@ def build_dependency_check_script() -> str:
     return "\n".join(lines)
 
 
-def build_optional_outlines_install_script() -> str:
+def build_optional_constrained_install_script() -> str:
     lines = [
         "python - <<'PY'",
         "import subprocess",
         "import sys",
         "",
-        "if sys.version_info >= (3, 14):",
-        "    print(\"Skipping outlines install on Python 3.14+\")",
-        "else:",
-        "    subprocess.run(",
-        "        [",
-        "            sys.executable,",
-        "            \"-m\"",
-        "            , \"pip\"",
-        "            , \"install\"",
-        "            , \"-q\"",
-        "            , \"--break-system-packages\"",
-        "            , \"outlines>=1.0\"",
-        "            , \"xgrammar\"",
-        "        ],",
-        "        check=True,",
-        "    )",
+        "subprocess.run(",
+        "    [",
+        "        sys.executable,",
+        "        \"-m\"",
+        "        , \"pip\"",
+        "        , \"install\"",
+        "        , \"-q\"",
+        "        , \"--break-system-packages\"",
+        "        , \"xgrammar\"",
+        "    ],",
+        "    check=True,",
+        ")",
         "PY",
     ]
     return "\n".join(lines)
@@ -129,7 +125,7 @@ def build_remote_script(
         "",
         'pip install -q --break-system-packages -r requirements.txt',
         'pip install -q --break-system-packages transformers peft accelerate sentencepiece',
-        build_optional_outlines_install_script(),
+        build_optional_constrained_install_script(),
         "",
         build_dependency_check_script(),
         "",
@@ -261,6 +257,8 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
 
 
 

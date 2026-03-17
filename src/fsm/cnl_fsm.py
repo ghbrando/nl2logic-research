@@ -15,21 +15,17 @@ the constrained-decoding backend accept different syntaxes:
    decoding uses, because xgrammar follows GBNF rather than Lark syntax.
 
 3. CNLSampler(...)
-   Wraps an Outlines-constrained HuggingFace model. validate_output() always
-   delegates to CNLCompiler regardless of whether outlines is installed.
-
-Python 3.14 note
-----------------
-outlines>=1.0 declares Requires-Python <3.14. All grammar building and output
-validation work without outlines. The CNLSampler.sample() method is the only
-part that requires a working outlines install.
+   Wraps a HuggingFace seq2seq model with xgrammar-backed logits masking.
+   validate_output() always delegates to CNLCompiler regardless of whether
+   xgrammar is installed.
 """
 
+from contextlib import nullcontext
+from importlib import import_module
 import json
 import logging
 import math
 import re
-import sys
 from pathlib import Path
 
 from lark import Lark
@@ -208,7 +204,7 @@ class UnsupportedInputError(RuntimeError):
 
 class CNLSampler:
     """
-    Wrap an Outlines-constrained HuggingFace model to produce canonical CNL.
+    Wrap a HuggingFace seq2seq model to produce canonical CNL.
 
     Parameters
     ----------
@@ -221,9 +217,7 @@ class CNLSampler:
 
     Notes
     -----
-    Requires outlines>=1.0 and Python <3.14. On Python 3.14 the sample()
-    method raises ImportError with a clear message. validate_output() is
-    always available.
+    Requires xgrammar at sample time. validate_output() is always available.
     """
 
     def __init__(
@@ -238,8 +232,7 @@ class CNLSampler:
         self._tokenizer = tokenizer
         self._grammar = grammar_str if grammar_str is not None else build_xgrammar_grammar()
         self._compiler = CNLCompiler()
-        self._outlines_model = None
-        self._cfg = None
+        self._xgrammar_logits_processors = None
         self._confidence_threshold = confidence_threshold
 
     @staticmethod
@@ -281,32 +274,6 @@ class CNLSampler:
         """
         return bool(cls._unsupported_reasons(nl))
 
-    def _get_outlines_model(self):
-        """Lazy-import and initialise the Outlines model wrapper."""
-        if self._outlines_model is not None:
-            return self._outlines_model
-
-        if sys.version_info >= (3, 14):
-            raise ImportError(
-                "outlines>=1.0 requires Python <3.14. "
-                "CNLSampler.sample() is not available on Python 3.14+. "
-                "Run inference on the DGX Spark (Python 3.10/3.11) or "
-                "upgrade once outlines adds Python 3.14 support."
-            )
-
-        try:
-            from outlines.models import from_transformers  # type: ignore[import]
-            from outlines.types import CFG  # type: ignore[import]
-        except ImportError as exc:
-            raise ImportError(
-                "outlines is not installed or not importable. "
-                "Install it with: pip install outlines>=1.0"
-            ) from exc
-
-        self._cfg = CFG(self._grammar)
-        self._outlines_model = from_transformers(self._hf_model, self._tokenizer)
-        return self._outlines_model
-
     def _tokenize_prompt(self, prompt: str):
         encoded = self._tokenizer(
             [prompt],
@@ -329,6 +296,67 @@ class CNLSampler:
                 for key, value in batch.items()
             }
         return batch
+
+    def _resolve_vocab_size(self) -> int:
+        config = getattr(self._hf_model, "config", None)
+        model_vocab_size = getattr(config, "vocab_size", None)
+        if isinstance(model_vocab_size, int) and model_vocab_size > 0:
+            return model_vocab_size
+
+        tokenizer_vocab_size = getattr(self._tokenizer, "vocab_size", None)
+        if isinstance(tokenizer_vocab_size, int) and tokenizer_vocab_size > 0:
+            return tokenizer_vocab_size
+
+        if hasattr(self._tokenizer, "__len__"):
+            derived_vocab_size = int(len(self._tokenizer))
+            if derived_vocab_size > 0:
+                return derived_vocab_size
+
+        raise ValueError("Unable to determine tokenizer vocabulary size for constrained decoding.")
+
+    def _get_xgrammar_logits_processors(self):
+        """Lazy-import and initialise xgrammar-backed Hugging Face logits processors."""
+        if self._xgrammar_logits_processors is not None:
+            return self._xgrammar_logits_processors
+
+        try:
+            xgrammar = import_module("xgrammar")
+        except ModuleNotFoundError as exc:
+            raise ImportError(
+                "xgrammar is not installed or not importable. "
+                "Install it with: pip install xgrammar"
+            ) from exc
+
+        try:
+            hf_integration = import_module("xgrammar.contrib.hf")
+        except ModuleNotFoundError as exc:
+            raise ImportError(
+                "xgrammar's Hugging Face integration is unavailable. "
+                "Install a recent xgrammar build that provides xgrammar.contrib.hf."
+            ) from exc
+
+        tokenizer_info = xgrammar.TokenizerInfo.from_huggingface(
+            self._tokenizer,
+            vocab_size=self._resolve_vocab_size(),
+        )
+        grammar_compiler = xgrammar.GrammarCompiler(tokenizer_info)
+        compiled_grammar = grammar_compiler.compile_grammar(self._grammar)
+        processor = hf_integration.LogitsProcessor(compiled_grammar)
+
+        try:
+            transformers = import_module("transformers")
+        except ModuleNotFoundError:
+            processors = [processor]
+        else:
+            logits_processor_list_cls = getattr(transformers, "LogitsProcessorList", None)
+            processors = (
+                logits_processor_list_cls([processor])
+                if logits_processor_list_cls is not None
+                else [processor]
+            )
+
+        self._xgrammar_logits_processors = processors
+        return self._xgrammar_logits_processors
 
     @staticmethod
     def _score_row(score_step) -> list[float]:
@@ -391,8 +419,26 @@ class CNLSampler:
             _LOGGER.warning("Abstaining from CNL generation for unsupported input: %s", message)
             raise UnsupportedInputError(message)
 
-        model = self._get_outlines_model()
-        return model(prompt, output_type=self._cfg, max_new_tokens=max_tokens, backend="xgrammar")
+        encoded = self._tokenize_prompt(prompt)
+        logits_processors = self._get_xgrammar_logits_processors()
+
+        try:
+            torch_module = import_module("torch")
+        except ModuleNotFoundError:
+            torch_module = None
+
+        no_grad = torch_module.no_grad if torch_module is not None else nullcontext
+        with no_grad():
+            generated = self._hf_model.generate(
+                **encoded,
+                max_new_tokens=max_tokens,
+                logits_processor=logits_processors,
+            )
+
+        decoded = self._tokenizer.batch_decode(generated, skip_special_tokens=True)
+        if not decoded:
+            raise ValueError("Tokenizer returned no decoded sequences.")
+        return decoded[0].strip()
 
     def sample_with_confidence(self, prompt: str, max_tokens: int = 200) -> tuple[str, float]:
         """
@@ -438,7 +484,7 @@ class CNLSampler:
         """
         Compile a CNL string to SUO-KIF via CNLCompiler.
 
-        Does not use Outlines and is always available regardless of Python
-        version or constrained-decoding backend availability.
+        Does not use xgrammar and is always available regardless of
+        constrained-decoding backend availability.
         """
         return self._compiler.compile(cnl)

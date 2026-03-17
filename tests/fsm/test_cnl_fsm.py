@@ -1,5 +1,5 @@
-"""
-Tests for src/fsm/cnl_fsm.py — Stage 2 FSM integration.
+﻿"""
+Tests for src/fsm/cnl_fsm.py â€” Stage 2 FSM integration.
 
 Test strategy
 -------------
@@ -7,7 +7,7 @@ Test strategy
 - validate_output() delegates to CNLCompiler (no model needed).
 - CNLSampler construction is tested with MagicMock (no model needed).
 - CNLSampler.sample() is tested with a MagicMock model that returns a
-  known CNL string; the Outlines integration itself is tested end-to-end
+  known CNL string; the xgrammar/Hugging Face integration itself is tested end-to-end
   only in integration tests (not here).
 
 All tests use SUMO terms known to exist in sumo_classes.jsonl /
@@ -217,8 +217,8 @@ class TestCNLSamplerConstruction:
         s = CNLSampler(MagicMock(), MagicMock())
         assert s is not None
 
-    def test_validate_output_available_without_outlines(self, sampler):
-        # validate_output must work even though outlines isn't importable here
+    def test_validate_output_available_without_xgrammar(self, sampler):
+        # validate_output must work even though xgrammar is not installed here
         result = sampler.validate_output("?x is-a Process")
         assert result == "(instance ?x Process)"
 
@@ -262,61 +262,60 @@ class TestCNLSamplerAbstain:
         assert sampler.abstain_if_unsupported(nl) is True
 
     def test_sample_logs_warning_and_abstains(self, sampler, caplog):
-        sampler._outlines_model = MagicMock(return_value="?x is-a Process")
-        sampler._cfg = MagicMock()
-
         with caplog.at_level("WARNING"):
             with pytest.raises(UnsupportedInputError, match="multiple sentences detected"):
                 sampler.sample("Process is an Entity. Agent is an Entity.")
 
-        sampler._outlines_model.assert_not_called()
+        sampler._hf_model.generate.assert_not_called()
         assert "Abstaining from CNL generation for unsupported input" in caplog.text
 
 
 # ---------------------------------------------------------------------------
-# CNLSampler.sample() — mock model, no real outlines needed
+# CNLSampler.sample() â€” mock model, no real xgrammar runtime needed
 # ---------------------------------------------------------------------------
 
 class TestCNLSamplerSample:
 
-    def test_sample_calls_outlines_model(self, constrained_grammar_str):
-        """
-        The outlines model wrapper is lazy-initialised. On Python 3.14 sample()
-        raises ImportError — skip in that case so the test doesn't hard-fail
-        in the dev environment.  Also skip if outlines is not installed.
-        """
-        import sys
-        if sys.version_info >= (3, 14):
-            pytest.skip("outlines>=1.0 requires Python <3.14; skipping sample() test")
+    def test_sample_calls_hf_generate_with_xgrammar_logits_processor(self, constrained_grammar_str):
+        class SampleTokenizer:
+            def __init__(self):
+                self.prompts_seen = []
 
-        try:
-            from outlines.types import CFG  # noqa: F401
-        except ModuleNotFoundError:
-            pytest.skip("outlines not installed; skipping sample() test")
+            def __call__(self, texts=None, **kwargs):
+                assert texts is not None
+                self.prompts_seen.extend(texts)
+                assert kwargs["return_tensors"] == "pt"
+                return {
+                    "input_ids": FakeTensorBatch([[101, 102]]),
+                    "attention_mask": FakeTensorBatch([[1, 1]]),
+                }
 
-        mock_hf = MagicMock()
-        mock_tok = MagicMock()
+            def batch_decode(self, sequences, skip_special_tokens=True):
+                assert skip_special_tokens is True
+                return ["?x is-a Process"]
 
-        # Patch from_transformers to return a callable mock
-        mock_outlines_model = MagicMock(return_value="?x is-a Process")
+        class SampleModel:
+            def __init__(self):
+                self.device = "cpu"
+                self.calls = []
 
-        import src.fsm.cnl_fsm as fsm_module
-        original = getattr(fsm_module, "_get_outlines_model", None)
+            def generate(self, **kwargs):
+                self.calls.append(kwargs)
+                return [[201, 202, 203]]
 
-        s = CNLSampler(mock_hf, mock_tok, grammar_str=constrained_grammar_str)
-        # Inject mock model directly
-        s._outlines_model = mock_outlines_model
-        s._cfg = CFG(constrained_grammar_str)
+        model = SampleModel()
+        tokenizer = SampleTokenizer()
+        sampler = CNLSampler(model, tokenizer, grammar_str=constrained_grammar_str)
+        fake_processors = [object()]
+        sampler._xgrammar_logits_processors = fake_processors
 
-        result = s.sample("translate: every soldier is a combatant")
-        mock_outlines_model.assert_called_once_with(
-            "translate: every soldier is a combatant",
-            output_type=s._cfg,
-            max_new_tokens=200,
-            backend="xgrammar",
-        )
-        assert isinstance(result, str)
+        result = sampler.sample("translate: every soldier is a combatant")
 
+        assert result == "?x is-a Process"
+        assert tokenizer.prompts_seen == ["translate: every soldier is a combatant"]
+        assert model.calls[0]["max_new_tokens"] == 200
+        assert model.calls[0]["logits_processor"] is fake_processors
+        assert model.calls[0]["input_ids"].moved_to == "cpu"
 
 class FakeTensorBatch:
     def __init__(self, values):
@@ -404,3 +403,7 @@ class TestCNLSamplerConfidence:
         assert cnl == "?x is-a Process"
         assert confidence == pytest.approx(0.5)
         assert "Low-confidence CNL generation" in caplog.text
+
+
+
+

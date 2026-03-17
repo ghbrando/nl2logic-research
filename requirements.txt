@@ -1,4 +1,4 @@
-# Core
+﻿# Core
 lark==1.3.1
 packaging==26.0
 
@@ -16,11 +16,13 @@ pluggy==1.6.0
 Pygments==2.19.2
 
 # FSM-constrained decoding
-outlines_core>=0.2.14  # Rust FSM core; binary wheel available for Python 3.14
-# outlines>=1.0        # Full outlines requires Python <3.14; use when upgrading
+# xgrammar            # Install in the inference environment for constrained decoding
 
-# Ingest pipeline (optional — requires Python <3.13)
+# Ingest pipeline (optional â€” requires Python <3.13)
 # anthropic>=0.25
 # coreferee>=1.4
 # spacy>=3.7
 # pdfplumber>=0.11
+
+
+
