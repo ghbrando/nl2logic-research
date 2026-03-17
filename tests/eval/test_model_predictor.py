@@ -159,7 +159,7 @@ class TestModelPredictor:
             pattern="instance",
         )
 
-        with pytest.raises(ImportError, match="Constrained decoding is unavailable"):
+        with pytest.raises(ImportError, match=r"outlines>=1.0 and xgrammar"):
             predictor(pair)
 
     def test_returns_none_when_input_triggers_abstain(self):

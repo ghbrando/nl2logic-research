@@ -366,7 +366,7 @@ class CNLSampler:
             raise UnsupportedInputError(message)
 
         model = self._get_outlines_model()
-        return model(prompt, output_type=self._cfg, max_tokens=max_tokens)
+        return model(prompt, output_type=self._cfg, max_tokens=max_tokens, backend="xgrammar")
 
     def sample_with_confidence(self, prompt: str, max_tokens: int = 200) -> tuple[str, float]:
         """

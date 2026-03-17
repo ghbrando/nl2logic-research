@@ -75,6 +75,7 @@ def build_optional_outlines_install_script() -> str:
         "            , \"-q\"",
         "            , \"--break-system-packages\"",
         "            , \"outlines>=1.0\"",
+        "            , \"xgrammar\"",
         "        ],",
         "        check=True,",
         "    )",
@@ -242,3 +243,5 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+

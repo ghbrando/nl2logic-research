@@ -123,15 +123,17 @@ class ModelPredictor:
             except UnsupportedInputError:
                 return None
             except ImportError as exc:
+                install_hint = "Install outlines>=1.0 and xgrammar on Python <3.14"
                 if self._decoding == "constrained":
                     raise ImportError(
                         "Constrained decoding is unavailable in this environment. "
-                        "Install outlines>=1.0 on Python <3.14, or rerun with '--decoding raw'."
+                        f"{install_hint}, or rerun with '--decoding raw'."
                     ) from exc
                 self._constrained_unavailable = True
                 _LOGGER.warning(
-                    "Constrained decoding is unavailable; falling back to raw generation for evaluation: %s",
+                    "Constrained decoding is unavailable; falling back to raw generation for evaluation: %s. %s",
                     exc,
+                    install_hint,
                 )
 
         return self._generate_raw(prompt)

@@ -279,7 +279,12 @@ class TestCNLSamplerSample:
         s._cfg = CFG(grammar_str)
 
         result = s.sample("translate: every soldier is a combatant")
-        mock_outlines_model.assert_called_once()
+        mock_outlines_model.assert_called_once_with(
+            "translate: every soldier is a combatant",
+            output_type=s._cfg,
+            max_tokens=200,
+            backend="xgrammar",
+        )
         assert isinstance(result, str)
 
 
