@@ -89,6 +89,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=DEFAULT_MODEL_PATH,
         help=f"Model checkpoint path for NL->CNL prediction (default: {DEFAULT_MODEL_PATH})",
     )
+    parser.add_argument(
+        "--decoding",
+        choices=["auto", "constrained", "raw"],
+        default="auto",
+        help="Generation mode for evaluation (default: auto, prefers constrained decoding and falls back to raw if unavailable)",
+    )
     return parser.parse_args(argv)
 
 
@@ -226,7 +232,7 @@ def print_report(report: EvaluationReport) -> None:
 def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
     pairs = load_gold_pairs(args.gold_path)
-    predictor = ModelPredictor(args.model_path)
+    predictor = ModelPredictor(args.model_path, decoding=args.decoding)
     report = evaluate_pairs(pairs, predictor=predictor)
     print_report(report)
 

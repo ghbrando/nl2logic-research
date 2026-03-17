@@ -57,6 +57,32 @@ def build_dependency_check_script() -> str:
     return "\n".join(lines)
 
 
+def build_optional_outlines_install_script() -> str:
+    lines = [
+        "python - <<'PY'",
+        "import subprocess",
+        "import sys",
+        "",
+        "if sys.version_info >= (3, 14):",
+        "    print(\"Skipping outlines install on Python 3.14+\")",
+        "else:",
+        "    subprocess.run(",
+        "        [",
+        "            sys.executable,",
+        "            \"-m\"",
+        "            , \"pip\"",
+        "            , \"install\"",
+        "            , \"-q\"",
+        "            , \"--break-system-packages\"",
+        "            , \"outlines>=1.0\"",
+        "        ],",
+        "        check=True,",
+        "    )",
+        "PY",
+    ]
+    return "\n".join(lines)
+
+
 def build_tmux_command_body() -> str:
     parts = [
         'cd "$REPO_DIR"',
@@ -93,6 +119,7 @@ def build_remote_script(preset_name: str, repo_dir: str = DEFAULT_REPO_DIR) -> s
         "",
         'pip install -q --break-system-packages -r requirements.txt',
         'pip install -q --break-system-packages transformers peft accelerate sentencepiece',
+        build_optional_outlines_install_script(),
         "",
         build_dependency_check_script(),
         "",

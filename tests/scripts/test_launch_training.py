@@ -4,7 +4,13 @@ import ast
 import pytest
 
 import scripts.launch_training as launch_training
-from scripts.launch_training import build_attach_command, build_dependency_check_script, build_remote_script, parse_args
+from scripts.launch_training import (
+    build_attach_command,
+    build_dependency_check_script,
+    build_optional_outlines_install_script,
+    build_remote_script,
+    parse_args,
+)
 
 
 class TestLaunchTrainingWrapper:
@@ -47,6 +53,13 @@ class TestLaunchTrainingRemoteScript:
         python_body = script.split("\n", 1)[1].rsplit("\nPY", 1)[0]
 
         ast.parse(python_body)
+
+    def test_optional_outlines_install_script_embeds_valid_python(self):
+        script = build_optional_outlines_install_script()
+        python_body = script.split("\n", 1)[1].rsplit("\nPY", 1)[0]
+
+        ast.parse(python_body)
+        assert 'outlines>=1.0' in script
 
     def test_remote_script_uses_heredoc_tmux_command(self):
         script = build_remote_script("base")
