@@ -215,6 +215,22 @@ class TestCNLSamplerAbstain:
     def test_coreference_marker_abstains(self, sampler):
         assert sampler.abstain_if_unsupported("If it advances, the unit attacks.") is True
 
+    @pytest.mark.parametrize(
+        "nl",
+        [
+            "Every battle can have a military unit as its patient.",
+            "Every transportation process has a region as its destination.",
+            "Every transportation process has a region as its origin.",
+            "A process can have an agent as its agent.",
+        ],
+    )
+    def test_supported_possessive_relation_phrase_does_not_abstain(self, sampler, nl):
+        assert sampler.abstain_if_unsupported(nl) is False
+
+    def test_other_its_usage_still_abstains(self, sampler):
+        nl = "If its commander retreats, the unit halts."
+        assert sampler.abstain_if_unsupported(nl) is True
+
     def test_sample_logs_warning_and_abstains(self, sampler, caplog):
         sampler._outlines_model = MagicMock(return_value="?x is-a Process")
         sampler._cfg = MagicMock()

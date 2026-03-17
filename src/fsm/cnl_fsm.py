@@ -69,6 +69,10 @@ _UNSUPPORTED_MARKERS = (
     (re.compile(r"\blatter\b", re.IGNORECASE), "marker 'latter'"),
     (re.compile(r"\baforementioned\b", re.IGNORECASE), "marker 'aforementioned'"),
 )
+_SUPPORTED_POSSESSIVE_SLOT_RE = re.compile(
+    r"\bas\s+its\s+(agent|patient|destination|origin)\b",
+    re.IGNORECASE,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -229,8 +233,10 @@ class CNLSampler:
                 f"input length {token_count} tokens exceeds conservative threshold {_MAX_SUPPORTED_TOKENS}"
             )
 
+        discourse_text = _SUPPORTED_POSSESSIVE_SLOT_RE.sub("as SLOT", text)
+
         for pattern, label in _UNSUPPORTED_MARKERS:
-            if pattern.search(text):
+            if pattern.search(discourse_text):
                 reasons.append(f"unsupported discourse marker: {label}")
                 break
 
