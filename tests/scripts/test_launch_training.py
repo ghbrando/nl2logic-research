@@ -1,9 +1,10 @@
 from pathlib import Path
+import ast
 
 import pytest
 
 import scripts.launch_training as launch_training
-from scripts.launch_training import build_attach_command, build_remote_script, parse_args
+from scripts.launch_training import build_attach_command, build_dependency_check_script, build_remote_script, parse_args
 
 
 class TestLaunchTrainingWrapper:
@@ -40,6 +41,18 @@ class TestLaunchTrainingRemoteScript:
         assert 'transformers' in script
         assert 'torch.cuda.is_available()' in script
         assert 'CUDA is not available in the nl2logic environment.' in script
+
+    def test_dependency_check_embeds_valid_python(self):
+        script = build_dependency_check_script()
+        python_body = script.split("\n", 1)[1].rsplit("\nPY", 1)[0]
+
+        ast.parse(python_body)
+
+    def test_remote_script_uses_heredoc_tmux_command(self):
+        script = build_remote_script("base")
+
+        assert 'TMUX_COMMAND="$(cat <<EOF' in script
+        assert 'tmux new-session -d -s "$SESSION_NAME" "$TMUX_COMMAND"' in script
 
     def test_attach_command_uses_preset_session_name(self):
         assert build_attach_command("dgx-spark", "base") == "ssh dgx-spark -t tmux attach -t nl2logic-base"
