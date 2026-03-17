@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import subprocess
+import sys
 
 if __package__ in {None, ""}:
     from training_presets import get_training_preset, list_training_presets
@@ -10,10 +11,15 @@ else:
 
 DEFAULT_HOST = "dgx-spark"
 DEFAULT_REPO_DIR = "$HOME/projects/nl2logic-research"
+_LOCAL_HOSTS = {"local", "localhost", "127.0.0.1", "::1"}
 
 
 def _escape_for_bash_double_quotes(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
+def _is_local_host(host: str) -> bool:
+    return host.strip().lower() in _LOCAL_HOSTS
 
 
 def build_dependency_check_script() -> str:
@@ -111,6 +117,8 @@ echo "Run metadata: $REPO_DIR/$RUN_INFO_FILE"'''.strip()
 
 def build_attach_command(host: str, preset_name: str) -> str:
     preset = get_training_preset(preset_name)
+    if _is_local_host(host):
+        return f"tmux attach -t {preset.session_name}"
     return f"ssh {host} -t tmux attach -t {preset.session_name}"
 
 
@@ -126,7 +134,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--host",
         default=DEFAULT_HOST,
-        help=f"SSH host for remote training (default: {DEFAULT_HOST})",
+        help=f"SSH host for remote training, or 'local' to run on the current machine (default: {DEFAULT_HOST})",
     )
     parser.add_argument(
         "--repo-dir",
@@ -152,12 +160,20 @@ def print_presets() -> None:
 
 
 def run_remote_script(host: str, remote_script: str) -> None:
-    subprocess.run(
-        ["ssh", host, "bash -s"],
-        input=remote_script,
-        text=True,
-        check=True,
-    )
+    command = ["bash", "-s"] if _is_local_host(host) else ["ssh", host, "bash -s"]
+    try:
+        subprocess.run(
+            command,
+            input=remote_script,
+            text=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        if not _is_local_host(host) and exc.returncode == 255:
+            raise RuntimeError(
+                f"Failed to SSH to {host!r}. If you are already on the target machine, rerun with '--host local'."
+            ) from exc
+        raise
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -167,7 +183,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     remote_script = build_remote_script(args.preset, args.repo_dir)
-    run_remote_script(args.host, remote_script)
+    try:
+        run_remote_script(args.host, remote_script)
+    except RuntimeError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
     print(f"Training started. Attach with: {build_attach_command(args.host, args.preset)}")
     return 0
 
