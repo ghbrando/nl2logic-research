@@ -388,6 +388,16 @@ class TestGenBinaryPairs:
         nls = [p["nl"] for p in pairs]
         assert any("has" in nl.lower() for nl in nls)
 
+    def test_targeted_transportation_process_boosters_are_present(self, compiler):
+        relation = {
+            "term": "destination",
+            "arity": 2,
+            "signature": {"1": "Transportation", "2": "Region"},
+        }
+        pairs = gen_binary_pairs([relation], compiler)
+        nls = [p["nl"] for p in pairs if p["cnl"] == "destination Transportation Region"]
+        assert any("transportation process" in nl.lower() for nl in nls)
+
 
 # ---------------------------------------------------------------------------
 # gen_nary_pairs
@@ -479,6 +489,16 @@ class TestGenNegationPairs:
         for pair in pairs:
             assert compiler.compile(pair["cnl"]) == pair["kif"]
 
+    def test_targeted_operational_area_boosters_are_present(self, compiler):
+        relation = {
+            "term": "located",
+            "arity": 2,
+            "signature": {"1": "MilitaryUnit", "2": "Area"},
+        }
+        pairs = gen_negation_pairs([], [relation], compiler)
+        nls = [p["nl"] for p in pairs if p["cnl"] == "not located MilitaryUnit Area"]
+        assert any("operational area" in nl.lower() or "area of operation" in nl.lower() for nl in nls)
+
 
 # ---------------------------------------------------------------------------
 # gen_conditional_every_pairs
@@ -520,6 +540,15 @@ class TestGenConditionalEveryPairs:
         pairs = gen_conditional_every_pairs([SAMPLE_RELATIONS[0]], compiler)
         nls = [p["nl"] for p in pairs]
         assert any("Every" in nl and "has" in nl for nl in nls)
+
+    def test_targeted_agent_role_boosters_are_present(self, compiler):
+        pairs = gen_conditional_every_pairs([SAMPLE_RELATIONS[0]], compiler)
+        nls = [
+            p["nl"]
+            for p in pairs
+            if p["cnl"] == "every ?x is-a MilitaryProcess implies agent ?x AutonomousAgent"
+        ]
+        assert any("agent role" in nl.lower() for nl in nls)
 
 
 # ---------------------------------------------------------------------------
@@ -588,6 +617,11 @@ class TestGenExistentialPairs:
         pairs = gen_existential_pairs([{"term": "Process"}], compiler)
         nls = [p["nl"] for p in pairs]
         assert any("in the operation" in nl for nl in nls)
+
+    def test_targeted_plan_boosters_are_present(self, compiler):
+        pairs = gen_existential_pairs([{"term": "Plan"}], compiler)
+        nls = [p["nl"] for p in pairs if p["cnl"] == "some ?x is-a Plan"]
+        assert any("for an operation" in nl.lower() for nl in nls)
 
 
 # ---------------------------------------------------------------------------

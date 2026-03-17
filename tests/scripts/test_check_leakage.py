@@ -88,6 +88,34 @@ class TestCheckLeakage:
         finally:
             shutil.rmtree(scratch_dir, ignore_errors=True)
 
+    def test_ignore_cnl_overlap_allows_semantic_paraphrase_training(self):
+        scratch_dir = _make_scratch_dir()
+        try:
+            train_path = scratch_dir / "train.jsonl"
+            gold_path = scratch_dir / "gold.jsonl"
+            shared_cnl = "?x is-a Process"
+            _write_jsonl(train_path, [{"nl": "Train sentence.", "cnl": shared_cnl}])
+            _write_jsonl(
+                gold_path,
+                [{"nl": "Gold sentence.", "cnl": shared_cnl, "kif": "...", "pattern": "instance"}],
+            )
+
+            report = check_leakage(
+                training_path=train_path,
+                gold_path=gold_path,
+                check_gold_cnl_overlap=False,
+            )
+
+            assert report.cnl_matches == []
+            assert report.has_leakage is False
+            assert main([
+                "--train-path", str(train_path),
+                "--gold-path", str(gold_path),
+                "--ignore-cnl-overlap",
+            ]) == 0
+        finally:
+            shutil.rmtree(scratch_dir, ignore_errors=True)
+
     def test_probe_sentence_match_is_detected(self):
         scratch_dir = _make_scratch_dir()
         try:

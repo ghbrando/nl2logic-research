@@ -109,6 +109,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         metavar="N",
         help=f"Seed for deterministic sample inspection (default: {DEFAULT_SAMPLE_SEED})",
     )
+    parser.add_argument(
+        "--allow-gold-cnl-overlap",
+        action="store_true",
+        help="Keep training paraphrases whose CNL matches the gold eval set while still excluding exact gold NL and probe NL overlaps.",
+    )
     return parser.parse_args(argv)
 
 
@@ -222,6 +227,7 @@ def exclude_eval_overlaps(
     *,
     excluded_nls: set[str] | None = None,
     excluded_cnls: set[str] | None = None,
+    exclude_gold_cnl_overlap: bool = True,
     probe_sentences: list[tuple[str, str]] = PATTERN_COVERAGE_SENTENCES,
 ) -> tuple[list[dict], dict[str, int]]:
     if excluded_nls is None or excluded_cnls is None:
@@ -229,7 +235,7 @@ def exclude_eval_overlaps(
         if excluded_nls is None:
             excluded_nls = gold_nls
         if excluded_cnls is None:
-            excluded_cnls = gold_cnls
+            excluded_cnls = gold_cnls if exclude_gold_cnl_overlap else set()
 
     excluded_probe_nls = {nl for _, nl in probe_sentences}
 
@@ -264,6 +270,7 @@ def prepare_training_data(
     generator_batches: list[tuple[str, list[dict]]] | None = None,
     excluded_nls: set[str] | None = None,
     excluded_cnls: set[str] | None = None,
+    exclude_gold_cnl_overlap: bool = True,
 ) -> PreparationResult:
     if generator_batches is None:
         classes = load_classes(_CLASSES_PATH)
@@ -282,6 +289,7 @@ def prepare_training_data(
         all_pairs,
         excluded_nls=excluded_nls,
         excluded_cnls=excluded_cnls,
+        exclude_gold_cnl_overlap=exclude_gold_cnl_overlap,
     )
     output_pairs, focused_counts = select_prepared_pairs(
         all_pairs,
@@ -346,6 +354,7 @@ def main(argv: list[str] | None = None) -> None:
         output_path=args.output,
         sample_size=args.sample_size,
         sample_seed=args.sample_seed,
+        exclude_gold_cnl_overlap=not args.allow_gold_cnl_overlap,
     )
     print_preparation_report(result)
 

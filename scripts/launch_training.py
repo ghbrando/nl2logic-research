@@ -95,10 +95,17 @@ def build_tmux_command_body() -> str:
     return " && ".join(parts)
 
 
-def build_remote_script(preset_name: str, repo_dir: str = DEFAULT_REPO_DIR) -> str:
+def build_remote_script(
+    preset_name: str,
+    repo_dir: str = DEFAULT_REPO_DIR,
+    *,
+    allow_gold_cnl_overlap: bool = False,
+) -> str:
     preset = get_training_preset(preset_name)
     repo_dir_value = _escape_for_bash_double_quotes(repo_dir)
     continuation = "\\"
+    prepare_args = "--allow-gold-cnl-overlap" if allow_gold_cnl_overlap else ""
+    leakage_args = "--ignore-cnl-overlap" if allow_gold_cnl_overlap else ""
     lines = [
         "set -euo pipefail",
         "",
@@ -113,6 +120,8 @@ def build_remote_script(preset_name: str, repo_dir: str = DEFAULT_REPO_DIR) -> s
         f'EPOCHS="{preset.epochs}"',
         f'BATCH_SIZE="{preset.batch_size}"',
         f'LEARNING_RATE="{preset.learning_rate}"',
+        f'PREPARE_ARGS="{prepare_args}"',
+        f'LEAKAGE_ARGS="{leakage_args}"',
         "",
         'cd "$REPO_DIR"',
         'source "$(conda info --base)/etc/profile.d/conda.sh"',
@@ -125,10 +134,10 @@ def build_remote_script(preset_name: str, repo_dir: str = DEFAULT_REPO_DIR) -> s
         build_dependency_check_script(),
         "",
         'if [ ! -f "$TRAIN_FILE" ]; then',
-        '    python scripts/prepare_training_data.py --limit "$PREPARE_LIMIT" --output "$TRAIN_FILE"',
+        '    python scripts/prepare_training_data.py --limit "$PREPARE_LIMIT" --output "$TRAIN_FILE" $PREPARE_ARGS',
         'fi',
         "",
-        'if ! python scripts/check_leakage.py --train-path "$TRAIN_FILE"; then',
+        'if ! python scripts/check_leakage.py --train-path "$TRAIN_FILE" $LEAKAGE_ARGS; then',
         '    echo "Leakage check failed. Aborting before training." >&2',
         '    exit 1',
         'fi',
@@ -195,6 +204,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Print available presets and exit.",
     )
+    parser.add_argument(
+        "--allow-gold-cnl-overlap",
+        action="store_true",
+        help="Keep paraphrases whose CNL matches the gold eval set while still excluding exact gold NL and probe NL overlaps.",
+    )
     return parser
 
 
@@ -231,7 +245,11 @@ def main(argv: list[str] | None = None) -> int:
         print_presets()
         return 0
 
-    remote_script = build_remote_script(args.preset, args.repo_dir)
+    remote_script = build_remote_script(
+        args.preset,
+        args.repo_dir,
+        allow_gold_cnl_overlap=args.allow_gold_cnl_overlap,
+    )
     try:
         run_remote_script(args.host, remote_script)
     except RuntimeError as exc:
@@ -243,5 +261,6 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
 
 

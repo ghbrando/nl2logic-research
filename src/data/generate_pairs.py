@@ -182,6 +182,57 @@ _SUBCLASS_EXPANSIONS: dict[str, list[str]] = {
     ],
 }
 
+_TARGETED_NL_BOOSTERS: dict[str, dict[str, list[str]]] = {
+    "binary": {
+        "agent MilitaryProcess AutonomousAgent": [
+            "A military process has an autonomous agent in the agent role.",
+            "A military process involves an autonomous agent as its agent.",
+        ],
+        "destination Transportation Region": [
+            "A transportation process has a region as its destination.",
+            "A transportation process can end in a region.",
+        ],
+        "origin Transportation Region": [
+            "A transportation process has a region as its origin.",
+            "A transportation process can start in a region.",
+        ],
+        "located MilitaryUnit Area": [
+            "A military unit can be located in an area of operation.",
+            "A military unit can be stationed in an operational area.",
+        ],
+    },
+    "conditional": {
+        "every ?x is-a MilitaryProcess implies agent ?x AutonomousAgent": [
+            "Every military process has an autonomous agent in the agent role.",
+            "Every military process involves an autonomous agent as its agent.",
+        ],
+        "every ?x is-a Transportation implies destination ?x Region": [
+            "Every transportation process has a region as its destination endpoint.",
+            "Every transportation process can end in a region.",
+        ],
+        "every ?x is-a Transportation implies origin ?x Region": [
+            "Every transportation process has a region as its starting origin.",
+            "Every transportation process can start in a region.",
+        ],
+    },
+    "existential": {
+        "some ?x is-a Plan": [
+            "There exists a plan for an operation.",
+            "At least one plan exists for an operation.",
+        ],
+    },
+    "negation": {
+        "not agent MilitaryProcess AutonomousAgent": [
+            "A military process does not have an autonomous agent in the agent role.",
+            "A military process lacks an autonomous agent as its agent.",
+        ],
+        "not located MilitaryUnit Area": [
+            "A military unit is not located in an area of operation.",
+            "A military unit is not stationed in an operational area.",
+        ],
+    },
+}
+
 
 def _expand_type(sig_type: str) -> list[str]:
     """Return *sig_type* plus its military-relevant subclass expansions."""
@@ -268,6 +319,23 @@ def _compile_safe(compiler, cnl: str) -> str | None:
 
 def _pair(nl: str, cnl: str, kif: str, pattern: str) -> dict:
     return {"nl": nl, "cnl": cnl, "kif": kif, "pattern": pattern}
+
+
+def _dedupe_preserve_order(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    unique: list[str] = []
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        unique.append(value)
+    return unique
+
+
+def _extend_with_targeted_boosters(nls: list[str], *, pattern: str, cnl: str) -> list[str]:
+    boosted = list(nls)
+    boosted.extend(_TARGETED_NL_BOOSTERS.get(pattern, {}).get(cnl, []))
+    return _dedupe_preserve_order(boosted)
 
 
 def count_pairs_by_pattern(pairs: list[dict]) -> dict[str, int]:
@@ -486,6 +554,11 @@ def gen_binary_pairs(
                 if g1 == t1 and g2 == t2:
                     if include_doc_templates and (doc := _clean_doc(rec.get("doc", ""))):
                         grounded_nls.append(doc)
+                grounded_nls = _extend_with_targeted_boosters(
+                    grounded_nls,
+                    pattern="binary",
+                    cnl=grounded_cnl,
+                )
                 for nl in grounded_nls:
                     pairs.append(_pair(nl, grounded_cnl, grounded_kif, "binary"))
     return pairs
@@ -605,6 +678,11 @@ def gen_conditional_every_pairs(relations: list[dict], compiler) -> list[dict]:
                     fmt_vars = {"cls": gc, "t2": g2, "cls_nat": gc_nat, "t2_nat": g2_nat}
                     for tmpl in _CONDITIONAL_VERB_TEMPLATES[rel]:
                         nls.append(tmpl.format(**fmt_vars))
+                nls = _extend_with_targeted_boosters(
+                    nls,
+                    pattern="conditional",
+                    cnl=cnl,
+                )
                 for nl in nls:
                     pairs.append(_pair(nl, cnl, kif, "conditional"))
     return pairs
@@ -677,6 +755,11 @@ def gen_existential_pairs(classes: list[dict], compiler) -> list[dict]:
         for ctx in _DISTRACTOR_CONTEXTS[:4]:
             nls.append(f"There exists an instance of {cls} {ctx}.")
             nls.append(f"There exists {art} {cls_nat} {ctx}.")
+        nls = _extend_with_targeted_boosters(
+            nls,
+            pattern="existential",
+            cnl=cnl,
+        )
         for nl in nls:
             pairs.append(_pair(nl, cnl, kif, "existential"))
     return pairs
@@ -760,6 +843,11 @@ def gen_negation_pairs(classes: list[dict], relations: list[dict], compiler) -> 
                         fmt_vars = {"t1": g1, "t2": g2, "t1_nat": g1_nat, "t2_nat": g2_nat}
                         for tmpl in _NEGATED_RELATION_VERB_TEMPLATES[rel]:
                             grounded_nls.append(tmpl.format(**fmt_vars))
+                    grounded_nls = _extend_with_targeted_boosters(
+                        grounded_nls,
+                        pattern="negation",
+                        cnl=grounded_cnl,
+                    )
                     for nl in grounded_nls:
                         pairs.append(_pair(nl, grounded_cnl, grounded_kif, "negation"))
 

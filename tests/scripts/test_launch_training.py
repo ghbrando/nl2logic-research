@@ -68,6 +68,12 @@ class TestLaunchTrainingRemoteScript:
         assert 'TMUX_COMMAND="$(cat <<EOF' in script
         assert 'tmux new-session -d -s "$SESSION_NAME" "$TMUX_COMMAND"' in script
 
+    def test_remote_script_can_allow_gold_cnl_overlap(self):
+        script = build_remote_script("base", allow_gold_cnl_overlap=True)
+
+        assert '--allow-gold-cnl-overlap' in script
+        assert '--ignore-cnl-overlap' in script
+
     def test_attach_command_uses_preset_session_name(self):
         assert build_attach_command("dgx-spark", "base") == "ssh dgx-spark -t tmux attach -t nl2logic-base"
 

@@ -198,3 +198,34 @@ class TestPrepareTrainingData:
             assert result.focused_counts == {"binary": 1}
         finally:
             shutil.rmtree(scratch_dir, ignore_errors=True)
+
+    def test_allow_gold_cnl_overlap_keeps_non_exact_nl_paraphrases(self):
+        generator_batches = [
+            (
+                "existential",
+                [
+                    {
+                        "nl": "There exists a plan for an operation.",
+                        "cnl": "some ?x is-a Plan",
+                        "kif": "(exists (?x) (instance ?x Plan))",
+                        "pattern": "existential",
+                    }
+                ],
+            ),
+        ]
+
+        scratch_dir = _make_scratch_dir()
+        try:
+            result = prepare_training_data(
+                limit=4,
+                output_path=scratch_dir / "train_balanced.jsonl",
+                generator_batches=generator_batches,
+                excluded_nls=set(),
+                excluded_cnls=None,
+                exclude_gold_cnl_overlap=False,
+            )
+
+            assert [pair["nl"] for pair in result.pairs] == ["There exists a plan for an operation."]
+            assert result.excluded_counts["gold_cnl"] == 0
+        finally:
+            shutil.rmtree(scratch_dir, ignore_errors=True)

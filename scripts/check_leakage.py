@@ -43,6 +43,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=DEFAULT_GOLD_PATH,
         help=f"Gold evaluation JSONL path (default: {DEFAULT_GOLD_PATH})",
     )
+    parser.add_argument(
+        "--ignore-cnl-overlap",
+        action="store_true",
+        help="Ignore exact gold CNL matches and only fail on exact gold NL or probe NL overlaps.",
+    )
     return parser.parse_args(argv)
 
 
@@ -63,6 +68,7 @@ def check_leakage(
     *,
     training_path: Path = DEFAULT_PREPARED_TRAIN_FILE,
     gold_path: Path = DEFAULT_GOLD_PATH,
+    check_gold_cnl_overlap: bool = True,
 ) -> LeakageReport:
     training_records = _load_jsonl(training_path)
     gold_records = _load_jsonl(gold_path)
@@ -73,7 +79,7 @@ def check_leakage(
     gold_cnls = {record["cnl"] for record in gold_records if "cnl" in record}
 
     nl_matches = [("nl", value) for value in sorted(training_nls & gold_nls)]
-    cnl_matches = [("cnl", value) for value in sorted(training_cnls & gold_cnls)]
+    cnl_matches = [("cnl", value) for value in sorted(training_cnls & gold_cnls)] if check_gold_cnl_overlap else []
 
     probe_matches: list[tuple[str, str]] = []
     for pattern, nl in PATTERN_COVERAGE_SENTENCES:
@@ -115,7 +121,11 @@ def print_report(report: LeakageReport) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    report = check_leakage(training_path=args.train_path, gold_path=args.gold_path)
+    report = check_leakage(
+        training_path=args.train_path,
+        gold_path=args.gold_path,
+        check_gold_cnl_overlap=not args.ignore_cnl_overlap,
+    )
     print_report(report)
     return 1 if report.has_leakage else 0
 
