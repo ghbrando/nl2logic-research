@@ -76,6 +76,14 @@ class ImportErrorSampler:
         raise ImportError("outlines is not installed")
 
 
+class RuntimeErrorSampler:
+    def __init__(self, message: str):
+        self._message = message
+
+    def sample(self, prompt: str, max_tokens: int = 200) -> str:
+        raise RuntimeError(self._message)
+
+
 class TestModelPredictor:
     def test_returns_predicted_cnl_using_training_prompt_format_in_raw_mode(self):
         model = FakeModel()
@@ -143,6 +151,29 @@ class TestModelPredictor:
         assert model.calls[0]["max_new_tokens"] == 64
         assert "falling back to raw generation" in caplog.text
 
+    def test_auto_mode_falls_back_to_raw_when_backend_rejects_grammar(self, caplog):
+        model = FakeModel()
+        tokenizer = FakeTokenizer()
+        predictor = ModelPredictor(
+            model=model,
+            tokenizer=tokenizer,
+            decoding="auto",
+            sampler_factory=lambda _model, _tokenizer: RuntimeErrorSampler("EBNF lexer error at line 1, column 1"),
+        )
+        pair = GoldPair(
+            nl="Something is an instance of Process.",
+            cnl="?x is-a Process",
+            kif="(instance ?x Process)",
+            pattern="instance",
+        )
+
+        with caplog.at_level("WARNING"):
+            predicted = predictor(pair)
+
+        assert predicted == "?x is-a Process"
+        assert model.calls[0]["max_new_tokens"] == 64
+        assert "falling back to raw generation" in caplog.text
+
     def test_constrained_mode_raises_when_sampler_is_unavailable(self):
         model = FakeModel()
         tokenizer = FakeTokenizer()
@@ -159,7 +190,7 @@ class TestModelPredictor:
             pattern="instance",
         )
 
-        with pytest.raises(ImportError, match=r"outlines>=1.0 and xgrammar"):
+        with pytest.raises(RuntimeError, match=r"outlines>=1.0 and xgrammar"):
             predictor(pair)
 
     def test_returns_none_when_input_triggers_abstain(self):

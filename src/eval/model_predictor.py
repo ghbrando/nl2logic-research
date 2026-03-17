@@ -18,6 +18,21 @@ _LOGGER = logging.getLogger(__name__)
 _VALID_DECODING_MODES = {"auto", "constrained", "raw"}
 
 
+def _is_constrained_backend_error(exc: Exception) -> bool:
+    if isinstance(exc, ImportError):
+        return True
+
+    message = str(exc).lower()
+    markers = (
+        "llguidance",
+        "xgrammar",
+        "ebnf lexer error",
+        "decoder type",
+        "compile_grammar",
+    )
+    return any(marker in message for marker in markers)
+
+
 def _require_inference_dependencies() -> tuple[Any, Any | None]:
     try:
         transformers = import_module("transformers")
@@ -122,10 +137,13 @@ class ModelPredictor:
                 return self._generate_constrained(prompt)
             except UnsupportedInputError:
                 return None
-            except ImportError as exc:
+            except Exception as exc:
+                if not _is_constrained_backend_error(exc):
+                    raise
+
                 install_hint = "Install outlines>=1.0 and xgrammar on Python <3.14"
                 if self._decoding == "constrained":
-                    raise ImportError(
+                    raise RuntimeError(
                         "Constrained decoding is unavailable in this environment. "
                         f"{install_hint}, or rerun with '--decoding raw'."
                     ) from exc
