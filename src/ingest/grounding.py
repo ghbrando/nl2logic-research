@@ -80,6 +80,13 @@ _WEAK_ARGUMENT_WORDS: frozenset[str] = frozenset({
     "force", "need", "act", "use", "move", "turn", "shift",
     "change", "run", "set",
     "human", "enemy", "surprise", "security",
+    # Gerunds / vague nominalisations
+    "making", "planning", "processing", "training", "building",
+    "running", "setting", "moving", "turning", "shifting",
+    # Additional generic nouns surfaced by Spark runs
+    "fog", "friction", "function", "action", "operation",
+    "process", "report", "mission", "structure", "nature",
+    "challenge", "reason", "aspect", "consideration",
 })
 
 
