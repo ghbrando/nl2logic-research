@@ -1,4 +1,4 @@
-"""
+﻿"""
 Gold-set evaluation for NL2Logic.
 
 The default CLI mode uses the gold CNL strings as an oracle baseline after
@@ -55,12 +55,27 @@ class PatternMetrics:
 
 
 @dataclass(frozen=True)
+class ExampleResult:
+    nl: str
+    pattern: str
+    gold_cnl: str
+    gold_kif: str
+    predicted_cnl: str | None
+    predicted_kif: str | None
+    compile_error: str | None
+    abstained: bool
+    cnl_exact: bool
+    kif_exact: bool
+
+
+@dataclass(frozen=True)
 class EvaluationReport:
     total: int
     cnl_exact: int
     kif_exact: int
     abstained: int
     pattern_breakdown: dict[str, PatternMetrics]
+    examples: tuple[ExampleResult, ...]
 
     @property
     def cnl_accuracy(self) -> float:
@@ -73,6 +88,14 @@ class EvaluationReport:
     @property
     def abstain_rate(self) -> float:
         return self.abstained / self.total if self.total else 0.0
+
+    @property
+    def mismatches(self) -> tuple[ExampleResult, ...]:
+        return tuple(
+            example
+            for example in self.examples
+            if example.abstained or not example.cnl_exact or not example.kif_exact
+        )
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -94,6 +117,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         choices=["auto", "constrained", "raw"],
         default="auto",
         help="Generation mode for evaluation (default: auto, prefers constrained decoding and falls back to raw if unavailable)",
+    )
+    parser.add_argument(
+        "--show-misses",
+        action="store_true",
+        help="Print per-example details for mismatched or abstained predictions.",
+    )
+    parser.add_argument(
+        "--max-misses",
+        type=int,
+        default=0,
+        help="Maximum mismatches to print when using --show-misses (default: 0, meaning all).",
     )
     return parser.parse_args(argv)
 
@@ -166,6 +200,7 @@ def evaluate_pairs(
     cnl_exact = 0
     kif_exact = 0
     abstained = 0
+    examples: list[ExampleResult] = []
 
     for pair in pairs:
         pattern_counts = pattern_totals.setdefault(
@@ -178,21 +213,55 @@ def evaluate_pairs(
         if predicted_cnl is None:
             abstained += 1
             pattern_counts["abstained"] += 1
+            examples.append(
+                ExampleResult(
+                    nl=pair.nl,
+                    pattern=pair.pattern,
+                    gold_cnl=pair.cnl,
+                    gold_kif=pair.kif,
+                    predicted_cnl=None,
+                    predicted_kif=None,
+                    compile_error=None,
+                    abstained=True,
+                    cnl_exact=False,
+                    kif_exact=False,
+                )
+            )
             continue
 
         predicted_cnl = predicted_cnl.strip()
         predicted_kif: str | None
+        compile_error: str | None = None
         try:
             predicted_kif = compiler.compile(predicted_cnl)
-        except Exception:
+        except Exception as exc:
             predicted_kif = None
+            compile_error = f"{type(exc).__name__}: {exc}"
 
-        if predicted_cnl == pair.cnl:
+        cnl_match = predicted_cnl == pair.cnl
+        kif_match = predicted_kif == pair.kif
+
+        if cnl_match:
             cnl_exact += 1
             pattern_counts["cnl_exact"] += 1
-        if predicted_kif == pair.kif:
+        if kif_match:
             kif_exact += 1
             pattern_counts["kif_exact"] += 1
+
+        examples.append(
+            ExampleResult(
+                nl=pair.nl,
+                pattern=pair.pattern,
+                gold_cnl=pair.cnl,
+                gold_kif=pair.kif,
+                predicted_cnl=predicted_cnl,
+                predicted_kif=predicted_kif,
+                compile_error=compile_error,
+                abstained=False,
+                cnl_exact=cnl_match,
+                kif_exact=kif_match,
+            )
+        )
 
     breakdown = {
         pattern: PatternMetrics(
@@ -210,10 +279,16 @@ def evaluate_pairs(
         kif_exact=kif_exact,
         abstained=abstained,
         pattern_breakdown=breakdown,
+        examples=tuple(examples),
     )
 
 
-def print_report(report: EvaluationReport) -> None:
+def print_report(
+    report: EvaluationReport,
+    *,
+    show_misses: bool = False,
+    max_misses: int = 0,
+) -> None:
     print("Gold evaluation:")
     print(f"  Total pairs:             {report.total}")
     print(f"  Exact match CNL accuracy {report.cnl_accuracy:.3f} ({report.cnl_exact}/{report.total})")
@@ -228,13 +303,44 @@ def print_report(report: EvaluationReport) -> None:
             f"abstain={metrics.abstain_rate:.3f}"
         )
 
+    if not show_misses:
+        return
+
+    mismatches = report.mismatches
+    if max_misses > 0:
+        mismatches = mismatches[:max_misses]
+
+    print("\nMismatches:")
+    if not mismatches:
+        print("  None")
+        return
+
+    for index, example in enumerate(mismatches, start=1):
+        print(f"[{index}] Pattern: {example.pattern}")
+        print(f"    NL: {example.nl}")
+        print(f"    Gold CNL: {example.gold_cnl}")
+        print(f"    Predicted CNL: {example.predicted_cnl if example.predicted_cnl is not None else '<abstain>'}")
+        print(f"    Gold KIF: {example.gold_kif}")
+        if example.predicted_kif is not None:
+            print(f"    Predicted KIF: {example.predicted_kif}")
+        elif example.compile_error is not None:
+            print(f"    Compile error: {example.compile_error}")
+        else:
+            print("    Predicted KIF: <none>")
+        print(
+            "    Result: "
+            f"cnl_exact={example.cnl_exact} "
+            f"kif_exact={example.kif_exact} "
+            f"abstained={example.abstained}"
+        )
+
 
 def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
     pairs = load_gold_pairs(args.gold_path)
     predictor = ModelPredictor(args.model_path, decoding=args.decoding)
     report = evaluate_pairs(pairs, predictor=predictor)
-    print_report(report)
+    print_report(report, show_misses=args.show_misses, max_misses=args.max_misses)
 
 
 if __name__ == "__main__":
