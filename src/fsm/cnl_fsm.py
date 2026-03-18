@@ -72,6 +72,8 @@ _SUPPORTED_POSSESSIVE_SLOT_RE = re.compile(
 )
 _CONTROL_LITERAL_GRAMMAR_RE = re.compile(r'^\s*root\s*::=\s*(?P<literal>".*")\s*$', re.DOTALL)
 _CANONICAL_VAR_TERMS = ("?x", "?y", "?z", "?a", "?b", "?c")
+_DEFAULT_CONSTRAINED_NUM_BEAMS = 4
+_DEFAULT_CONSTRAINED_LENGTH_PENALTY = 1.15
 _XGRAMMAR_TEMPLATE = """
 root ::= sentence
 sentence ::= assertion | quantified | conditional
@@ -643,6 +645,10 @@ class CNLSampler:
                 **encoded,
                 max_new_tokens=max_tokens,
                 prefix_allowed_tokens_fn=prefix_constraint,
+                num_beams=_DEFAULT_CONSTRAINED_NUM_BEAMS,
+                length_penalty=_DEFAULT_CONSTRAINED_LENGTH_PENALTY,
+                early_stopping=True,
+                renormalize_logits=True,
             )
 
         decoded = self._tokenizer.batch_decode(generated, skip_special_tokens=True)

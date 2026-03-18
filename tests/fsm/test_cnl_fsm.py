@@ -1,5 +1,5 @@
 """
-Tests for src/fsm/cnl_fsm.py â€” Stage 2 FSM integration.
+Tests for src/fsm/cnl_fsm.py Ã¢â‚¬â€ Stage 2 FSM integration.
 
 Test strategy
 -------------
@@ -271,7 +271,7 @@ class TestCNLSamplerAbstain:
 
 
 # ---------------------------------------------------------------------------
-# CNLSampler.sample() â€” mock model, no real constrained runtime needed
+# CNLSampler.sample() Ã¢â‚¬â€ mock model, no real constrained runtime needed
 # ---------------------------------------------------------------------------
 
 class TestCNLSamplerSample:
@@ -315,6 +315,10 @@ class TestCNLSamplerSample:
         assert tokenizer.prompts_seen == ["translate: every soldier is a combatant"]
         assert model.calls[0]["max_new_tokens"] == 200
         assert model.calls[0]["prefix_allowed_tokens_fn"] is fake_constraint
+        assert model.calls[0]["num_beams"] == 4
+        assert model.calls[0]["length_penalty"] == pytest.approx(1.15)
+        assert model.calls[0]["early_stopping"] is True
+        assert model.calls[0]["renormalize_logits"] is True
         assert model.calls[0]["input_ids"].moved_to == "cpu"
 
 class FakeTensorBatch:
