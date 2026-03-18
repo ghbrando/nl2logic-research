@@ -1,5 +1,11 @@
 # Scoped — only top-level data/ (training artifacts, not src/data or tests/data)
 /data/
+/data/
+!/data/benchmarks/
+!/data/benchmarks/.gitkeep
+!/data/benchmarks/fm2-0/
+!/data/benchmarks/fm2-0/**
+
 
 
 # Byte-compiled / optimized / DLL files
