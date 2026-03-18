@@ -1,0 +1,124 @@
+;;; doctrine_domain.kif — FM 2-0 doctrine domain extensions for SUMO
+;;;
+;;; This file defines doctrine-specific concepts as subclasses/instances of
+;;; existing SUMO classes.  It is loaded by the mapper and included in the
+;;; prover-ready domain bundle.
+;;;
+;;; Design principles:
+;;;   - Every term here MUST have a parent in the SUMO upper ontology.
+;;;   - Prefer reusing existing SUMO classes when they already exist
+;;;     (e.g. IntelligenceActivities, MilitaryCommander are already in SUMO).
+;;;   - Only add new subclasses when no adequate SUMO class exists.
+;;;   - Keep this file small and curated; grow it per-document as needed.
+
+;;; ════════════════════════════════════════════════════════════════════════════
+;;; Intelligence concepts
+;;; ════════════════════════════════════════════════════════════════════════════
+
+;; IntelligenceActivities already exists in SUMO
+;; IntelligenceOfficer already exists in SUMO
+
+(subclass IntelligenceProcess MilitaryProcess)
+(documentation IntelligenceProcess EnglishLanguage
+  "The systematic sequence of activities whereby intelligence is obtained,
+   produced, and made available to users. FM 2-0 Chapter 1.")
+
+(subclass IntelligenceProduct ContentBearingObject)
+(documentation IntelligenceProduct EnglishLanguage
+  "The result of intelligence processing: reports, assessments, estimates,
+   and other outputs conveying analyzed information.")
+
+(subclass IntelligenceEnterprise MilitaryOrganization)
+(documentation IntelligenceEnterprise EnglishLanguage
+  "The collective resources of the intelligence community, including
+   professionals, sensors, systems, and federated organizations.")
+
+(subclass IntelligenceProfessional MilitaryPerson)
+(documentation IntelligenceProfessional EnglishLanguage
+  "Soldiers and DA Civilians who perform intelligence tasks and provide
+   intelligence to commanders and staffs.")
+
+(subclass IntelligenceDiscipline Procedure)
+(documentation IntelligenceDiscipline EnglishLanguage
+  "A recognized category of intelligence collection or production,
+   e.g. HUMINT, SIGINT, GEOINT, OSINT, MASINT, CI.")
+
+(subclass CombatInformation FactualText)
+(documentation CombatInformation EnglishLanguage
+  "Unevaluated data gathered by or provided to the tactical commander
+   which, due to its perishable nature, cannot be processed into tactical
+   intelligence before being used. FM 2-0 para 1-20.")
+
+;;; ════════════════════════════════════════════════════════════════════════════
+;;; Warfighting function concepts
+;;; ════════════════════════════════════════════════════════════════════════════
+
+(subclass WarfightingFunction MilitaryProcess)
+(documentation WarfightingFunction EnglishLanguage
+  "A group of tasks and systems unified by a common purpose that commanders
+   use to accomplish missions and training objectives. ADP 3-0.")
+
+(subclass IntelligenceWarfightingFunction WarfightingFunction)
+(documentation IntelligenceWarfightingFunction EnglishLanguage
+  "The intelligence warfighting function: related tasks and systems that
+   facilitate understanding the threat and operational environment.")
+
+;;; ════════════════════════════════════════════════════════════════════════════
+;;; Operational environment and threat
+;;; ════════════════════════════════════════════════════════════════════════════
+
+(subclass OperationalEnvironment Region)
+(documentation OperationalEnvironment EnglishLanguage
+  "The aggregate of the conditions, circumstances, and influences that
+   affect the employment of capabilities. ADP 3-0.")
+
+(subclass ThreatCourseOfAction MilitaryProcess)
+(documentation ThreatCourseOfAction EnglishLanguage
+  "A potential course of action identified for threat forces.")
+
+;;; ════════════════════════════════════════════════════════════════════════════
+;;; Doctrine and planning
+;;; ════════════════════════════════════════════════════════════════════════════
+
+;; Doctrine already exists in SUMO
+;; JointDoctrine already exists in SUMO
+;; OperationPlan already exists in SUMO
+;; OperationPlanning already exists in SUMO
+;; JointOperationPlanning already exists in SUMO
+
+(subclass DoctrinalTask MilitaryProcess)
+(documentation DoctrinalTask EnglishLanguage
+  "A task prescribed by military doctrine, e.g. an intelligence warfighting
+   function task (IWFT).")
+
+(subclass IntelligenceWarfightingFunctionTask DoctrinalTask)
+(documentation IntelligenceWarfightingFunctionTask EnglishLanguage
+  "A specific task within the intelligence warfighting function,
+   as defined in FM 2-0 Appendix B.")
+
+;;; ════════════════════════════════════════════════════════════════════════════
+;;; Collection and dissemination
+;;; ════════════════════════════════════════════════════════════════════════════
+
+(subclass InformationCollection MilitaryProcess)
+(documentation InformationCollection EnglishLanguage
+  "Activities that synchronize and integrate the planning and employment of
+   sensors and assets to collect information to answer requirements.")
+
+(subclass IntelligenceDissemination Communication)
+(documentation IntelligenceDissemination EnglishLanguage
+  "The conveyance of intelligence to users in a suitable form.")
+
+;;; ════════════════════════════════════════════════════════════════════════════
+;;; Command relationships
+;;; ════════════════════════════════════════════════════════════════════════════
+
+;; MilitaryCommander already exists in SUMO
+;; CombatantCommander already exists in SUMO
+;; JointForcesCommander already exists in SUMO
+
+(subclass TacticalCommander MilitaryCommander)
+(documentation TacticalCommander EnglishLanguage
+  "A commander at the tactical level of operations.")
+
+;;; end of doctrine_domain.kif
