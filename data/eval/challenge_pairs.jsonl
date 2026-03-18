@@ -1,0 +1,21 @@
+{"nl": "Something is an instance of MilitaryProcess.", "cnl": "?x is-a MilitaryProcess", "kif": "(instance ?x MilitaryProcess)", "pattern": "instance"}
+{"nl": "Something in the theater is a MilitaryUnit.", "cnl": "?x is-a MilitaryUnit", "kif": "(instance ?x MilitaryUnit)", "pattern": "instance"}
+{"nl": "Something at the base is a Weapon.", "cnl": "?x is-a Weapon", "kif": "(instance ?x Weapon)", "pattern": "instance"}
+{"nl": "Every military unit is a military organization.", "cnl": "MilitaryUnit subclass-of MilitaryOrganization", "kif": "(subclass MilitaryUnit MilitaryOrganization)", "pattern": "subclass"}
+{"nl": "Attack is a kind of military process.", "cnl": "Attack subclass-of MilitaryProcess", "kif": "(subclass Attack MilitaryProcess)", "pattern": "subclass"}
+{"nl": "Weapon is a subclass of Artifact.", "cnl": "Weapon subclass-of Artifact", "kif": "(subclass Weapon Artifact)", "pattern": "subclass"}
+{"nl": "The agent relation holds between a MilitaryProcess and an AutonomousAgent.", "cnl": "agent MilitaryProcess AutonomousAgent", "kif": "(agent MilitaryProcess AutonomousAgent)", "pattern": "binary"}
+{"nl": "Destination relates a Transportation to a Region.", "cnl": "destination Transportation Region", "kif": "(destination Transportation Region)", "pattern": "binary"}
+{"nl": "A MilitaryUnit stands in the located relation to an Area.", "cnl": "located MilitaryUnit Area", "kif": "(located MilitaryUnit Area)", "pattern": "binary"}
+{"nl": "For every military process, the agent relation holds with an autonomous agent.", "cnl": "every ?x is-a MilitaryProcess implies agent ?x AutonomousAgent", "kif": "(forall (?x) (=> (instance ?x MilitaryProcess) (agent ?x AutonomousAgent)))", "pattern": "conditional"}
+{"nl": "For every transportation process, the destination relation holds with a region.", "cnl": "every ?x is-a Transportation implies destination ?x Region", "kif": "(forall (?x) (=> (instance ?x Transportation) (destination ?x Region)))", "pattern": "conditional"}
+{"nl": "Every battle has a military unit as its patient.", "cnl": "every ?x is-a Battle implies patient ?x MilitaryUnit", "kif": "(forall (?x) (=> (instance ?x Battle) (patient ?x MilitaryUnit)))", "pattern": "conditional"}
+{"nl": "At least one military process exists.", "cnl": "some ?x is-a MilitaryProcess", "kif": "(exists (?x) (instance ?x MilitaryProcess))", "pattern": "existential"}
+{"nl": "Some entity is a Weapon.", "cnl": "some ?x is-a Weapon", "kif": "(exists (?x) (instance ?x Weapon))", "pattern": "existential"}
+{"nl": "There exists an order in the command post.", "cnl": "some ?x is-a Order", "kif": "(exists (?x) (instance ?x Order))", "pattern": "existential"}
+{"nl": "It is not the case that the agent relation holds between a MilitaryProcess and an AutonomousAgent.", "cnl": "not agent MilitaryProcess AutonomousAgent", "kif": "(not (agent MilitaryProcess AutonomousAgent))", "pattern": "negation"}
+{"nl": "A MilitaryUnit is not located in an Area.", "cnl": "not located MilitaryUnit Area", "kif": "(not (located MilitaryUnit Area))", "pattern": "negation"}
+{"nl": "Area, MilitaryUnit, and Region do not stand in the between relation.", "cnl": "not between [ Area , MilitaryUnit , Region ]", "kif": "(not (between Area MilitaryUnit Region))", "pattern": "negation"}
+{"nl": "The between relation holds among an Area, a MilitaryUnit, and a Region.", "cnl": "between [ Area , MilitaryUnit , Region ]", "kif": "(between Area MilitaryUnit Region)", "pattern": "nary"}
+{"nl": "The orientation relation holds among an Artifact, an Object, and a PositionalAttribute.", "cnl": "orientation [ Artifact , Object , PositionalAttribute ]", "kif": "(orientation Artifact Object PositionalAttribute)", "pattern": "nary"}
+{"nl": "A Weapon, an Area, and a Region stand in the connects relation.", "cnl": "connects [ Weapon , Area , Region ]", "kif": "(connects Weapon Area Region)", "pattern": "nary"}
