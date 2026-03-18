@@ -38,6 +38,50 @@ _SUBCLASS_RE = re.compile(
 _COPULAR_SOURCE_RE = re.compile(r"\b(?:is|are|was|were)\s+(?:an?|the|some)\b", re.IGNORECASE)
 _EXISTENTIAL_SOURCE_RE = re.compile(r"\b(?:some|there\s+is|there\s+are|exists|exist)\b", re.IGNORECASE)
 
+# ---------------------------------------------------------------------------
+# Weak single-word argument filter
+# ---------------------------------------------------------------------------
+# Words that should NOT be accepted as standalone ontology class arguments in
+# relation outputs.  They are common English words that frequently appear in
+# doctrine text and get picked up as incidental surface-word matches but carry
+# no credible ontology-entity semantics on their own.
+_WEAK_ARGUMENT_WORDS: frozenset[str] = frozenset({
+    # Prepositions / particles
+    "on", "in", "at", "by", "to", "of", "for", "as", "or", "up",
+    "out", "off", "into", "from", "with", "over", "under", "between",
+    "through", "within", "without", "near", "above", "below",
+    # Modal / auxiliary verbs
+    "may", "can", "will", "shall", "must", "would", "could", "should", "might",
+    # Adjectives / adverbs commonly surfacing as false ontology terms
+    "dangerous", "likely", "unlikely", "key", "right", "left",
+    "large", "larger", "largest", "small", "smaller", "smallest",
+    "high", "higher", "highest", "low", "lower", "lowest",
+    "long", "short", "full", "main", "major", "minor",
+    "most", "least", "best", "worst", "first", "last", "next",
+    "great", "greater", "greatest", "new", "old",
+    "critical", "important", "significant", "effective", "current",
+    "general", "primary", "secondary", "available", "possible",
+    "necessary", "specific", "particular", "various", "different",
+    "common", "typical", "normal", "basic", "direct", "indirect",
+    "rapid", "continuous", "simultaneous", "friendly", "hostile", "decisive",
+    # Determiners / quantifiers
+    "all", "each", "every", "any", "both", "such", "other",
+    "many", "few", "several", "more", "less", "much",
+    # Generic / abstract words too vague as standalone ontology arguments
+    "plan", "power", "time", "type", "kind", "part", "way", "point",
+    "form", "role", "area", "case", "line", "state", "states",
+    "level", "order", "place", "step", "phase", "stage", "side",
+    "range", "scope", "field", "base", "core", "unit", "end",
+    "goal", "task", "result", "effect", "impact", "factor",
+    "method", "system", "domain", "model", "class", "value",
+    "input", "output", "source", "target", "number", "size", "depth",
+    "rate", "data", "fact", "risk", "cost", "loss", "gain",
+    "term", "rule", "view", "mode", "means", "measure", "degree",
+    "force", "need", "act", "use", "move", "turn", "shift",
+    "change", "run", "set",
+    "human", "enemy", "surprise", "security",
+})
+
 
 def _load_terms(path: Path) -> list[str]:
     with open(path, encoding="utf-8") as handle:
@@ -221,6 +265,28 @@ class DoctrineGrounder:
                 "degenerate_form",
                 "Relation output has no grounded ontology arguments beyond variables.",
             )
+
+        if pattern == "relation" and class_terms:
+            rel_set = set(relation_terms)
+            weak_args: list[str] = []
+            for term in class_terms:
+                nat = _naturalize_term(term)
+                nat_words = nat.split()
+                # Single-word argument in the weak set
+                if len(nat_words) == 1 and nat in _WEAK_ARGUMENT_WORDS:
+                    weak_args.append(term)
+                # Multi-word argument with a constituent that is both weak
+                # AND matches a relation term (e.g. states / UnitedStates)
+                elif len(nat_words) > 1 and any(
+                    w in _WEAK_ARGUMENT_WORDS and w in rel_set for w in nat_words
+                ):
+                    weak_args.append(term)
+            if weak_args:
+                return (
+                    "weak_argument",
+                    f"Relation argument(s) are weak single-word matches, not credible "
+                    f"ontology terms: {', '.join(weak_args)}",
+                )
 
         if pattern == "nary" and relation_terms and len(class_terms) < 3:
             return (

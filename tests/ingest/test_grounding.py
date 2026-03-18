@@ -9,8 +9,19 @@ from src.ingest.grounding import DoctrineGrounder, extract_cnl_terms
 def _make_term_files(tmp_root: Path) -> tuple[Path, Path]:
     classes_path = tmp_root / "classes.jsonl"
     relations_path = tmp_root / "relations.jsonl"
-    classes = ["MilitaryProcess", "AutonomousAgent", "Transportation", "Region", "Likely", "Planning", "Army"]
-    relations = ["agent", "destination", "complexity"]
+    classes = [
+        "MilitaryProcess", "AutonomousAgent", "Transportation", "Region",
+        "Likely", "Planning", "Army",
+        # Terms needed for weak-argument regression tests
+        "Dangerous", "May", "On", "UnitedStates", "Power", "Plan", "Enemy",
+        "Security", "Key", "Human", "Surprise",
+    ]
+    relations = [
+        "agent", "destination", "complexity",
+        # Relations needed for weak-argument regression tests
+        "most", "needs", "time", "states", "during", "domain", "enemy",
+        "prevents", "larger", "depth",
+    ]
     classes_path.write_text("".join(json.dumps({"term": term}) + "\n" for term in classes), encoding="utf-8")
     relations_path.write_text("".join(json.dumps({"term": term}) + "\n" for term in relations), encoding="utf-8")
     return classes_path, relations_path
@@ -165,3 +176,144 @@ def test_grounder_rejects_relation_outputs_with_only_variable_arguments(tmp_path
     assert assessment.accepted is False
     assert assessment.reason == "degenerate_form"
     assert "no grounded ontology arguments" in assessment.detail
+
+
+# ---------------------------------------------------------------------------
+# Regression tests: weak single-word argument filter
+# These outputs were accepted by the Spark pipeline but are semantically
+# meaningless and must be rejected (routed to review).
+# ---------------------------------------------------------------------------
+
+def test_rejects_most_dangerous(tmp_path: Path):
+    classes_path, relations_path = _make_term_files(tmp_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+
+    assessment = grounder.assess(
+        cnl="most Dangerous ?x",
+        original_text="Is most likely to do the most dangerous threat course of action.",
+        normalized_text="Is most likely to do the most dangerous threat course of action.",
+        linked_text="Is most likely to do the most dangerous threat course of action.",
+        subclaim_text="Is most likely to do the most dangerous threat course of action.",
+    )
+
+    assert assessment.accepted is False
+    assert assessment.reason == "weak_argument"
+    assert "Dangerous" in assessment.detail
+
+
+def test_rejects_needs_may(tmp_path: Path):
+    classes_path, relations_path = _make_term_files(tmp_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+
+    assessment = grounder.assess(
+        cnl="needs ?x May",
+        original_text="The commander may need additional information.",
+        normalized_text="The commander may need additional information.",
+        linked_text="The commander may need additional information.",
+        subclaim_text="The commander may need additional information.",
+    )
+
+    assert assessment.accepted is False
+    assert assessment.reason == "weak_argument"
+    assert "May" in assessment.detail
+
+
+def test_rejects_time_on(tmp_path: Path):
+    classes_path, relations_path = _make_term_files(tmp_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+
+    assessment = grounder.assess(
+        cnl="time ?x On",
+        original_text="Focus on the time available for planning.",
+        normalized_text="Focus on the time available for planning.",
+        linked_text="Focus on the time available for planning.",
+        subclaim_text="Focus on the time available for planning.",
+    )
+
+    assert assessment.accepted is False
+    assert assessment.reason == "weak_argument"
+    assert "On" in assessment.detail
+
+
+def test_rejects_states_unitedstates(tmp_path: Path):
+    classes_path, relations_path = _make_term_files(tmp_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+
+    assessment = grounder.assess(
+        cnl="states ?x UnitedStates",
+        original_text="The United States Army states its doctrine.",
+        normalized_text="The United States Army states its doctrine.",
+        linked_text="The United States Army states its doctrine.",
+        subclaim_text="The United States Army states its doctrine.",
+    )
+
+    assert assessment.accepted is False
+    assert assessment.reason == "weak_argument"
+    assert "UnitedStates" in assessment.detail
+
+
+def test_rejects_during_power(tmp_path: Path):
+    classes_path, relations_path = _make_term_files(tmp_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+
+    assessment = grounder.assess(
+        cnl="during ?x Power",
+        original_text="During the exercise of power projection.",
+        normalized_text="During the exercise of power projection.",
+        linked_text="During the exercise of power projection.",
+        subclaim_text="During the exercise of power projection.",
+    )
+
+    assert assessment.accepted is False
+    assert assessment.reason == "weak_argument"
+    assert "Power" in assessment.detail
+
+
+def test_rejects_domain_plan(tmp_path: Path):
+    classes_path, relations_path = _make_term_files(tmp_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+
+    assessment = grounder.assess(
+        cnl="domain ?x Plan",
+        original_text="The plan is part of the intelligence domain.",
+        normalized_text="The plan is part of the intelligence domain.",
+        linked_text="The plan is part of the intelligence domain.",
+        subclaim_text="The plan is part of the intelligence domain.",
+    )
+
+    assert assessment.accepted is False
+    assert assessment.reason == "weak_argument"
+    assert "Plan" in assessment.detail
+
+
+def test_rejects_enemy_enemy(tmp_path: Path):
+    classes_path, relations_path = _make_term_files(tmp_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+
+    assessment = grounder.assess(
+        cnl="enemy ?x Enemy",
+        original_text="The enemy force is the primary enemy threat.",
+        normalized_text="The enemy force is the primary enemy threat.",
+        linked_text="The enemy force is the primary enemy threat.",
+        subclaim_text="The enemy force is the primary enemy threat.",
+    )
+
+    assert assessment.accepted is False
+    assert assessment.reason == "weak_argument"
+    assert "Enemy" in assessment.detail
+
+
+def test_legitimate_relation_not_blocked_by_weak_argument_filter(tmp_path: Path):
+    """Ensure multi-word PascalCase arguments and specific terms still pass."""
+    classes_path, relations_path = _make_term_files(tmp_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+
+    assessment = grounder.assess(
+        cnl="agent MilitaryProcess AutonomousAgent",
+        original_text="A military process has an autonomous agent.",
+        normalized_text="A military process has an autonomous agent.",
+        linked_text="A military process has an autonomous agent.",
+        subclaim_text="A military process has an autonomous agent.",
+    )
+
+    assert assessment.accepted is True
