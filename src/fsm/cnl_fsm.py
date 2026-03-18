@@ -224,7 +224,6 @@ class _ConstraintBuilder:
     def __init__(self, tokenizer):
         self._tokenizer = tokenizer
         self._nfa = _ConstraintNFA()
-        self._segment_cache: dict[tuple[tuple[int, ...], ...], tuple[int, frozenset[int]]] = {}
         self.start_state = self._nfa.new_node()
         self.accept_state = self._nfa.new_node()
         self._nfa.nodes[self.accept_state].accept = True
@@ -244,14 +243,10 @@ class _ConstraintBuilder:
         self,
         sequences: Iterable[tuple[int, ...]],
     ) -> tuple[int, frozenset[int]]:
-        unique_sequences = tuple(sorted(set(sequences)))
-        if unique_sequences in self._segment_cache:
-            return self._segment_cache[unique_sequences]
-
         root_state = self._nfa.new_node()
         terminal_states: set[int] = set()
 
-        for sequence in unique_sequences:
+        for sequence in sorted(set(sequences)):
             current_state = root_state
             if not sequence:
                 terminal_states.add(current_state)
@@ -267,9 +262,7 @@ class _ConstraintBuilder:
                 current_state = next_state
             terminal_states.add(current_state)
 
-        cached = (root_state, frozenset(terminal_states))
-        self._segment_cache[unique_sequences] = cached
-        return cached
+        return root_state, frozenset(terminal_states)
 
     def add_template(self, segment_groups: list[Iterable[tuple[int, ...]]]) -> None:
         current_state = self.start_state
