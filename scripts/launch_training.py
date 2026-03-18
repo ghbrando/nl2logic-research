@@ -60,21 +60,7 @@ def build_dependency_check_script() -> str:
 def build_optional_constrained_install_script() -> str:
     lines = [
         "python - <<'PY'",
-        "import subprocess",
-        "import sys",
-        "",
-        "subprocess.run(",
-        "    [",
-        "        sys.executable,",
-        "        \"-m\"",
-        "        , \"pip\"",
-        "        , \"install\"",
-        "        , \"-q\"",
-        "        , \"--break-system-packages\"",
-        "        , \"xgrammar\"",
-        "    ],",
-        "    check=True,",
-        ")",
+        "print(\"Using the built-in Hugging Face constrained decoder; no extra backend install required.\")",
         "PY",
     ]
     return "\n".join(lines)
@@ -257,6 +243,7 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
 
 
 

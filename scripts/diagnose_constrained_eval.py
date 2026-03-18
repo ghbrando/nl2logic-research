@@ -20,7 +20,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Diagnose whether constrained evaluation time is spent in grammar "
-            "build, xgrammar init, or the first constrained decode."
+            "build, constraint init, or the first constrained decode."
         )
     )
     parser.add_argument(
@@ -141,8 +141,8 @@ def run_probe(
     sampler = CNLSampler(model, tokenizer, grammar_str=grammar)
     _finish_step(start)
 
-    start = _print_step("Initializing xgrammar compiler / logits processor...")
-    sampler._get_xgrammar_logits_processors()
+    start = _print_step("Initializing prefix constraint automaton...")
+    sampler._get_prefix_constraint()
     _finish_step(start)
 
     start = _print_step("Running first constrained sample...")
@@ -173,6 +173,7 @@ def main(argv: list[str] | None = None) -> None:
 
 if __name__ == "__main__":
     main()
+
 
 
 

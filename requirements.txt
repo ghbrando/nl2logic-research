@@ -16,13 +16,14 @@ pluggy==1.6.0
 Pygments==2.19.2
 
 # FSM-constrained decoding
-# xgrammar            # Install in the inference environment for constrained decoding
+# No extra backend dependency required for constrained decoding
 
 # Ingest pipeline (optional â€” requires Python <3.13)
 # anthropic>=0.25
 # coreferee>=1.4
 # spacy>=3.7
 # pdfplumber>=0.11
+
 
 
 

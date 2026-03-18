@@ -15,18 +15,20 @@ the constrained-decoding backend accept different syntaxes:
    decoding uses, because xgrammar follows GBNF rather than Lark syntax.
 
 3. CNLSampler(...)
-   Wraps a HuggingFace seq2seq model with xgrammar-backed logits masking.
-   validate_output() always delegates to CNLCompiler regardless of whether
-   xgrammar is installed.
+   Wraps a HuggingFace seq2seq model with a custom token-prefix constraint
+   automaton for the canonical CNL fragment used in training/evaluation.
+   validate_output() always delegates to CNLCompiler.
 """
 
 from contextlib import nullcontext
+from dataclasses import dataclass, field
 from importlib import import_module
 import json
 import logging
 import math
 import re
 from pathlib import Path
+from typing import Iterable
 
 from lark import Lark
 
@@ -68,6 +70,8 @@ _SUPPORTED_POSSESSIVE_SLOT_RE = re.compile(
     r"\bas\s+its\s+(agent|patient|destination|origin)\b",
     re.IGNORECASE,
 )
+_CONTROL_LITERAL_GRAMMAR_RE = re.compile(r'^\s*root\s*::=\s*(?P<literal>".*")\s*$', re.DOTALL)
+_CANONICAL_VAR_TERMS = ("?x", "?y", "?z", "?a", "?b", "?c")
 _XGRAMMAR_TEMPLATE = """
 root ::= sentence
 sentence ::= assertion | quantified | conditional
@@ -194,6 +198,176 @@ def validate_base_grammar_lalr() -> None:
         ) from exc
 
 
+@dataclass
+class _ConstraintNode:
+    token_edges: dict[int, set[int]] = field(default_factory=dict)
+    epsilon: set[int] = field(default_factory=set)
+    accept: bool = False
+
+
+class _ConstraintNFA:
+    def __init__(self):
+        self.nodes: list[_ConstraintNode] = []
+
+    def new_node(self) -> int:
+        self.nodes.append(_ConstraintNode())
+        return len(self.nodes) - 1
+
+    def add_epsilon(self, src: int, dst: int) -> None:
+        self.nodes[src].epsilon.add(dst)
+
+    def add_token_edge(self, src: int, token_id: int, dst: int) -> None:
+        self.nodes[src].token_edges.setdefault(token_id, set()).add(dst)
+
+
+class _ConstraintBuilder:
+    def __init__(self, tokenizer):
+        self._tokenizer = tokenizer
+        self._nfa = _ConstraintNFA()
+        self._segment_cache: dict[tuple[tuple[int, ...], ...], tuple[int, frozenset[int]]] = {}
+        self.start_state = self._nfa.new_node()
+        self.accept_state = self._nfa.new_node()
+        self._nfa.nodes[self.accept_state].accept = True
+
+    @property
+    def nfa(self) -> _ConstraintNFA:
+        return self._nfa
+
+    def _encode_surface(self, text: str) -> tuple[int, ...]:
+        encoded = self._tokenizer(text, add_special_tokens=False)
+        input_ids = encoded["input_ids"]
+        if input_ids and isinstance(input_ids[0], list):
+            input_ids = input_ids[0]
+        return tuple(int(token_id) for token_id in input_ids)
+
+    def _build_segment_graph(
+        self,
+        sequences: Iterable[tuple[int, ...]],
+    ) -> tuple[int, frozenset[int]]:
+        unique_sequences = tuple(sorted(set(sequences)))
+        if unique_sequences in self._segment_cache:
+            return self._segment_cache[unique_sequences]
+
+        root_state = self._nfa.new_node()
+        terminal_states: set[int] = set()
+
+        for sequence in unique_sequences:
+            current_state = root_state
+            if not sequence:
+                terminal_states.add(current_state)
+                continue
+
+            for token_id in sequence:
+                next_states = self._nfa.nodes[current_state].token_edges.get(token_id)
+                if next_states and len(next_states) == 1:
+                    next_state = next(iter(next_states))
+                else:
+                    next_state = self._nfa.new_node()
+                    self._nfa.add_token_edge(current_state, token_id, next_state)
+                current_state = next_state
+            terminal_states.add(current_state)
+
+        cached = (root_state, frozenset(terminal_states))
+        self._segment_cache[unique_sequences] = cached
+        return cached
+
+    def add_template(self, segment_groups: list[Iterable[tuple[int, ...]]]) -> None:
+        current_state = self.start_state
+        for index, sequences in enumerate(segment_groups):
+            next_state = self.accept_state if index == len(segment_groups) - 1 else self._nfa.new_node()
+            segment_root, segment_terminals = self._build_segment_graph(sequences)
+            self._nfa.add_epsilon(current_state, segment_root)
+            for terminal_state in segment_terminals:
+                self._nfa.add_epsilon(terminal_state, next_state)
+            current_state = next_state
+
+
+class _PrefixConstraint:
+    def __init__(
+        self,
+        nfa: _ConstraintNFA,
+        *,
+        start_state: int,
+        eos_token_id: int | None,
+        decoder_start_token_id: int | None,
+    ):
+        self._nfa = nfa
+        self._start_state = start_state
+        self._eos_token_id = eos_token_id
+        self._decoder_start_token_id = decoder_start_token_id
+        self._closure_cache: dict[tuple[int, ...], frozenset[int]] = {}
+        self._state_cache: dict[tuple[int, ...], frozenset[int]] = {
+            tuple(): self._epsilon_closure((self._start_state,))
+        }
+
+    def _epsilon_closure(self, states: Iterable[int]) -> frozenset[int]:
+        key = tuple(sorted(set(states)))
+        if key in self._closure_cache:
+            return self._closure_cache[key]
+
+        seen = set(key)
+        stack = list(key)
+        while stack:
+            state = stack.pop()
+            for dst in self._nfa.nodes[state].epsilon:
+                if dst not in seen:
+                    seen.add(dst)
+                    stack.append(dst)
+
+        closure = frozenset(seen)
+        self._closure_cache[key] = closure
+        return closure
+
+    def _advance(self, states: frozenset[int], token_id: int) -> frozenset[int]:
+        destinations: set[int] = set()
+        for state in states:
+            destinations.update(self._nfa.nodes[state].token_edges.get(token_id, set()))
+        return self._epsilon_closure(destinations)
+
+    def _normalise_prefix(self, input_ids) -> tuple[int, ...]:
+        if hasattr(input_ids, "tolist"):
+            values = input_ids.tolist()
+        else:
+            values = list(input_ids)
+        if values and isinstance(values[0], list):
+            values = values[0]
+        prefix = tuple(int(token_id) for token_id in values)
+        if prefix and self._decoder_start_token_id is not None and prefix[0] == self._decoder_start_token_id:
+            prefix = prefix[1:]
+        return prefix
+
+    def _states_for_prefix(self, prefix: tuple[int, ...]) -> frozenset[int]:
+        if prefix in self._state_cache:
+            return self._state_cache[prefix]
+
+        previous = prefix[:-1]
+        previous_states = self._states_for_prefix(previous)
+        states = self._advance(previous_states, prefix[-1])
+        self._state_cache[prefix] = states
+        return states
+
+    def __call__(self, _batch_id: int, input_ids) -> list[int]:
+        prefix = self._normalise_prefix(input_ids)
+        states = self._states_for_prefix(prefix)
+        if not states:
+            raise RuntimeError("No valid constrained continuation remains for the generated prefix.")
+
+        allowed: set[int] = set()
+        accepting = False
+        for state in states:
+            node = self._nfa.nodes[state]
+            allowed.update(node.token_edges.keys())
+            accepting = accepting or node.accept
+
+        if accepting and self._eos_token_id is not None:
+            allowed.add(int(self._eos_token_id))
+
+        if not allowed:
+            raise RuntimeError("Constraint automaton has no valid next tokens.")
+
+        return sorted(allowed)
+
+
 # ---------------------------------------------------------------------------
 # CNLSampler
 # ---------------------------------------------------------------------------
@@ -217,7 +391,8 @@ class CNLSampler:
 
     Notes
     -----
-    Requires xgrammar at sample time. validate_output() is always available.
+    Uses a Transformers-native prefix constraint function; no third-party
+    constrained-decoding backend is required at sample time.
     """
 
     def __init__(
@@ -232,7 +407,7 @@ class CNLSampler:
         self._tokenizer = tokenizer
         self._grammar = grammar_str if grammar_str is not None else build_xgrammar_grammar()
         self._compiler = CNLCompiler()
-        self._xgrammar_logits_processors = None
+        self._prefix_constraint = None
         self._confidence_threshold = confidence_threshold
 
     @staticmethod
@@ -297,66 +472,108 @@ class CNLSampler:
             }
         return batch
 
-    def _resolve_vocab_size(self) -> int:
-        config = getattr(self._hf_model, "config", None)
-        model_vocab_size = getattr(config, "vocab_size", None)
-        if isinstance(model_vocab_size, int) and model_vocab_size > 0:
-            return model_vocab_size
+    def _encode_surface(self, text: str) -> tuple[int, ...]:
+        encoded = self._tokenizer(text, add_special_tokens=False)
+        input_ids = encoded["input_ids"]
+        if input_ids and isinstance(input_ids[0], list):
+            input_ids = input_ids[0]
+        return tuple(int(token_id) for token_id in input_ids)
 
-        tokenizer_vocab_size = getattr(self._tokenizer, "vocab_size", None)
-        if isinstance(tokenizer_vocab_size, int) and tokenizer_vocab_size > 0:
-            return tokenizer_vocab_size
+    def _fixed_segment(self, text: str) -> list[tuple[int, ...]]:
+        return [self._encode_surface(text)]
 
-        if hasattr(self._tokenizer, "__len__"):
-            derived_vocab_size = int(len(self._tokenizer))
-            if derived_vocab_size > 0:
-                return derived_vocab_size
+    def _slot_sequences(self, terms: Iterable[str], *, leading_space: bool) -> list[tuple[int, ...]]:
+        prefix = " " if leading_space else ""
+        return [self._encode_surface(f"{prefix}{term}") for term in _sorted_terms(list(terms))]
 
-        raise ValueError("Unable to determine tokenizer vocabulary size for constrained decoding.")
+    def _control_literal(self) -> str | None:
+        match = _CONTROL_LITERAL_GRAMMAR_RE.match(self._grammar)
+        if match is None:
+            return None
+        return json.loads(match.group("literal"))
 
-    def _get_xgrammar_logits_processors(self):
-        """Lazy-import and initialise xgrammar-backed Hugging Face logits processors."""
-        if self._xgrammar_logits_processors is not None:
-            return self._xgrammar_logits_processors
+    def _build_prefix_constraint(self) -> _PrefixConstraint:
+        builder = _ConstraintBuilder(self._tokenizer)
 
-        try:
-            xgrammar = import_module("xgrammar")
-        except ModuleNotFoundError as exc:
-            raise ImportError(
-                "xgrammar is not installed or not importable. "
-                "Install it with: pip install xgrammar"
-            ) from exc
-
-        try:
-            hf_integration = import_module("xgrammar.contrib.hf")
-        except ModuleNotFoundError as exc:
-            raise ImportError(
-                "xgrammar's Hugging Face integration is unavailable. "
-                "Install a recent xgrammar build that provides xgrammar.contrib.hf."
-            ) from exc
-
-        tokenizer_info = xgrammar.TokenizerInfo.from_huggingface(
-            self._tokenizer,
-            vocab_size=self._resolve_vocab_size(),
-        )
-        grammar_compiler = xgrammar.GrammarCompiler(tokenizer_info)
-        compiled_grammar = grammar_compiler.compile_grammar(self._grammar)
-        processor = hf_integration.LogitsProcessor(compiled_grammar)
-
-        try:
-            transformers = import_module("transformers")
-        except ModuleNotFoundError:
-            processors = [processor]
+        control_literal = self._control_literal()
+        if control_literal is not None:
+            builder.add_template([self._fixed_segment(control_literal)])
         else:
-            logits_processor_list_cls = getattr(transformers, "LogitsProcessorList", None)
-            processors = (
-                logits_processor_list_cls([processor])
-                if logits_processor_list_cls is not None
-                else [processor]
+            classes = _load_terms(_SUMO_CLASSES)
+            relations = _load_terms(_SUMO_RELATIONS)
+
+            class_start = self._slot_sequences(classes, leading_space=False)
+            class_space = self._slot_sequences(classes, leading_space=True)
+            relation_start = self._slot_sequences(relations, leading_space=False)
+            relation_space = self._slot_sequences(relations, leading_space=True)
+            var_space = self._slot_sequences(_CANONICAL_VAR_TERMS, leading_space=True)
+            term_space = class_space + var_space
+
+            builder.add_template([self._fixed_segment("?x is-a"), class_space])
+            builder.add_template([class_start, self._fixed_segment(" subclass-of"), class_space])
+            builder.add_template([relation_start, term_space, term_space])
+            builder.add_template(
+                [
+                    relation_start,
+                    self._fixed_segment(" ["),
+                    term_space,
+                    self._fixed_segment(" ,"),
+                    term_space,
+                    self._fixed_segment(" ,"),
+                    term_space,
+                    self._fixed_segment(" ]"),
+                ]
+            )
+            builder.add_template(
+                [
+                    self._fixed_segment("every ?x is-a"),
+                    class_space,
+                    self._fixed_segment(" implies"),
+                    relation_space,
+                    self._fixed_segment(" ?x"),
+                    term_space,
+                ]
+            )
+            builder.add_template(
+                [
+                    self._fixed_segment("if"),
+                    relation_space,
+                    self._fixed_segment(" ?x"),
+                    term_space,
+                    self._fixed_segment(" then ?x is-a"),
+                    class_space,
+                ]
+            )
+            builder.add_template([self._fixed_segment("some ?x is-a"), class_space])
+            builder.add_template([self._fixed_segment("not ?x is-a"), class_space])
+            builder.add_template([self._fixed_segment("not"), relation_space, term_space, term_space])
+            builder.add_template(
+                [
+                    self._fixed_segment("not"),
+                    relation_space,
+                    self._fixed_segment(" ["),
+                    term_space,
+                    self._fixed_segment(" ,"),
+                    term_space,
+                    self._fixed_segment(" ,"),
+                    term_space,
+                    self._fixed_segment(" ]"),
+                ]
             )
 
-        self._xgrammar_logits_processors = processors
-        return self._xgrammar_logits_processors
+        eos_token_id = getattr(self._tokenizer, "eos_token_id", None)
+        decoder_start_token_id = getattr(getattr(self._hf_model, "config", None), "decoder_start_token_id", None)
+        return _PrefixConstraint(
+            builder.nfa,
+            start_state=builder.start_state,
+            eos_token_id=eos_token_id,
+            decoder_start_token_id=decoder_start_token_id,
+        )
+
+    def _get_prefix_constraint(self) -> _PrefixConstraint:
+        if self._prefix_constraint is None:
+            self._prefix_constraint = self._build_prefix_constraint()
+        return self._prefix_constraint
 
     @staticmethod
     def _score_row(score_step) -> list[float]:
@@ -420,7 +637,7 @@ class CNLSampler:
             raise UnsupportedInputError(message)
 
         encoded = self._tokenize_prompt(prompt)
-        logits_processors = self._get_xgrammar_logits_processors()
+        prefix_constraint = self._get_prefix_constraint()
 
         try:
             torch_module = import_module("torch")
@@ -432,7 +649,7 @@ class CNLSampler:
             generated = self._hf_model.generate(
                 **encoded,
                 max_new_tokens=max_tokens,
-                logits_processor=logits_processors,
+                prefix_allowed_tokens_fn=prefix_constraint,
             )
 
         decoded = self._tokenizer.batch_decode(generated, skip_special_tokens=True)

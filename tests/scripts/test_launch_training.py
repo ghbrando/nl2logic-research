@@ -59,8 +59,7 @@ class TestLaunchTrainingRemoteScript:
         python_body = script.split("\n", 1)[1].rsplit("\nPY", 1)[0]
 
         ast.parse(python_body)
-        assert 'xgrammar' in script
-        assert 'outlines>=1.0' not in script
+        assert 'no extra backend install required' in script.lower()
 
     def test_remote_script_uses_heredoc_tmux_command(self):
         script = build_remote_script("base")
@@ -115,6 +114,7 @@ class TestLaunchTrainingExecution:
 
         with pytest.raises(RuntimeError, match="--host local"):
             launch_training.run_remote_script("dgx-spark", "echo ok")
+
 
 
 

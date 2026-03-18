@@ -144,7 +144,7 @@ class ModelPredictor:
                 if not _is_constrained_backend_error(exc):
                     raise
 
-                install_hint = "Install xgrammar in the evaluation environment"
+                install_hint = "No extra constrained-decoding backend dependency is required"
                 if self._decoding == "constrained":
                     raise RuntimeError(
                         "Constrained decoding is unavailable in this environment. "
@@ -158,4 +158,6 @@ class ModelPredictor:
                 )
 
         return self._generate_raw(prompt)
+
+
 

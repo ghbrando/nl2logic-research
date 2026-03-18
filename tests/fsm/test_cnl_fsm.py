@@ -7,7 +7,7 @@ Test strategy
 - validate_output() delegates to CNLCompiler (no model needed).
 - CNLSampler construction is tested with MagicMock (no model needed).
 - CNLSampler.sample() is tested with a MagicMock model that returns a
-  known CNL string; the xgrammar/Hugging Face integration itself is tested end-to-end
+  known CNL string; the custom Hugging Face constrained integration itself is tested end-to-end
   only in integration tests (not here).
 
 All tests use SUMO terms known to exist in sumo_classes.jsonl /
@@ -217,8 +217,8 @@ class TestCNLSamplerConstruction:
         s = CNLSampler(MagicMock(), MagicMock())
         assert s is not None
 
-    def test_validate_output_available_without_xgrammar(self, sampler):
-        # validate_output must work even though xgrammar is not installed here
+    def test_validate_output_available_without_backend(self, sampler):
+        # validate_output must work even though constrained decoding is not exercised here
         result = sampler.validate_output("?x is-a Process")
         assert result == "(instance ?x Process)"
 
@@ -271,12 +271,12 @@ class TestCNLSamplerAbstain:
 
 
 # ---------------------------------------------------------------------------
-# CNLSampler.sample() â€” mock model, no real xgrammar runtime needed
+# CNLSampler.sample() â€” mock model, no real constrained runtime needed
 # ---------------------------------------------------------------------------
 
 class TestCNLSamplerSample:
 
-    def test_sample_calls_hf_generate_with_xgrammar_logits_processor(self, constrained_grammar_str):
+    def test_sample_calls_hf_generate_with_prefix_constraint(self, constrained_grammar_str):
         class SampleTokenizer:
             def __init__(self):
                 self.prompts_seen = []
@@ -306,15 +306,15 @@ class TestCNLSamplerSample:
         model = SampleModel()
         tokenizer = SampleTokenizer()
         sampler = CNLSampler(model, tokenizer, grammar_str=constrained_grammar_str)
-        fake_processors = [object()]
-        sampler._xgrammar_logits_processors = fake_processors
+        fake_constraint = object()
+        sampler._prefix_constraint = fake_constraint
 
         result = sampler.sample("translate: every soldier is a combatant")
 
         assert result == "?x is-a Process"
         assert tokenizer.prompts_seen == ["translate: every soldier is a combatant"]
         assert model.calls[0]["max_new_tokens"] == 200
-        assert model.calls[0]["logits_processor"] is fake_processors
+        assert model.calls[0]["prefix_allowed_tokens_fn"] is fake_constraint
         assert model.calls[0]["input_ids"].moved_to == "cpu"
 
 class FakeTensorBatch:
@@ -403,6 +403,8 @@ class TestCNLSamplerConfidence:
         assert cnl == "?x is-a Process"
         assert confidence == pytest.approx(0.5)
         assert "Low-confidence CNL generation" in caplog.text
+
+
 
 
 

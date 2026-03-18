@@ -73,7 +73,7 @@ class FakeSampler:
 
 class ImportErrorSampler:
     def sample(self, prompt: str, max_tokens: int = 200) -> str:
-        raise ImportError("xgrammar is not installed")
+        raise ImportError("constrained backend unavailable")
 
 
 class RuntimeErrorSampler:
@@ -218,7 +218,7 @@ class TestModelPredictor:
             pattern="instance",
         )
 
-        with pytest.raises(RuntimeError, match=r"Install xgrammar"):
+        with pytest.raises(RuntimeError, match=r"No extra constrained-decoding backend dependency is required"):
             predictor(pair)
 
     def test_returns_none_when_input_triggers_abstain(self):
@@ -267,4 +267,5 @@ class TestModelPredictor:
     def test_invalid_decoding_mode_raises_clear_error(self):
         with pytest.raises(ValueError, match="Unknown decoding mode"):
             ModelPredictor(model=FakeModel(), tokenizer=FakeTokenizer(), decoding="beam")
+
 
