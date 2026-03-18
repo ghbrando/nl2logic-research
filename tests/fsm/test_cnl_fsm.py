@@ -257,6 +257,10 @@ class TestCNLSamplerAbstain:
     def test_supported_possessive_relation_phrase_does_not_abstain(self, sampler, nl):
         assert sampler.abstain_if_unsupported(nl) is False
 
+    def test_it_is_not_the_case_wrapper_does_not_trigger_discourse_abstain(self, sampler):
+        nl = "It is not the case that the agent relation holds between a MilitaryProcess and an AutonomousAgent."
+        assert sampler.abstain_if_unsupported(nl) is False
+
     def test_other_its_usage_still_abstains(self, sampler):
         nl = "If its commander retreats, the unit halts."
         assert sampler.abstain_if_unsupported(nl) is True
@@ -521,6 +525,50 @@ class TestPromptAwareConstraints:
         assert plan.first_terms == ("Transportation",)
         assert plan.second_terms == ("Region",)
 
+    def test_infers_nary_plan_from_prompt(self, monkeypatch):
+        sampler = CNLSampler(MagicMock(), MagicMock())
+
+        def fake_load_terms(path, key="term"):
+            path_str = str(path)
+            if path_str.endswith("sumo_classes.jsonl"):
+                return ["Area", "MilitaryUnit", "Region"]
+            if path_str.endswith("sumo_relations.jsonl"):
+                return ["between"]
+            raise AssertionError(f"Unexpected load path: {path}")
+
+        monkeypatch.setattr("src.fsm.cnl_fsm._load_terms", fake_load_terms)
+
+        plan = sampler._infer_prompt_plan("The between relation holds among an Area, a MilitaryUnit, and a Region.")
+
+        assert plan is not None
+        assert plan.template == "nary"
+        assert plan.relation_terms == ("between",)
+        assert plan.first_terms == ("Area",)
+        assert plan.second_terms == ("MilitaryUnit",)
+        assert plan.third_terms == ("Region",)
+
+    def test_infers_negated_nary_plan_from_prompt(self, monkeypatch):
+        sampler = CNLSampler(MagicMock(), MagicMock())
+
+        def fake_load_terms(path, key="term"):
+            path_str = str(path)
+            if path_str.endswith("sumo_classes.jsonl"):
+                return ["Area", "MilitaryUnit", "Region"]
+            if path_str.endswith("sumo_relations.jsonl"):
+                return ["between"]
+            raise AssertionError(f"Unexpected load path: {path}")
+
+        monkeypatch.setattr("src.fsm.cnl_fsm._load_terms", fake_load_terms)
+
+        plan = sampler._infer_prompt_plan("Area, MilitaryUnit, and Region do not stand in the between relation.")
+
+        assert plan is not None
+        assert plan.template == "negation_nary"
+        assert plan.relation_terms == ("between",)
+        assert plan.first_terms == ("Area",)
+        assert plan.second_terms == ("MilitaryUnit",)
+        assert plan.third_terms == ("Region",)
+
     def test_prompt_specific_binary_constraint_disallows_instance_start(self, monkeypatch):
         tokenizer = PrefixConstraintTokenizer()
         model = MagicMock()
@@ -542,6 +590,28 @@ class TestPromptAwareConstraints:
 
         assert tokenizer("agent", add_special_tokens=False)["input_ids"][0] in allowed
         assert tokenizer("?x is-a", add_special_tokens=False)["input_ids"][0] not in allowed
+
+    def test_prompt_specific_nary_constraint_disallows_binary_start(self, monkeypatch):
+        tokenizer = PrefixConstraintTokenizer()
+        model = MagicMock()
+        model.config.decoder_start_token_id = None
+        sampler = CNLSampler(model, tokenizer)
+
+        def fake_load_terms(path, key="term"):
+            path_str = str(path)
+            if path_str.endswith("sumo_classes.jsonl"):
+                return ["Area", "MilitaryUnit", "Region"]
+            if path_str.endswith("sumo_relations.jsonl"):
+                return ["between", "agent"]
+            raise AssertionError(f"Unexpected load path: {path}")
+
+        monkeypatch.setattr("src.fsm.cnl_fsm._load_terms", fake_load_terms)
+
+        constraint = sampler._build_prefix_constraint("The between relation holds among an Area, a MilitaryUnit, and a Region.")
+        allowed = constraint(0, [])
+
+        assert tokenizer("between", add_special_tokens=False)["input_ids"][0] in allowed
+        assert tokenizer("agent", add_special_tokens=False)["input_ids"][0] not in allowed
     def test_unmatched_prompts_reuse_shared_fallback_constraint(self, monkeypatch):
         sampler = CNLSampler(MagicMock(), MagicMock())
         sentinel = object()

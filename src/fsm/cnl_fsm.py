@@ -393,6 +393,7 @@ class _PromptConstraintPlan:
     relation_terms: tuple[str, ...] = ()
     first_terms: tuple[str, ...] = ()
     second_terms: tuple[str, ...] = ()
+    third_terms: tuple[str, ...] = ()
 
 
 # ---------------------------------------------------------------------------
@@ -461,7 +462,8 @@ class CNLSampler:
                 f"input length {token_count} tokens exceeds conservative threshold {_MAX_SUPPORTED_TOKENS}"
             )
 
-        discourse_text = _SUPPORTED_POSSESSIVE_SLOT_RE.sub("as SLOT", text)
+        discourse_text = re.sub(r"^it is not the case that\s+", "", text, flags=re.IGNORECASE)
+        discourse_text = _SUPPORTED_POSSESSIVE_SLOT_RE.sub("as SLOT", discourse_text)
 
         for pattern, label in _UNSUPPORTED_MARKERS:
             if pattern.search(discourse_text):
@@ -525,6 +527,7 @@ class CNLSampler:
 
     @staticmethod
     def _normalise_phrase(text: str) -> str:
+        text = _PASCAL_BOUNDARY_RE.sub(" ", text.replace("_", " "))
         text = re.sub(r"[^a-z0-9\s]+", " ", text.lower())
         text = re.sub(r"\s+", " ", text).strip()
         return re.sub(r"^(?:a|an|the)\s+", "", text)
@@ -598,95 +601,178 @@ class CNLSampler:
             second_terms=second_terms,
         )
 
+    def _make_prompt_plan_nary(
+        self,
+        *,
+        template: str,
+        relation: str,
+        first_phrase: str,
+        second_phrase: str,
+        third_phrase: str,
+    ) -> _PromptConstraintPlan | None:
+        if relation not in self._get_relation_terms():
+            return None
+
+        first_terms = tuple(self._class_candidates_for_phrase(first_phrase))
+        second_terms = tuple(self._class_candidates_for_phrase(second_phrase))
+        third_terms = tuple(self._class_candidates_for_phrase(third_phrase))
+        if not first_terms or not second_terms or not third_terms:
+            return None
+
+        return _PromptConstraintPlan(
+            template=template,
+            relation_terms=(relation,),
+            first_terms=first_terms,
+            second_terms=second_terms,
+            third_terms=third_terms,
+        )
+
     def _infer_prompt_plan(self, prompt: str) -> _PromptConstraintPlan | None:
         text = self._normalise_prompt(prompt).strip().rstrip(".!?")
-        lower = re.sub(r"\s+", " ", text.lower())
+        text = re.sub(r"\s+", " ", text)
 
-        match = re.fullmatch(r"every (?P<subject>.+?) has (?:a|an) (?P<object>.+)", lower)
-        if match is not None:
-            object_terms = self._class_candidates_for_phrase(match.group("object"))
+        def match(pattern: str):
+            return re.fullmatch(pattern, text, flags=re.IGNORECASE)
+
+        matched = match(
+            r"for every (?P<subject>.+?), the (?P<relation>[a-z][a-z0-9]*) relation holds with (?:a|an) (?P<object>.+)",
+        )
+        if matched is not None:
+            return self._make_prompt_plan(
+                template="conditional_every",
+                relation=matched.group("relation").lower(),
+                first_phrase=matched.group("subject"),
+                second_phrase=matched.group("object"),
+            )
+
+        matched = match(r"every (?P<subject>.+?) has (?:a|an) (?P<object>.+)")
+        if matched is not None:
+            object_terms = self._class_candidates_for_phrase(matched.group("object"))
             if "AutonomousAgent" in object_terms:
                 return self._make_prompt_plan(
                     template="conditional_every",
                     relation="agent",
-                    first_phrase=match.group("subject"),
-                    second_phrase=match.group("object"),
+                    first_phrase=matched.group("subject"),
+                    second_phrase=matched.group("object"),
                 )
 
-        match = re.fullmatch(
+        matched = match(
             r"every (?P<subject>.+?) (?:(?:can )?have|has) (?:a|an) (?P<object>.+?) as its (?P<relation>agent|patient|destination|origin)",
-            lower,
         )
-        if match is not None:
+        if matched is not None:
             return self._make_prompt_plan(
                 template="conditional_every",
-                relation=match.group("relation"),
-                first_phrase=match.group("subject"),
-                second_phrase=match.group("object"),
+                relation=matched.group("relation").lower(),
+                first_phrase=matched.group("subject"),
+                second_phrase=matched.group("object"),
             )
 
-        match = re.fullmatch(r"(?:a|an) (?P<subject>.+?) has (?:a|an) (?P<object>.+)", lower)
-        if match is not None:
-            object_terms = self._class_candidates_for_phrase(match.group("object"))
+        matched = match(
+            r"the (?P<relation>[a-z][a-z0-9]*) relation holds between (?:a|an) (?P<subject>.+?) and (?:a|an) (?P<object>.+)",
+        )
+        if matched is not None:
+            return self._make_prompt_plan(
+                template="binary",
+                relation=matched.group("relation").lower(),
+                first_phrase=matched.group("subject"),
+                second_phrase=matched.group("object"),
+            )
+
+        matched = match(r"(?:a|an) (?P<subject>.+?) has (?:a|an) (?P<object>.+)")
+        if matched is not None:
+            object_terms = self._class_candidates_for_phrase(matched.group("object"))
             if "AutonomousAgent" in object_terms:
                 return self._make_prompt_plan(
                     template="binary",
                     relation="agent",
-                    first_phrase=match.group("subject"),
-                    second_phrase=match.group("object"),
+                    first_phrase=matched.group("subject"),
+                    second_phrase=matched.group("object"),
                 )
 
-        match = re.fullmatch(
+        matched = match(
             r"(?:a|an) (?P<subject>.+?) (?:can )?have (?:a|an) (?P<object>.+?) as its (?P<relation>agent|patient|destination|origin)",
-            lower,
         )
-        if match is not None:
+        if matched is not None:
             return self._make_prompt_plan(
                 template="binary",
-                relation=match.group("relation"),
-                first_phrase=match.group("subject"),
-                second_phrase=match.group("object"),
+                relation=matched.group("relation").lower(),
+                first_phrase=matched.group("subject"),
+                second_phrase=matched.group("object"),
             )
 
-        match = re.fullmatch(r"(?:a|an) (?P<subject>.+?) can be located in (?:a|an) (?P<object>.+)", lower)
-        if match is not None:
+        matched = match(r"(?:a|an) (?P<subject>.+?) can be located in (?:a|an) (?P<object>.+)")
+        if matched is not None:
             return self._make_prompt_plan(
                 template="binary",
                 relation="located",
-                first_phrase=match.group("subject"),
-                second_phrase=match.group("object"),
+                first_phrase=matched.group("subject"),
+                second_phrase=matched.group("object"),
             )
 
-        match = re.fullmatch(r"(?:a|an) (?P<subject>.+?) does not have (?:a|an) (?P<object>.+)", lower)
-        if match is not None:
-            object_terms = self._class_candidates_for_phrase(match.group("object"))
+        matched = match(
+            r"it is not the case that the (?P<relation>[a-z][a-z0-9]*) relation holds between (?:a|an) (?P<subject>.+?) and (?:a|an) (?P<object>.+)",
+        )
+        if matched is not None:
+            return self._make_prompt_plan(
+                template="negation_binary",
+                relation=matched.group("relation").lower(),
+                first_phrase=matched.group("subject"),
+                second_phrase=matched.group("object"),
+            )
+
+        matched = match(r"(?:a|an) (?P<subject>.+?) does not have (?:a|an) (?P<object>.+)")
+        if matched is not None:
+            object_terms = self._class_candidates_for_phrase(matched.group("object"))
             if "AutonomousAgent" in object_terms:
                 return self._make_prompt_plan(
                     template="negation_binary",
                     relation="agent",
-                    first_phrase=match.group("subject"),
-                    second_phrase=match.group("object"),
+                    first_phrase=matched.group("subject"),
+                    second_phrase=matched.group("object"),
                 )
 
-        match = re.fullmatch(
+        matched = match(
             r"(?:a|an) (?P<subject>.+?) does not have (?:a|an) (?P<object>.+?) as its (?P<relation>agent|patient|destination|origin)",
-            lower,
         )
-        if match is not None:
+        if matched is not None:
             return self._make_prompt_plan(
                 template="negation_binary",
-                relation=match.group("relation"),
-                first_phrase=match.group("subject"),
-                second_phrase=match.group("object"),
+                relation=matched.group("relation").lower(),
+                first_phrase=matched.group("subject"),
+                second_phrase=matched.group("object"),
             )
 
-        match = re.fullmatch(r"(?:a|an) (?P<subject>.+?) is not located in (?:a|an) (?P<object>.+)", lower)
-        if match is not None:
+        matched = match(r"(?:a|an) (?P<subject>.+?) is not located in (?:a|an) (?P<object>.+)")
+        if matched is not None:
             return self._make_prompt_plan(
                 template="negation_binary",
                 relation="located",
-                first_phrase=match.group("subject"),
-                second_phrase=match.group("object"),
+                first_phrase=matched.group("subject"),
+                second_phrase=matched.group("object"),
+            )
+
+        matched = match(
+            r"the (?P<relation>[a-z][a-z0-9]*) relation holds among (?:a|an) (?P<first>[^,]+), (?:a|an) (?P<second>[^,]+), and (?:a|an) (?P<third>.+)",
+        )
+        if matched is not None:
+            return self._make_prompt_plan_nary(
+                template="nary",
+                relation=matched.group("relation").lower(),
+                first_phrase=matched.group("first"),
+                second_phrase=matched.group("second"),
+                third_phrase=matched.group("third"),
+            )
+
+        matched = match(
+            r"(?:(?:a|an) )?(?P<first>[^,]+), (?:(?:a|an) )?(?P<second>[^,]+), and (?:(?:a|an) )?(?P<third>.+?) do not stand in the (?P<relation>[a-z][a-z0-9]*) relation",
+        )
+        if matched is not None:
+            return self._make_prompt_plan_nary(
+                template="negation_nary",
+                relation=matched.group("relation").lower(),
+                first_phrase=matched.group("first"),
+                second_phrase=matched.group("second"),
+                third_phrase=matched.group("third"),
             )
 
         return None
@@ -707,6 +793,7 @@ class CNLSampler:
                 relation_space = self._slot_sequences(plan.relation_terms, leading_space=True)
                 first_space = self._slot_sequences(plan.first_terms, leading_space=True)
                 second_space = self._slot_sequences(plan.second_terms, leading_space=True)
+                third_space = self._slot_sequences(plan.third_terms, leading_space=True)
 
                 if plan.template == "binary":
                     builder.add_template([relation_start, first_space, second_space])
@@ -723,6 +810,33 @@ class CNLSampler:
                     )
                 elif plan.template == "negation_binary":
                     builder.add_template([self._fixed_segment("not"), relation_space, first_space, second_space])
+                elif plan.template == "nary":
+                    builder.add_template(
+                        [
+                            relation_start,
+                            self._fixed_segment(" ["),
+                            first_space,
+                            self._fixed_segment(" ,"),
+                            second_space,
+                            self._fixed_segment(" ,"),
+                            third_space,
+                            self._fixed_segment(" ]"),
+                        ]
+                    )
+                elif plan.template == "negation_nary":
+                    builder.add_template(
+                        [
+                            self._fixed_segment("not"),
+                            relation_space,
+                            self._fixed_segment(" ["),
+                            first_space,
+                            self._fixed_segment(" ,"),
+                            second_space,
+                            self._fixed_segment(" ,"),
+                            third_space,
+                            self._fixed_segment(" ]"),
+                        ]
+                    )
                 else:
                     raise ValueError(f"Unknown prompt constraint template: {plan.template}")
             else:
