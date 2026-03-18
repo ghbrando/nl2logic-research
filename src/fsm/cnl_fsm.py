@@ -795,14 +795,22 @@ class CNLSampler:
         )
 
     def _get_prefix_constraint(self, prompt: str | None = None) -> _PrefixConstraint:
-        if self._prefix_constraint is not None:
+        if self._control_literal() is not None:
+            if self._prefix_constraint is None:
+                self._prefix_constraint = self._build_prefix_constraint(prompt=prompt)
             return self._prefix_constraint
 
-        if prompt is None or self._control_literal() is not None:
-            self._prefix_constraint = self._build_prefix_constraint(prompt=prompt)
+        if prompt is None:
+            if self._prefix_constraint is None:
+                self._prefix_constraint = self._build_prefix_constraint(prompt=None)
             return self._prefix_constraint
 
         cache_key = self._normalise_prompt(prompt)
+        if self._infer_prompt_plan(cache_key) is None:
+            if self._prefix_constraint is None:
+                self._prefix_constraint = self._build_prefix_constraint(prompt=None)
+            return self._prefix_constraint
+
         if cache_key not in self._prompt_prefix_constraints:
             self._prompt_prefix_constraints[cache_key] = self._build_prefix_constraint(prompt=cache_key)
         return self._prompt_prefix_constraints[cache_key]

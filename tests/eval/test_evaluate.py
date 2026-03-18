@@ -1,4 +1,4 @@
-﻿from src.eval.evaluate import (
+from src.eval.evaluate import (
     DEFAULT_GOLD_PATH,
     GoldPair,
     evaluate_pairs,
@@ -162,3 +162,31 @@ class TestCliReporting:
 
         assert output.count("Pattern:") == 1
         assert "There exists a weapon in the arsenal." not in output
+
+CHALLENGE_GOLD_PATH = DEFAULT_GOLD_PATH.parent / "challenge_pairs.jsonl"
+
+
+class TestChallengeSet:
+    def test_load_challenge_pairs_has_21_records_and_balanced_patterns(self):
+        pairs = load_gold_pairs(CHALLENGE_GOLD_PATH)
+
+        assert len(pairs) == 21
+
+        counts: dict[str, int] = {}
+        for pair in pairs:
+            counts[pair.pattern] = counts.get(pair.pattern, 0) + 1
+
+        assert counts == {
+            "instance": 3,
+            "subclass": 3,
+            "binary": 3,
+            "conditional": 3,
+            "existential": 3,
+            "negation": 3,
+            "nary": 3,
+        }
+
+    def test_challenge_pairs_compile_cleanly(self):
+        pairs = load_gold_pairs(CHALLENGE_GOLD_PATH)
+
+        validate_gold_pairs(pairs)

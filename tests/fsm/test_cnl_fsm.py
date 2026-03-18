@@ -1,5 +1,5 @@
 """
-Tests for src/fsm/cnl_fsm.py ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Stage 2 FSM integration.
+Tests for src/fsm/cnl_fsm.py ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â Stage 2 FSM integration.
 
 Test strategy
 -------------
@@ -271,7 +271,7 @@ class TestCNLSamplerAbstain:
 
 
 # ---------------------------------------------------------------------------
-# CNLSampler.sample() ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â mock model, no real constrained runtime needed
+# CNLSampler.sample() ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â mock model, no real constrained runtime needed
 # ---------------------------------------------------------------------------
 
 class TestCNLSamplerSample:
@@ -542,3 +542,23 @@ class TestPromptAwareConstraints:
 
         assert tokenizer("agent", add_special_tokens=False)["input_ids"][0] in allowed
         assert tokenizer("?x is-a", add_special_tokens=False)["input_ids"][0] not in allowed
+    def test_unmatched_prompts_reuse_shared_fallback_constraint(self, monkeypatch):
+        sampler = CNLSampler(MagicMock(), MagicMock())
+        sentinel = object()
+        build_calls: list[str | None] = []
+
+        monkeypatch.setattr(sampler, "_control_literal", lambda: None)
+        monkeypatch.setattr(sampler, "_infer_prompt_plan", lambda prompt: None)
+
+        def fake_build(prompt=None):
+            build_calls.append(prompt)
+            return sentinel
+
+        monkeypatch.setattr(sampler, "_build_prefix_constraint", fake_build)
+
+        first = sampler._get_prefix_constraint("Completely unmatched prompt one")
+        second = sampler._get_prefix_constraint("Different unmatched prompt two")
+
+        assert first is sentinel
+        assert second is sentinel
+        assert build_calls == [None]
