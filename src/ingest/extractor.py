@@ -16,7 +16,7 @@ _TRAILING_HYPHEN_RE = re.compile(r"\w-\s*$")
 _WORD_START_RE = re.compile(r"^\w")
 _PURE_NUMERIC_RE = re.compile(r"^\d+$")
 _PURE_NUMERIC_OR_PUNCT_RE = re.compile(r"^[\d\W_]+$")
-_BULLET_RE = re.compile(r"^\s*(?:\d+\.|[A-Za-z]\.|\-)\s*")
+_BULLET_RE = re.compile(r"^\s*(?:\d+\.|[A-Za-z]\.|[-??????])\s*")
 _FM_HEADER_PATTERNS = (
     re.compile(r"^FM\s+\d[\d-]*$", re.IGNORECASE),
     re.compile(r"^CHAPTER\s+\w+(?:\s+\w+)*$", re.IGNORECASE),
@@ -341,3 +341,4 @@ def read_jsonl(input_path: str | Path) -> list[DocSentence]:
         raise
     except OSError as exc:
         raise ExtractionError(f"Failed to read JSONL: {path}") from exc
+

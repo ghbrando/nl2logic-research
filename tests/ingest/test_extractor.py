@@ -188,6 +188,12 @@ class TestSplitSentences:
 
         assert split_sentences("Input") == []
 
+    def test_unicode_bullet_line_is_filtered(self, monkeypatch):
+        fake_spacy = _FakeSpacyModule({"Input": _FakeDoc(["? Conduct ISR to support operations."])})
+        monkeypatch.setattr(extractor_module, "import_module", lambda name: fake_spacy if name == "spacy" else object())
+
+        assert split_sentences("Input") == []
+
     def test_clean_sentence_passes_through(self, monkeypatch):
         fake_spacy = _FakeSpacyModule(
             {"Input": _FakeDoc(["The battalion conducts reconnaissance operations to support the brigade."])}
