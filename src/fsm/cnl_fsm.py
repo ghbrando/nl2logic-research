@@ -74,6 +74,13 @@ _CONTROL_LITERAL_GRAMMAR_RE = re.compile(r'^\s*root\s*::=\s*(?P<literal>".*")\s*
 _CANONICAL_VAR_TERMS = ("?x", "?y", "?z", "?a", "?b", "?c")
 _DEFAULT_CONSTRAINED_NUM_BEAMS = 4
 _DEFAULT_CONSTRAINED_LENGTH_PENALTY = 1.15
+_PASCAL_BOUNDARY_RE = re.compile(r"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
+_PROMPT_CLASS_ALIASES = {
+    "transportation process": ("Transportation",),
+    "area of operations": ("Area",),
+    "area of operation": ("Area",),
+    "operational area": ("Area",),
+}
 _XGRAMMAR_TEMPLATE = """
 root ::= sentence
 sentence ::= assertion | quantified | conditional
@@ -380,6 +387,14 @@ class _PrefixConstraint:
         return sorted(allowed)
 
 
+@dataclass(frozen=True)
+class _PromptConstraintPlan:
+    template: str
+    relation_terms: tuple[str, ...] = ()
+    first_terms: tuple[str, ...] = ()
+    second_terms: tuple[str, ...] = ()
+
+
 # ---------------------------------------------------------------------------
 # CNLSampler
 # ---------------------------------------------------------------------------
@@ -420,6 +435,10 @@ class CNLSampler:
         self._grammar = grammar_str if grammar_str is not None else build_xgrammar_grammar()
         self._compiler = CNLCompiler()
         self._prefix_constraint = None
+        self._prompt_prefix_constraints: dict[str, _PrefixConstraint] = {}
+        self._class_terms: list[str] | None = None
+        self._relation_terms: list[str] | None = None
+        self._naturalized_class_index: dict[str, list[str]] | None = None
         self._confidence_threshold = confidence_threshold
 
     @staticmethod
@@ -504,74 +523,267 @@ class CNLSampler:
             return None
         return json.loads(match.group("literal"))
 
-    def _build_prefix_constraint(self) -> _PrefixConstraint:
+    @staticmethod
+    def _normalise_phrase(text: str) -> str:
+        text = re.sub(r"[^a-z0-9\s]+", " ", text.lower())
+        text = re.sub(r"\s+", " ", text).strip()
+        return re.sub(r"^(?:a|an|the)\s+", "", text)
+
+    @staticmethod
+    def _naturalize_term(term: str) -> str:
+        return _PASCAL_BOUNDARY_RE.sub(" ", term.replace("_", " ")).lower()
+
+    def _get_class_terms(self) -> list[str]:
+        if self._class_terms is None:
+            self._class_terms = _load_terms(_SUMO_CLASSES)
+        return self._class_terms
+
+    def _get_relation_terms(self) -> list[str]:
+        if self._relation_terms is None:
+            self._relation_terms = _load_terms(_SUMO_RELATIONS)
+        return self._relation_terms
+
+    def _get_naturalized_class_index(self) -> dict[str, list[str]]:
+        if self._naturalized_class_index is None:
+            index: dict[str, list[str]] = {}
+            for term in self._get_class_terms():
+                index.setdefault(self._naturalize_term(term), []).append(term)
+            self._naturalized_class_index = {
+                phrase: _sorted_terms(terms)
+                for phrase, terms in index.items()
+            }
+        return self._naturalized_class_index
+
+    def _class_candidates_for_phrase(self, phrase: str) -> list[str]:
+        normalized = self._normalise_phrase(phrase)
+        if not normalized:
+            return []
+
+        alias_terms = _PROMPT_CLASS_ALIASES.get(normalized)
+        if alias_terms is not None:
+            return list(alias_terms)
+
+        exact_terms = self._get_naturalized_class_index().get(normalized)
+        if exact_terms is not None:
+            return list(exact_terms)
+
+        phrase_tokens = set(normalized.split())
+        matches = []
+        for term in self._get_class_terms():
+            term_tokens = set(self._naturalize_term(term).split())
+            if term_tokens and term_tokens.issubset(phrase_tokens):
+                matches.append(term)
+        return _sorted_terms(matches)
+
+    def _make_prompt_plan(
+        self,
+        *,
+        template: str,
+        relation: str,
+        first_phrase: str,
+        second_phrase: str,
+    ) -> _PromptConstraintPlan | None:
+        if relation not in self._get_relation_terms():
+            return None
+
+        first_terms = tuple(self._class_candidates_for_phrase(first_phrase))
+        second_terms = tuple(self._class_candidates_for_phrase(second_phrase))
+        if not first_terms or not second_terms:
+            return None
+
+        return _PromptConstraintPlan(
+            template=template,
+            relation_terms=(relation,),
+            first_terms=first_terms,
+            second_terms=second_terms,
+        )
+
+    def _infer_prompt_plan(self, prompt: str) -> _PromptConstraintPlan | None:
+        text = self._normalise_prompt(prompt).strip().rstrip(".!?")
+        lower = re.sub(r"\s+", " ", text.lower())
+
+        match = re.fullmatch(r"every (?P<subject>.+?) has (?:a|an) (?P<object>.+)", lower)
+        if match is not None:
+            object_terms = self._class_candidates_for_phrase(match.group("object"))
+            if "AutonomousAgent" in object_terms:
+                return self._make_prompt_plan(
+                    template="conditional_every",
+                    relation="agent",
+                    first_phrase=match.group("subject"),
+                    second_phrase=match.group("object"),
+                )
+
+        match = re.fullmatch(
+            r"every (?P<subject>.+?) (?:(?:can )?have|has) (?:a|an) (?P<object>.+?) as its (?P<relation>agent|patient|destination|origin)",
+            lower,
+        )
+        if match is not None:
+            return self._make_prompt_plan(
+                template="conditional_every",
+                relation=match.group("relation"),
+                first_phrase=match.group("subject"),
+                second_phrase=match.group("object"),
+            )
+
+        match = re.fullmatch(r"(?:a|an) (?P<subject>.+?) has (?:a|an) (?P<object>.+)", lower)
+        if match is not None:
+            object_terms = self._class_candidates_for_phrase(match.group("object"))
+            if "AutonomousAgent" in object_terms:
+                return self._make_prompt_plan(
+                    template="binary",
+                    relation="agent",
+                    first_phrase=match.group("subject"),
+                    second_phrase=match.group("object"),
+                )
+
+        match = re.fullmatch(
+            r"(?:a|an) (?P<subject>.+?) (?:can )?have (?:a|an) (?P<object>.+?) as its (?P<relation>agent|patient|destination|origin)",
+            lower,
+        )
+        if match is not None:
+            return self._make_prompt_plan(
+                template="binary",
+                relation=match.group("relation"),
+                first_phrase=match.group("subject"),
+                second_phrase=match.group("object"),
+            )
+
+        match = re.fullmatch(r"(?:a|an) (?P<subject>.+?) can be located in (?:a|an) (?P<object>.+)", lower)
+        if match is not None:
+            return self._make_prompt_plan(
+                template="binary",
+                relation="located",
+                first_phrase=match.group("subject"),
+                second_phrase=match.group("object"),
+            )
+
+        match = re.fullmatch(r"(?:a|an) (?P<subject>.+?) does not have (?:a|an) (?P<object>.+)", lower)
+        if match is not None:
+            object_terms = self._class_candidates_for_phrase(match.group("object"))
+            if "AutonomousAgent" in object_terms:
+                return self._make_prompt_plan(
+                    template="negation_binary",
+                    relation="agent",
+                    first_phrase=match.group("subject"),
+                    second_phrase=match.group("object"),
+                )
+
+        match = re.fullmatch(
+            r"(?:a|an) (?P<subject>.+?) does not have (?:a|an) (?P<object>.+?) as its (?P<relation>agent|patient|destination|origin)",
+            lower,
+        )
+        if match is not None:
+            return self._make_prompt_plan(
+                template="negation_binary",
+                relation=match.group("relation"),
+                first_phrase=match.group("subject"),
+                second_phrase=match.group("object"),
+            )
+
+        match = re.fullmatch(r"(?:a|an) (?P<subject>.+?) is not located in (?:a|an) (?P<object>.+)", lower)
+        if match is not None:
+            return self._make_prompt_plan(
+                template="negation_binary",
+                relation="located",
+                first_phrase=match.group("subject"),
+                second_phrase=match.group("object"),
+            )
+
+        return None
+
+    def _build_prefix_constraint(self, prompt: str | None = None) -> _PrefixConstraint:
         builder = _ConstraintBuilder(self._tokenizer)
 
         control_literal = self._control_literal()
         if control_literal is not None:
             builder.add_template([self._fixed_segment(control_literal)])
         else:
-            classes = _load_terms(_SUMO_CLASSES)
-            relations = _load_terms(_SUMO_RELATIONS)
+            classes = self._get_class_terms()
+            relations = self._get_relation_terms()
+            plan = self._infer_prompt_plan(prompt) if prompt is not None else None
 
-            class_start = self._slot_sequences(classes, leading_space=False)
-            class_space = self._slot_sequences(classes, leading_space=True)
-            relation_start = self._slot_sequences(relations, leading_space=False)
-            relation_space = self._slot_sequences(relations, leading_space=True)
-            var_space = self._slot_sequences(_CANONICAL_VAR_TERMS, leading_space=True)
-            term_space = class_space + var_space
+            if plan is not None:
+                relation_start = self._slot_sequences(plan.relation_terms, leading_space=False)
+                relation_space = self._slot_sequences(plan.relation_terms, leading_space=True)
+                first_space = self._slot_sequences(plan.first_terms, leading_space=True)
+                second_space = self._slot_sequences(plan.second_terms, leading_space=True)
 
-            builder.add_template([self._fixed_segment("?x is-a"), class_space])
-            builder.add_template([class_start, self._fixed_segment(" subclass-of"), class_space])
-            builder.add_template([relation_start, term_space, term_space])
-            builder.add_template(
-                [
-                    relation_start,
-                    self._fixed_segment(" ["),
-                    term_space,
-                    self._fixed_segment(" ,"),
-                    term_space,
-                    self._fixed_segment(" ,"),
-                    term_space,
-                    self._fixed_segment(" ]"),
-                ]
-            )
-            builder.add_template(
-                [
-                    self._fixed_segment("every ?x is-a"),
-                    class_space,
-                    self._fixed_segment(" implies"),
-                    relation_space,
-                    self._fixed_segment(" ?x"),
-                    term_space,
-                ]
-            )
-            builder.add_template(
-                [
-                    self._fixed_segment("if"),
-                    relation_space,
-                    self._fixed_segment(" ?x"),
-                    term_space,
-                    self._fixed_segment(" then ?x is-a"),
-                    class_space,
-                ]
-            )
-            builder.add_template([self._fixed_segment("some ?x is-a"), class_space])
-            builder.add_template([self._fixed_segment("not ?x is-a"), class_space])
-            builder.add_template([self._fixed_segment("not"), relation_space, term_space, term_space])
-            builder.add_template(
-                [
-                    self._fixed_segment("not"),
-                    relation_space,
-                    self._fixed_segment(" ["),
-                    term_space,
-                    self._fixed_segment(" ,"),
-                    term_space,
-                    self._fixed_segment(" ,"),
-                    term_space,
-                    self._fixed_segment(" ]"),
-                ]
-            )
+                if plan.template == "binary":
+                    builder.add_template([relation_start, first_space, second_space])
+                elif plan.template == "conditional_every":
+                    builder.add_template(
+                        [
+                            self._fixed_segment("every ?x is-a"),
+                            first_space,
+                            self._fixed_segment(" implies"),
+                            relation_space,
+                            self._fixed_segment(" ?x"),
+                            second_space,
+                        ]
+                    )
+                elif plan.template == "negation_binary":
+                    builder.add_template([self._fixed_segment("not"), relation_space, first_space, second_space])
+                else:
+                    raise ValueError(f"Unknown prompt constraint template: {plan.template}")
+            else:
+                class_start = self._slot_sequences(classes, leading_space=False)
+                class_space = self._slot_sequences(classes, leading_space=True)
+                relation_start = self._slot_sequences(relations, leading_space=False)
+                relation_space = self._slot_sequences(relations, leading_space=True)
+                var_space = self._slot_sequences(_CANONICAL_VAR_TERMS, leading_space=True)
+                term_space = class_space + var_space
+
+                builder.add_template([self._fixed_segment("?x is-a"), class_space])
+                builder.add_template([class_start, self._fixed_segment(" subclass-of"), class_space])
+                builder.add_template([relation_start, term_space, term_space])
+                builder.add_template(
+                    [
+                        relation_start,
+                        self._fixed_segment(" ["),
+                        term_space,
+                        self._fixed_segment(" ,"),
+                        term_space,
+                        self._fixed_segment(" ,"),
+                        term_space,
+                        self._fixed_segment(" ]"),
+                    ]
+                )
+                builder.add_template(
+                    [
+                        self._fixed_segment("every ?x is-a"),
+                        class_space,
+                        self._fixed_segment(" implies"),
+                        relation_space,
+                        self._fixed_segment(" ?x"),
+                        term_space,
+                    ]
+                )
+                builder.add_template(
+                    [
+                        self._fixed_segment("if"),
+                        relation_space,
+                        self._fixed_segment(" ?x"),
+                        term_space,
+                        self._fixed_segment(" then ?x is-a"),
+                        class_space,
+                    ]
+                )
+                builder.add_template([self._fixed_segment("some ?x is-a"), class_space])
+                builder.add_template([self._fixed_segment("not ?x is-a"), class_space])
+                builder.add_template([self._fixed_segment("not"), relation_space, term_space, term_space])
+                builder.add_template(
+                    [
+                        self._fixed_segment("not"),
+                        relation_space,
+                        self._fixed_segment(" ["),
+                        term_space,
+                        self._fixed_segment(" ,"),
+                        term_space,
+                        self._fixed_segment(" ,"),
+                        term_space,
+                        self._fixed_segment(" ]"),
+                    ]
+                )
 
         eos_token_id = getattr(self._tokenizer, "eos_token_id", None)
         decoder_start_token_id = getattr(getattr(self._hf_model, "config", None), "decoder_start_token_id", None)
@@ -582,10 +794,18 @@ class CNLSampler:
             decoder_start_token_id=decoder_start_token_id,
         )
 
-    def _get_prefix_constraint(self) -> _PrefixConstraint:
-        if self._prefix_constraint is None:
-            self._prefix_constraint = self._build_prefix_constraint()
-        return self._prefix_constraint
+    def _get_prefix_constraint(self, prompt: str | None = None) -> _PrefixConstraint:
+        if self._prefix_constraint is not None:
+            return self._prefix_constraint
+
+        if prompt is None or self._control_literal() is not None:
+            self._prefix_constraint = self._build_prefix_constraint(prompt=prompt)
+            return self._prefix_constraint
+
+        cache_key = self._normalise_prompt(prompt)
+        if cache_key not in self._prompt_prefix_constraints:
+            self._prompt_prefix_constraints[cache_key] = self._build_prefix_constraint(prompt=cache_key)
+        return self._prompt_prefix_constraints[cache_key]
 
     @staticmethod
     def _score_row(score_step) -> list[float]:
@@ -649,7 +869,7 @@ class CNLSampler:
             raise UnsupportedInputError(message)
 
         encoded = self._tokenize_prompt(prompt)
-        prefix_constraint = self._get_prefix_constraint()
+        prefix_constraint = self._get_prefix_constraint(prompt)
 
         try:
             torch_module = import_module("torch")

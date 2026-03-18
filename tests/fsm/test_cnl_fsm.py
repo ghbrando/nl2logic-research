@@ -1,5 +1,5 @@
 """
-Tests for src/fsm/cnl_fsm.py ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Stage 2 FSM integration.
+Tests for src/fsm/cnl_fsm.py ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Stage 2 FSM integration.
 
 Test strategy
 -------------
@@ -271,7 +271,7 @@ class TestCNLSamplerAbstain:
 
 
 # ---------------------------------------------------------------------------
-# CNLSampler.sample() ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â mock model, no real constrained runtime needed
+# CNLSampler.sample() ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â mock model, no real constrained runtime needed
 # ---------------------------------------------------------------------------
 
 class TestCNLSamplerSample:
@@ -477,3 +477,68 @@ class TestPrefixConstraintStructure:
         allowed = constraint(0, prefix)
 
         assert allowed == [tokenizer.eos_token_id]
+class TestPromptAwareConstraints:
+
+    def test_infers_binary_agent_plan_from_prompt(self, monkeypatch):
+        sampler = CNLSampler(MagicMock(), MagicMock())
+
+        def fake_load_terms(path, key="term"):
+            path_str = str(path)
+            if path_str.endswith("sumo_classes.jsonl"):
+                return ["MilitaryProcess", "AutonomousAgent", "Process"]
+            if path_str.endswith("sumo_relations.jsonl"):
+                return ["agent", "destination", "origin", "located"]
+            raise AssertionError(f"Unexpected load path: {path}")
+
+        monkeypatch.setattr("src.fsm.cnl_fsm._load_terms", fake_load_terms)
+
+        plan = sampler._infer_prompt_plan("A military process has an autonomous agent.")
+
+        assert plan is not None
+        assert plan.template == "binary"
+        assert plan.relation_terms == ("agent",)
+        assert plan.first_terms == ("MilitaryProcess",)
+        assert plan.second_terms == ("AutonomousAgent",)
+
+    def test_infers_conditional_destination_plan_from_prompt(self, monkeypatch):
+        sampler = CNLSampler(MagicMock(), MagicMock())
+
+        def fake_load_terms(path, key="term"):
+            path_str = str(path)
+            if path_str.endswith("sumo_classes.jsonl"):
+                return ["Transportation", "Region", "Process"]
+            if path_str.endswith("sumo_relations.jsonl"):
+                return ["destination", "origin"]
+            raise AssertionError(f"Unexpected load path: {path}")
+
+        monkeypatch.setattr("src.fsm.cnl_fsm._load_terms", fake_load_terms)
+
+        plan = sampler._infer_prompt_plan("Every transportation process has a region as its destination.")
+
+        assert plan is not None
+        assert plan.template == "conditional_every"
+        assert plan.relation_terms == ("destination",)
+        assert plan.first_terms == ("Transportation",)
+        assert plan.second_terms == ("Region",)
+
+    def test_prompt_specific_binary_constraint_disallows_instance_start(self, monkeypatch):
+        tokenizer = PrefixConstraintTokenizer()
+        model = MagicMock()
+        model.config.decoder_start_token_id = None
+        sampler = CNLSampler(model, tokenizer)
+
+        def fake_load_terms(path, key="term"):
+            path_str = str(path)
+            if path_str.endswith("sumo_classes.jsonl"):
+                return ["MilitaryProcess", "AutonomousAgent", "Process"]
+            if path_str.endswith("sumo_relations.jsonl"):
+                return ["agent"]
+            raise AssertionError(f"Unexpected load path: {path}")
+
+        monkeypatch.setattr("src.fsm.cnl_fsm._load_terms", fake_load_terms)
+
+        constraint = sampler._build_prefix_constraint("A military process has an autonomous agent.")
+        allowed = constraint(0, [])
+
+        assert tokenizer("agent", add_special_tokens=False)["input_ids"][0] in allowed
+        assert tokenizer("?x is-a", add_special_tokens=False)["input_ids"][0] not in allowed
