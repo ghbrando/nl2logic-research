@@ -832,8 +832,28 @@ class CNLSampler:
     def _supports_instance_prompt(self, prompt: str) -> bool:
         return bool(_COPULAR_PROMPT_RE.search(self._normalise_prompt(prompt)))
 
-    def _supports_existential_prompt(self, prompt: str) -> bool:
-        return bool(_EXISTENTIAL_PROMPT_RE.search(self._normalise_prompt(prompt)))
+    def _supports_existential_prompt(self, prompt: str, class_terms: Sequence[str]) -> bool:
+        normalized_prompt = self._normalise_phrase(prompt)
+        if not _EXISTENTIAL_PROMPT_RE.search(self._normalise_prompt(prompt)):
+            return False
+        if not class_terms:
+            return False
+
+        for term in class_terms:
+            normalized_term = self._naturalize_term(term)
+            phrase_candidates = {normalized_term, *_PROMPT_CLASS_ALIASES.get(normalized_term, ())}
+            for phrase in phrase_candidates:
+                phrase_pattern = re.escape(phrase)
+                existential_patterns = (
+                    rf"\bthere\s+(?:is|are|exists?|exist)\b.*\b{phrase_pattern}\b",
+                    rf"\bat\s+least\s+one\s+{phrase_pattern}\b",
+                    rf"\bsome\s+(?:entity\s+is\s+(?:an?|the)\s+)?{phrase_pattern}\b",
+                    rf"\ban?\s+instance\s+of\s+{phrase_pattern}\b",
+                    rf"\b(?:an?|the)\s+{phrase_pattern}\s+exists?\b",
+                )
+                if any(re.search(pattern, normalized_prompt) for pattern in existential_patterns):
+                    return True
+        return False
 
     def _supports_subclass_prompt(self, prompt: str) -> bool:
         return bool(_SUBCLASS_PROMPT_RE.search(self._normalise_prompt(prompt)))
@@ -856,7 +876,6 @@ class CNLSampler:
         relation_start = self._slot_sequences(relation_terms, leading_space=False)
         relation_space = self._slot_sequences(relation_terms, leading_space=True)
         var_space = self._slot_sequences(_CANONICAL_VAR_TERMS, leading_space=True)
-        term_space = class_space + var_space
 
         added_template = False
 
@@ -868,69 +887,154 @@ class CNLSampler:
             builder.add_template([class_start, self._fixed_segment(" subclass-of"), class_space])
             added_template = True
 
-        if relation_start and term_space:
-            builder.add_template([relation_start, term_space, term_space])
+        if relation_start and class_space:
+            relation_binary_templates = [
+                [relation_start, var_space, class_space],
+                [relation_start, class_space, var_space],
+                [relation_start, class_space, class_space],
+            ]
+            for template in relation_binary_templates:
+                builder.add_template(template)
             added_template = True
 
             if self._supports_negation_prompt(prompt):
-                builder.add_template([self._fixed_segment("not"), relation_space, term_space, term_space])
+                negation_binary_templates = [
+                    [self._fixed_segment("not"), relation_space, var_space, class_space],
+                    [self._fixed_segment("not"), relation_space, class_space, var_space],
+                    [self._fixed_segment("not"), relation_space, class_space, class_space],
+                ]
+                for template in negation_binary_templates:
+                    builder.add_template(template)
                 added_template = True
 
-            if self._supports_nary_prompt(prompt):
-                builder.add_template(
+            if self._supports_nary_prompt(prompt) and len(class_terms) >= 2:
+                nary_templates = [
                     [
                         relation_start,
                         self._fixed_segment(" ["),
-                        term_space,
+                        var_space,
                         self._fixed_segment(" ,"),
-                        term_space,
+                        class_space,
                         self._fixed_segment(" ,"),
-                        term_space,
+                        class_space,
                         self._fixed_segment(" ]"),
-                    ]
-                )
+                    ],
+                    [
+                        relation_start,
+                        self._fixed_segment(" ["),
+                        class_space,
+                        self._fixed_segment(" ,"),
+                        var_space,
+                        self._fixed_segment(" ,"),
+                        class_space,
+                        self._fixed_segment(" ]"),
+                    ],
+                    [
+                        relation_start,
+                        self._fixed_segment(" ["),
+                        class_space,
+                        self._fixed_segment(" ,"),
+                        class_space,
+                        self._fixed_segment(" ,"),
+                        var_space,
+                        self._fixed_segment(" ]"),
+                    ],
+                ]
+                if len(class_terms) >= 3:
+                    nary_templates.append(
+                        [
+                            relation_start,
+                            self._fixed_segment(" ["),
+                            class_space,
+                            self._fixed_segment(" ,"),
+                            class_space,
+                            self._fixed_segment(" ,"),
+                            class_space,
+                            self._fixed_segment(" ]"),
+                        ]
+                    )
+                for template in nary_templates:
+                    builder.add_template(template)
                 added_template = True
 
                 if self._supports_negation_prompt(prompt):
-                    builder.add_template(
+                    negation_nary_templates = [
                         [
                             self._fixed_segment("not"),
                             relation_space,
                             self._fixed_segment(" ["),
-                            term_space,
+                            var_space,
                             self._fixed_segment(" ,"),
-                            term_space,
+                            class_space,
                             self._fixed_segment(" ,"),
-                            term_space,
+                            class_space,
                             self._fixed_segment(" ]"),
-                        ]
-                    )
+                        ],
+                        [
+                            self._fixed_segment("not"),
+                            relation_space,
+                            self._fixed_segment(" ["),
+                            class_space,
+                            self._fixed_segment(" ,"),
+                            var_space,
+                            self._fixed_segment(" ,"),
+                            class_space,
+                            self._fixed_segment(" ]"),
+                        ],
+                        [
+                            self._fixed_segment("not"),
+                            relation_space,
+                            self._fixed_segment(" ["),
+                            class_space,
+                            self._fixed_segment(" ,"),
+                            class_space,
+                            self._fixed_segment(" ,"),
+                            var_space,
+                            self._fixed_segment(" ]"),
+                        ],
+                    ]
+                    if len(class_terms) >= 3:
+                        negation_nary_templates.append(
+                            [
+                                self._fixed_segment("not"),
+                                relation_space,
+                                self._fixed_segment(" ["),
+                                class_space,
+                                self._fixed_segment(" ,"),
+                                class_space,
+                                self._fixed_segment(" ,"),
+                                class_space,
+                                self._fixed_segment(" ]"),
+                            ]
+                        )
+                    for template in negation_nary_templates:
+                        builder.add_template(template)
                     added_template = True
 
-            if self._supports_conditional_prompt(prompt) and class_space:
-                builder.add_template(
+            if self._supports_conditional_prompt(prompt):
+                relation_conditional_templates = [
                     [
                         self._fixed_segment("every ?x is-a"),
                         class_space,
                         self._fixed_segment(" implies"),
                         relation_space,
                         self._fixed_segment(" ?x"),
-                        term_space,
-                    ]
-                )
-                builder.add_template(
+                        class_space,
+                    ],
                     [
                         self._fixed_segment("if"),
                         relation_space,
                         self._fixed_segment(" ?x"),
-                        term_space,
+                        class_space,
                         self._fixed_segment(" then ?x is-a"),
                         class_space,
-                    ]
-                )
+                    ],
+                ]
+                for template in relation_conditional_templates:
+                    builder.add_template(template)
                 added_template = True
 
-        if self._supports_existential_prompt(prompt) and class_space:
+        if self._supports_existential_prompt(prompt, class_terms) and class_space:
             builder.add_template([self._fixed_segment("some ?x is-a"), class_space])
             added_template = True
 

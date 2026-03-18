@@ -694,6 +694,75 @@ class TestPromptAwareConstraints:
         assert tokenizer("located", add_special_tokens=False)["input_ids"][0] not in allowed
         assert tokenizer("?x is-a", add_special_tokens=False)["input_ids"][0] not in allowed
 
+    def test_unmatched_relation_prompt_requires_grounded_nonvariable_argument(self, monkeypatch):
+        tokenizer = PrefixConstraintTokenizer()
+        model = MagicMock()
+        model.config.decoder_start_token_id = None
+        sampler = CNLSampler(model, tokenizer)
+
+        def fake_load_terms(path, key="term"):
+            path_str = str(path)
+            if path_str.endswith("sumo_classes.jsonl"):
+                return ["Army", "Planning", "Process"]
+            if path_str.endswith("sumo_relations.jsonl"):
+                return ["agent", "time"]
+            raise AssertionError(f"Unexpected load path: {path}")
+
+        monkeypatch.setattr("src.fsm.cnl_fsm._load_terms", fake_load_terms)
+
+        constraint = sampler._build_prefix_constraint("Army formations require agent coordination.")
+        prefix = tokenizer("agent", add_special_tokens=False)["input_ids"]
+        prefix += tokenizer(" ?x", add_special_tokens=False)["input_ids"]
+        allowed = constraint(0, prefix)
+
+        assert tokenizer(" Army", add_special_tokens=False)["input_ids"][0] in allowed
+        assert tokenizer(" ?y", add_special_tokens=False)["input_ids"][0] not in allowed
+
+    def test_unmatched_relation_prompt_without_class_candidates_abstains(self, monkeypatch):
+        tokenizer = PrefixConstraintTokenizer()
+        model = MagicMock()
+        model.config.decoder_start_token_id = None
+        sampler = CNLSampler(model, tokenizer)
+
+        def fake_load_terms(path, key="term"):
+            path_str = str(path)
+            if path_str.endswith("sumo_classes.jsonl"):
+                return ["Army", "Planning", "Process"]
+            if path_str.endswith("sumo_relations.jsonl"):
+                return ["time", "before"]
+            raise AssertionError(f"Unexpected load path: {path}")
+
+        monkeypatch.setattr("src.fsm.cnl_fsm._load_terms", fake_load_terms)
+
+        constraint = sampler._build_prefix_constraint("Time matters before action.")
+        allowed = constraint(0, [])
+
+        assert allowed == [tokenizer.eos_token_id]
+        assert tokenizer("time", add_special_tokens=False)["input_ids"][0] not in allowed
+
+    def test_unmatched_existential_prompt_requires_class_phrase_after_some(self, monkeypatch):
+        tokenizer = PrefixConstraintTokenizer()
+        model = MagicMock()
+        model.config.decoder_start_token_id = None
+        sampler = CNLSampler(model, tokenizer)
+
+        def fake_load_terms(path, key="term"):
+            path_str = str(path)
+            if path_str.endswith("sumo_classes.jsonl"):
+                return ["Army", "Planning", "Process"]
+            if path_str.endswith("sumo_relations.jsonl"):
+                return ["agent"]
+            raise AssertionError(f"Unexpected load path: {path}")
+
+        monkeypatch.setattr("src.fsm.cnl_fsm._load_terms", fake_load_terms)
+
+        constraint = sampler._build_prefix_constraint(
+            "Army intelligence is unique for several reasons, some of which include the nature of Army operations."
+        )
+        allowed = constraint(0, [])
+
+        assert tokenizer("some ?x is-a", add_special_tokens=False)["input_ids"][0] not in allowed
+
     def test_sample_abstains_when_constraint_has_no_supported_start(self):
         model = MagicMock()
         model.device = "cpu"
