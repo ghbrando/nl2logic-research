@@ -26,6 +26,7 @@ _LOGGER = logging.getLogger(__name__)
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _CLASSES_PATH = _REPO_ROOT / "data" / "training_pairs" / "sumo_classes.jsonl"
 _RELATIONS_PATH = _REPO_ROOT / "data" / "training_pairs" / "sumo_relations.jsonl"
+_DOCTRINE_DOMAIN_PATH = _REPO_ROOT / "data" / "ontology" / "doctrine_domain.kif"
 
 _ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
 _DEFAULT_LOCAL_MODEL = "mistralai/Mistral-7B-Instruct-v0.3"
@@ -435,6 +436,68 @@ _VERB_TO_RELATION: dict[str, str] = {
 }
 
 
+# ── Doctrine-specific phrase → SUMO class mappings ────────────────────────
+# These are checked FIRST (highest priority) so that multi-word doctrine
+# phrases map to the correct doctrine-domain class instead of a generic
+# SUMO substring match.  Keys are lowercase NL phrases.
+
+_DOCTRINE_PHRASE_TO_CLASS: dict[str, str] = {
+    # Intelligence concepts
+    "intelligence process": "IntelligenceProcess",
+    "intelligence product": "IntelligenceProduct",
+    "intelligence enterprise": "IntelligenceEnterprise",
+    "intelligence professional": "IntelligenceProfessional",
+    "intelligence professionals": "IntelligenceProfessional",
+    "army intelligence professional": "IntelligenceProfessional",
+    "army intelligence professionals": "IntelligenceProfessional",
+    "intelligence discipline": "IntelligenceDiscipline",
+    "combat information": "CombatInformation",
+    "intelligence activities": "IntelligenceActivities",
+    "military intelligence": "MilitaryIntelligence",
+    # Warfighting function concepts
+    "warfighting function": "WarfightingFunction",
+    "intelligence warfighting function": "IntelligenceWarfightingFunction",
+    # Operational environment and threat
+    "operational environment": "OperationalEnvironment",
+    "threat course of action": "ThreatCourseOfAction",
+    "course of action": "ThreatCourseOfAction",
+    # Doctrine and planning
+    "doctrinal task": "DoctrinalTask",
+    "intelligence warfighting function task": "IntelligenceWarfightingFunctionTask",
+    # Collection and dissemination
+    "information collection": "InformationCollection",
+    "intelligence dissemination": "IntelligenceDissemination",
+    # Command relationships
+    "tactical commander": "TacticalCommander",
+    "military commander": "MilitaryCommander",
+    "combatant commander": "CombatantCommander",
+    "joint forces commander": "JointForcesCommander",
+    # Existing SUMO military terms worth surfacing
+    "military organization": "MilitaryOrganization",
+    "military process": "MilitaryProcess",
+    "military person": "MilitaryPerson",
+    "military force": "MilitaryForce",
+    "military operation": "MilitaryOperation",
+    "intelligence officer": "IntelligenceOfficer",
+}
+
+
+def _load_doctrine_domain_classes(path: Path) -> dict[str, str]:
+    """Parse (subclass X Y) forms from doctrine_domain.kif → {normalized: TermName}."""
+    result: dict[str, str] = {}
+    if not path.exists():
+        return result
+    subclass_re = re.compile(r"^\(subclass\s+(\S+)\s+\S+\)")
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            m = subclass_re.match(line.strip())
+            if m:
+                term = m.group(1)
+                normalized = _normalise_phrase(term)
+                result[normalized] = term
+    return result
+
+
 class SUMOMapper:
     """Maps extracted noun phrases and predicates to SUMO ontology terms."""
 
@@ -443,9 +506,25 @@ class SUMOMapper:
         *,
         classes_path: Path = _CLASSES_PATH,
         relations_path: Path = _RELATIONS_PATH,
+        doctrine_domain_path: Path = _DOCTRINE_DOMAIN_PATH,
     ) -> None:
         self._classes = _load_class_terms(classes_path)
         self._relations = _load_relation_terms(relations_path)
+
+        # Load doctrine-domain classes and merge (they take precedence)
+        doctrine_classes = _load_doctrine_domain_classes(doctrine_domain_path)
+        self._classes.update(doctrine_classes)
+
+        # Build the doctrine phrase table (normalized keys → class names)
+        self._doctrine_phrases = {
+            _normalise_phrase(phrase): cls
+            for phrase, cls in _DOCTRINE_PHRASE_TO_CLASS.items()
+        }
+        # Sort by phrase length descending so longer phrases match first
+        self._doctrine_phrases_by_length = sorted(
+            self._doctrine_phrases.items(), key=lambda kv: len(kv[0]), reverse=True
+        )
+
         # Build reverse lookups for fast substring matching
         self._class_terms_by_length = sorted(
             self._classes.items(), key=lambda kv: len(kv[0]), reverse=True
@@ -461,16 +540,46 @@ class SUMOMapper:
         return re.search(pattern, text) is not None
 
     def map_class(self, phrase: str) -> str | None:
-        """Map a noun phrase to a SUMO class name, or None if no match."""
+        """Map a noun phrase to a SUMO class name, or None if no match.
+
+        Priority order:
+        1. Doctrine phrase table (longest match first) — catches multi-word
+           doctrine terms like "intelligence warfighting function"
+        2. Exact match in SUMO class vocabulary
+        3. Head-noun preference — try the last N words, then N-1, etc.
+           (English NPs are head-final: "Army intelligence professionals"
+           → try "intelligence professionals" → match)
+        4. Longest word-boundary substring match (fallback)
+        """
         if not phrase.strip():
             return None
         normalized = _normalise_phrase(phrase)
 
-        # Exact match
+        # 1. Doctrine phrase table (longest match first)
+        for key, cls in self._doctrine_phrases_by_length:
+            if self._word_boundary_match(key, normalized):
+                return cls
+
+        # 2. Exact match in SUMO classes
         if normalized in self._classes:
             return self._classes[normalized]
 
-        # Try longest word-boundary match (min 4 chars to avoid spurious hits)
+        # 3. Head-noun preference: try progressively shorter right-aligned
+        #    subphrases (e.g. "army intelligence professionals" → try
+        #    "intelligence professionals", then "professionals")
+        words = normalized.split()
+        if len(words) > 1:
+            for start in range(1, len(words)):
+                subphrase = " ".join(words[start:])
+                # Check doctrine phrases first
+                for key, cls in self._doctrine_phrases_by_length:
+                    if self._word_boundary_match(key, subphrase):
+                        return cls
+                # Then exact SUMO match
+                if subphrase in self._classes:
+                    return self._classes[subphrase]
+
+        # 4. Longest word-boundary match (min 4 chars to avoid spurious hits)
         for key, term in self._class_terms_by_length:
             if len(key) >= 4 and self._word_boundary_match(key, normalized):
                 return term
@@ -508,41 +617,59 @@ class SUMOMapper:
         subject_class = self.map_class(claim.subject)
         object_class = self.map_class(claim.object) if claim.object else None
         relation = self.map_relation(claim.predicate) if claim.predicate else None
+        pattern = claim.pattern.lower()
 
-        # For instance/subclass patterns, we need at least a subject class
-        if claim.pattern in ("instance", "existential") and not subject_class:
-            # Try mapping the object as the class (e.g., "X is a Report")
-            if claim.object:
-                subject_class = self.map_class(claim.object)
-                if subject_class:
-                    # Swap: the object is actually the class
-                    return MappedClaim(
-                        pattern=claim.pattern,
-                        subject_class=subject_class,
-                        relation=None,
-                        object_class=None,
-                        quantifier=claim.quantifier,
-                        negated=claim.negated,
-                        source_span=claim.source_span,
-                        confidence=claim.confidence,
-                        subject_phrase=claim.subject,
-                        predicate_phrase=claim.predicate,
-                        object_phrase=claim.object,
-                    )
-            return None
+        # For instance patterns: upgrade to subclass when both subject and
+        # object map to valid SUMO classes (e.g. "Combat information is a report"
+        # → subclass CombatInformation Report, not instance ?x CombatInformation)
+        if pattern == "instance" and subject_class and object_class:
+            if subject_class != object_class:
+                return MappedClaim(
+                    pattern="subclass",
+                    subject_class=subject_class,
+                    relation=None,
+                    object_class=object_class,
+                    quantifier=claim.quantifier,
+                    negated=claim.negated,
+                    source_span=claim.source_span,
+                    confidence=claim.confidence,
+                    subject_phrase=claim.subject,
+                    predicate_phrase=claim.predicate,
+                    object_phrase=claim.object,
+                )
 
-        if claim.pattern == "subclass":
+        # For instance/existential patterns, we need at least one class
+        if pattern in ("instance", "existential"):
+            # Prefer subject_class; fall back to object_class
+            effective_class = subject_class or object_class
+            if not effective_class:
+                return None
+            return MappedClaim(
+                pattern=pattern,
+                subject_class=effective_class,
+                relation=None,
+                object_class=None,
+                quantifier=claim.quantifier,
+                negated=claim.negated,
+                source_span=claim.source_span,
+                confidence=claim.confidence,
+                subject_phrase=claim.subject,
+                predicate_phrase=claim.predicate,
+                object_phrase=claim.object,
+            )
+
+        if pattern == "subclass":
             if not subject_class or not object_class:
                 return None
 
-        if claim.pattern == "relation":
+        if pattern == "relation":
             if not relation:
                 return None
             if not subject_class and not object_class:
                 return None
 
         return MappedClaim(
-            pattern=claim.pattern,
+            pattern=pattern,
             subject_class=subject_class,
             relation=relation,
             object_class=object_class,
