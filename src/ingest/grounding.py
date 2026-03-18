@@ -1,4 +1,4 @@
-"""Grounding helpers for precision-first doctrine ingestion."""
+﻿"""Grounding helpers for precision-first doctrine ingestion."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _CLASSES_PATH = _REPO_ROOT / "data" / "training_pairs" / "sumo_classes.jsonl"
 _RELATIONS_PATH = _REPO_ROOT / "data" / "training_pairs" / "sumo_relations.jsonl"
 
-_CNL_TOKEN_RE = re.compile(r"[A-Za-z][A-Za-z0-9_]*")
+_CNL_TOKEN_RE = re.compile(r"\?[A-Za-z_]\w*|[A-Za-z][A-Za-z0-9_]*")
 _NORMALIZED_TEXT_RE = re.compile(r"[^a-z0-9\s]+")
 _RESERVED_CNL_TOKENS = {
     "a",
@@ -30,6 +30,13 @@ _RESERVED_CNL_TOKENS = {
     "subclass",
     "then",
 }
+_EXISTENTIAL_START_RE = re.compile(r"^\s*some\s+\?[A-Za-z_]\w*\s+is-a\s+", re.IGNORECASE)
+_INSTANCE_START_RE = re.compile(r"^\s*\?[A-Za-z_]\w*\s+is-a\s+", re.IGNORECASE)
+_SUBCLASS_RE = re.compile(
+    r"^\s*(?P<left>[A-Za-z][A-Za-z0-9_]*)\s+subclass-of\s+(?P<right>[A-Za-z][A-Za-z0-9_]*)\s*$"
+)
+_COPULAR_SOURCE_RE = re.compile(r"\b(?:is|are|was|were)\s+(?:an?|the|some)\b", re.IGNORECASE)
+_EXISTENTIAL_SOURCE_RE = re.compile(r"\b(?:some|there\s+is|there\s+are|exists|exist)\b", re.IGNORECASE)
 
 
 def _load_terms(path: Path) -> list[str]:
@@ -65,6 +72,8 @@ def extract_cnl_terms(cnl: str) -> tuple[list[str], list[str], list[str]]:
     all_terms: list[str] = []
 
     for token in _CNL_TOKEN_RE.findall(cnl):
+        if token.startswith("?"):
+            continue
         lower = token.lower()
         if lower in _RESERVED_CNL_TOKENS:
             continue
@@ -131,6 +140,82 @@ class DoctrineGrounder:
         normalized_term = _naturalize_term(term)
         return any(self._contains_phrase(context, normalized_term) for context in contexts)
 
+    @staticmethod
+    def _classify_cnl(cnl: str) -> str:
+        stripped = cnl.strip()
+        if _EXISTENTIAL_START_RE.match(stripped):
+            return "existential"
+        if _INSTANCE_START_RE.match(stripped):
+            return "instance"
+        if " subclass-of " in stripped:
+            return "subclass"
+        if stripped.startswith("every ") or stripped.startswith("if "):
+            return "conditional"
+        if stripped.startswith("not "):
+            return "negation"
+        if "[" in stripped and "]" in stripped:
+            return "nary"
+        return "relation"
+
+    @staticmethod
+    def _supports_unary_mapping(source_text: str) -> bool:
+        return bool(_COPULAR_SOURCE_RE.search(source_text))
+
+    @staticmethod
+    def _supports_existential_mapping(source_text: str) -> bool:
+        return bool(_EXISTENTIAL_SOURCE_RE.search(source_text))
+
+    def _structural_issue(
+        self,
+        *,
+        cnl: str,
+        source_text: str,
+        relation_terms: Sequence[str],
+        class_terms: Sequence[str],
+    ) -> tuple[str, str] | None:
+        pattern = self._classify_cnl(cnl)
+
+        if pattern == "subclass":
+            match = _SUBCLASS_RE.match(cnl.strip())
+            if match and match.group("left") == match.group("right"):
+                return (
+                    "degenerate_form",
+                    f"Degenerate self-subclass statement is not accepted: {match.group('left')} subclass-of {match.group('right')}",
+                )
+            if len(class_terms) < 2 or not self._supports_unary_mapping(source_text):
+                return (
+                    "weak_grounding",
+                    "Subclass output is not sufficiently supported by the source sentence structure.",
+                )
+
+        if pattern == "instance":
+            if len(class_terms) < 1 or not self._supports_unary_mapping(source_text):
+                return (
+                    "weak_grounding",
+                    "Unary instance output is not sufficiently supported by the source sentence structure.",
+                )
+
+        if pattern == "existential":
+            if len(class_terms) < 1 or not self._supports_existential_mapping(source_text):
+                return (
+                    "weak_grounding",
+                    "Existential output is not sufficiently supported by the source sentence structure.",
+                )
+
+        if pattern == "relation" and relation_terms and len(class_terms) == 0:
+            return (
+                "degenerate_form",
+                "Relation output has no grounded ontology arguments beyond variables.",
+            )
+
+        if pattern == "nary" and relation_terms and len(class_terms) < 3:
+            return (
+                "degenerate_form",
+                "N-ary relation output has too few grounded ontology arguments.",
+            )
+
+        return None
+
     def assess(
         self,
         *,
@@ -158,7 +243,24 @@ class DoctrineGrounder:
             if term in self._classes and not self._grounded_class(term, contexts)
         ]
 
+        structural_issue = self._structural_issue(
+            cnl=cnl,
+            source_text=_normalise_text(subclaim_text or normalized_text or original_text),
+            relation_terms=relation_terms,
+            class_terms=class_terms,
+        )
         ungrounded_terms = _dedupe_preserve_order(ungrounded_relations + ungrounded_classes)
+        if structural_issue is not None:
+            reason, detail = structural_issue
+            return GroundingAssessment(
+                accepted=False,
+                reason=reason,
+                detail=detail,
+                relation_terms=relation_terms,
+                class_terms=class_terms,
+                terms=all_terms,
+                ungrounded_terms=ungrounded_terms,
+            )
         if ungrounded_relations:
             return GroundingAssessment(
                 accepted=False,

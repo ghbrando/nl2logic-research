@@ -16,7 +16,7 @@ _TRAILING_HYPHEN_RE = re.compile(r"\w-\s*$")
 _WORD_START_RE = re.compile(r"^\w")
 _PURE_NUMERIC_RE = re.compile(r"^\d+$")
 _PURE_NUMERIC_OR_PUNCT_RE = re.compile(r"^[\d\W_]+$")
-_BULLET_RE = re.compile(r"^\s*(?:\d+\.|[A-Za-z]\.|[-??????])\s*")
+_BULLET_RE = re.compile("^\\s*(?:\\d+\\.|[A-Za-z]\\.|[-\u25aa\u26ab\u2022\u25e6\u25cf\u25a0])\\s*")
 _FM_HEADER_PATTERNS = (
     re.compile(r"^FM\s+\d[\d-]*$", re.IGNORECASE),
     re.compile(r"^CHAPTER\s+\w+(?:\s+\w+)*$", re.IGNORECASE),
