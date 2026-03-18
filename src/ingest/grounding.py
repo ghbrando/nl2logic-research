@@ -161,9 +161,23 @@ class DoctrineGrounder:
     def _supports_unary_mapping(source_text: str) -> bool:
         return bool(_COPULAR_SOURCE_RE.search(source_text))
 
-    @staticmethod
-    def _supports_existential_mapping(source_text: str) -> bool:
-        return bool(_EXISTENTIAL_SOURCE_RE.search(source_text))
+    def _supports_existential_mapping(self, source_text: str, class_terms: Sequence[str]) -> bool:
+        if not _EXISTENTIAL_SOURCE_RE.search(source_text):
+            return False
+
+        for term in class_terms:
+            for phrase in _dedupe_preserve_order([_naturalize_term(term), *self._class_aliases.get(term, ())]):
+                phrase_pattern = re.escape(phrase)
+                existential_patterns = (
+                    rf"\bthere\s+(?:is|are|exists?|exist)\b.*\b{phrase_pattern}\b",
+                    rf"\bat\s+least\s+one\s+{phrase_pattern}\b",
+                    rf"\bsome\s+(?:entity\s+is\s+(?:an?|the)\s+)?{phrase_pattern}\b",
+                    rf"\ban?\s+instance\s+of\s+{phrase_pattern}\b",
+                    rf"\b(?:an?|the)\s+{phrase_pattern}\s+exists?\b",
+                )
+                if any(re.search(pattern, source_text) for pattern in existential_patterns):
+                    return True
+        return False
 
     def _structural_issue(
         self,
@@ -196,7 +210,7 @@ class DoctrineGrounder:
                 )
 
         if pattern == "existential":
-            if len(class_terms) < 1 or not self._supports_existential_mapping(source_text):
+            if len(class_terms) < 1 or not self._supports_existential_mapping(source_text, class_terms):
                 return (
                     "weak_grounding",
                     "Existential output is not sufficiently supported by the source sentence structure.",

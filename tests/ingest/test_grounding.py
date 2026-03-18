@@ -99,6 +99,23 @@ def test_grounder_rejects_existential_output_without_existential_source_support(
     assert "Existential output" in assessment.detail
 
 
+def test_grounder_rejects_existential_output_when_some_modifies_non_class_phrase(tmp_path: Path):
+    classes_path, relations_path = _make_term_files(tmp_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+
+    assessment = grounder.assess(
+        cnl="some ?x is-a Army",
+        original_text="However, due to the unique characteristics of Army operations, the Army intelligence process steps differ in some important but subtle ways.",
+        normalized_text="However, due to the unique characteristics of Army operations, the Army intelligence process steps differ in some important but subtle ways.",
+        linked_text="However, due to the unique characteristics of Army operations, the Army intelligence process steps differ in some important but subtle ways.",
+        subclaim_text="However, due to the unique characteristics of Army operations, the Army intelligence process steps differ in some important but subtle ways.",
+    )
+
+    assert assessment.accepted is False
+    assert assessment.reason == "weak_grounding"
+    assert "Existential output" in assessment.detail
+
+
 def test_grounder_rejects_instance_output_without_copular_support(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
     grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
