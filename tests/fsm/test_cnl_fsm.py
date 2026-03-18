@@ -284,15 +284,21 @@ class TestCNLSamplerSample:
         class SampleTokenizer:
             def __init__(self):
                 self.prompts_seen = []
+                self._ids = {}
 
             def __call__(self, texts=None, **kwargs):
                 assert texts is not None
-                self.prompts_seen.extend(texts)
-                assert kwargs["return_tensors"] == "pt"
-                return {
-                    "input_ids": FakeTensorBatch([[101, 102]]),
-                    "attention_mask": FakeTensorBatch([[1, 1]]),
-                }
+                if kwargs.get("return_tensors") == "pt":
+                    self.prompts_seen.extend(texts)
+                    return {
+                        "input_ids": FakeTensorBatch([[101, 102]]),
+                        "attention_mask": FakeTensorBatch([[1, 1]]),
+                    }
+
+                assert kwargs.get("add_special_tokens") is False
+                if texts not in self._ids:
+                    self._ids[texts] = len(self._ids) + 1000
+                return {"input_ids": [self._ids[texts]]}
 
             def batch_decode(self, sequences, skip_special_tokens=True):
                 assert skip_special_tokens is True
@@ -311,7 +317,7 @@ class TestCNLSamplerSample:
         tokenizer = SampleTokenizer()
         sampler = CNLSampler(model, tokenizer, grammar_str=constrained_grammar_str)
         fake_constraint = object()
-        sampler._prefix_constraint = fake_constraint
+        sampler._get_prefix_constraint = lambda prompt: fake_constraint
 
         result = sampler.sample("translate: every soldier is a combatant")
 
@@ -338,15 +344,21 @@ class FakeTensorBatch:
 class FakeTokenizer:
     def __init__(self):
         self.prompts_seen: list[str] = []
+        self._ids: dict[str, int] = {}
 
     def __call__(self, texts=None, **kwargs):
         assert texts is not None
-        self.prompts_seen.extend(texts)
-        assert kwargs["return_tensors"] == "pt"
-        return {
-            "input_ids": FakeTensorBatch([[101, 102]]),
-            "attention_mask": FakeTensorBatch([[1, 1]]),
-        }
+        if kwargs.get("return_tensors") == "pt":
+            self.prompts_seen.extend(texts)
+            return {
+                "input_ids": FakeTensorBatch([[101, 102]]),
+                "attention_mask": FakeTensorBatch([[1, 1]]),
+            }
+
+        assert kwargs.get("add_special_tokens") is False
+        if texts not in self._ids:
+            self._ids[texts] = len(self._ids) + 1000
+        return {"input_ids": [self._ids[texts]]}
 
     def batch_decode(self, sequences, skip_special_tokens=True):
         assert skip_special_tokens is True
@@ -612,23 +624,91 @@ class TestPromptAwareConstraints:
 
         assert tokenizer("between", add_special_tokens=False)["input_ids"][0] in allowed
         assert tokenizer("agent", add_special_tokens=False)["input_ids"][0] not in allowed
-    def test_unmatched_prompts_reuse_shared_fallback_constraint(self, monkeypatch):
+    def test_unmatched_prompts_build_prompt_specific_constraints(self, monkeypatch):
         sampler = CNLSampler(MagicMock(), MagicMock())
-        sentinel = object()
+        built_constraints: dict[str | None, object] = {}
         build_calls: list[str | None] = []
 
         monkeypatch.setattr(sampler, "_control_literal", lambda: None)
-        monkeypatch.setattr(sampler, "_infer_prompt_plan", lambda prompt: None)
 
         def fake_build(prompt=None):
             build_calls.append(prompt)
-            return sentinel
+            constraint = object()
+            built_constraints[prompt] = constraint
+            return constraint
 
         monkeypatch.setattr(sampler, "_build_prefix_constraint", fake_build)
 
         first = sampler._get_prefix_constraint("Completely unmatched prompt one")
         second = sampler._get_prefix_constraint("Different unmatched prompt two")
+        repeated = sampler._get_prefix_constraint("Completely unmatched prompt one")
 
-        assert first is sentinel
-        assert second is sentinel
-        assert build_calls == [None]
+        assert first is built_constraints["Completely unmatched prompt one"]
+        assert second is built_constraints["Different unmatched prompt two"]
+        assert repeated is first
+        assert build_calls == ["Completely unmatched prompt one", "Different unmatched prompt two"]
+
+    def test_unmatched_prompt_without_structure_allows_only_eos(self, monkeypatch):
+        tokenizer = PrefixConstraintTokenizer()
+        model = MagicMock()
+        model.config.decoder_start_token_id = None
+        sampler = CNLSampler(model, tokenizer)
+
+        def fake_load_terms(path, key="term"):
+            path_str = str(path)
+            if path_str.endswith("sumo_classes.jsonl"):
+                return ["Army", "Planning", "Process"]
+            if path_str.endswith("sumo_relations.jsonl"):
+                return ["agent", "located"]
+            raise AssertionError(f"Unexpected load path: {path}")
+
+        monkeypatch.setattr("src.fsm.cnl_fsm._load_terms", fake_load_terms)
+
+        constraint = sampler._build_prefix_constraint("Army operations support planning.")
+        allowed = constraint(0, [])
+
+        assert allowed == [tokenizer.eos_token_id]
+        assert tokenizer("?x is-a", add_special_tokens=False)["input_ids"][0] not in allowed
+        assert tokenizer("Army", add_special_tokens=False)["input_ids"][0] not in allowed
+
+    def test_unmatched_prompt_with_relation_signal_narrows_relation_start(self, monkeypatch):
+        tokenizer = PrefixConstraintTokenizer()
+        model = MagicMock()
+        model.config.decoder_start_token_id = None
+        sampler = CNLSampler(model, tokenizer)
+
+        def fake_load_terms(path, key="term"):
+            path_str = str(path)
+            if path_str.endswith("sumo_classes.jsonl"):
+                return ["Army", "Planning", "Process"]
+            if path_str.endswith("sumo_relations.jsonl"):
+                return ["agent", "located"]
+            raise AssertionError(f"Unexpected load path: {path}")
+
+        monkeypatch.setattr("src.fsm.cnl_fsm._load_terms", fake_load_terms)
+
+        constraint = sampler._build_prefix_constraint("Army formations require agent coordination.")
+        allowed = constraint(0, [])
+
+        assert tokenizer("agent", add_special_tokens=False)["input_ids"][0] in allowed
+        assert tokenizer("located", add_special_tokens=False)["input_ids"][0] not in allowed
+        assert tokenizer("?x is-a", add_special_tokens=False)["input_ids"][0] not in allowed
+
+    def test_sample_abstains_when_constraint_has_no_supported_start(self):
+        model = MagicMock()
+        model.device = "cpu"
+        tokenizer = FakeTokenizer()
+        sampler = CNLSampler(model, tokenizer)
+
+        class EmptyConstraint:
+            _eos_token_id = 0
+
+            def __call__(self, _batch_id, input_ids):
+                return [0]
+
+        sampler._get_prefix_constraint = lambda prompt: EmptyConstraint()
+
+        with pytest.raises(UnsupportedInputError, match="no lexically supported constrained continuation"):
+            sampler.sample("Army operations support planning.")
+
+        model.generate.assert_not_called()

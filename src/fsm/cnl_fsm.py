@@ -28,7 +28,7 @@ import logging
 import math
 import re
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Sequence
 
 from lark import Lark
 
@@ -81,6 +81,13 @@ _PROMPT_CLASS_ALIASES = {
     "area of operation": ("Area",),
     "operational area": ("Area",),
 }
+_PROMPT_NGRAM_MAX = 6
+_COPULAR_PROMPT_RE = re.compile(r"\b(?:is|are|was|were)\s+(?:an?|the|some)\b", re.IGNORECASE)
+_EXISTENTIAL_PROMPT_RE = re.compile(r"\b(?:some|there\s+is|there\s+are|exists|exist|at\s+least\s+one)\b", re.IGNORECASE)
+_SUBCLASS_PROMPT_RE = re.compile(r"\b(?:subclass|kind of|type of|class of)\b", re.IGNORECASE)
+_CONDITIONAL_PROMPT_RE = re.compile(r"^(?:every|each|all|no)\b|\bif\b", re.IGNORECASE)
+_NEGATION_PROMPT_RE = re.compile(r"\b(?:not|no|never)\b", re.IGNORECASE)
+_NARY_PROMPT_RE = re.compile(r"\bamong\b|\[[^\]]+,", re.IGNORECASE)
 _XGRAMMAR_TEMPLATE = """
 root ::= sentence
 sentence ::= assertion | quantified | conditional
@@ -440,6 +447,7 @@ class CNLSampler:
         self._class_terms: list[str] | None = None
         self._relation_terms: list[str] | None = None
         self._naturalized_class_index: dict[str, list[str]] | None = None
+        self._naturalized_relation_index: dict[str, list[str]] | None = None
         self._confidence_threshold = confidence_threshold
 
     @staticmethod
@@ -556,6 +564,50 @@ class CNLSampler:
                 for phrase, terms in index.items()
             }
         return self._naturalized_class_index
+
+    def _get_naturalized_relation_index(self) -> dict[str, list[str]]:
+        if self._naturalized_relation_index is None:
+            index: dict[str, list[str]] = {}
+            for term in self._get_relation_terms():
+                index.setdefault(self._naturalize_term(term), []).append(term)
+            self._naturalized_relation_index = {
+                phrase: _sorted_terms(terms)
+                for phrase, terms in index.items()
+            }
+        return self._naturalized_relation_index
+
+    def _normalized_ngrams(self, text: str, *, max_length: int = _PROMPT_NGRAM_MAX) -> list[str]:
+        normalized = self._normalise_phrase(text)
+        if not normalized:
+            return []
+
+        tokens = normalized.split()
+        phrases: list[str] = []
+        seen: set[str] = set()
+        for length in range(min(max_length, len(tokens)), 0, -1):
+            for start in range(len(tokens) - length + 1):
+                phrase = " ".join(tokens[start : start + length])
+                if phrase not in seen:
+                    seen.add(phrase)
+                    phrases.append(phrase)
+        return phrases
+
+    def _class_candidates_for_text(self, text: str) -> list[str]:
+        matches: set[str] = set()
+        class_index = self._get_naturalized_class_index()
+        for phrase in self._normalized_ngrams(text):
+            alias_terms = _PROMPT_CLASS_ALIASES.get(phrase)
+            if alias_terms is not None:
+                matches.update(alias_terms)
+            matches.update(class_index.get(phrase, ()))
+        return _sorted_terms(list(matches))
+
+    def _relation_candidates_for_text(self, text: str) -> list[str]:
+        matches: set[str] = set()
+        relation_index = self._get_naturalized_relation_index()
+        for phrase in self._normalized_ngrams(text):
+            matches.update(relation_index.get(phrase, ()))
+        return _sorted_terms(list(matches))
 
     def _class_candidates_for_phrase(self, phrase: str) -> list[str]:
         normalized = self._normalise_phrase(phrase)
@@ -777,6 +829,117 @@ class CNLSampler:
 
         return None
 
+    def _supports_instance_prompt(self, prompt: str) -> bool:
+        return bool(_COPULAR_PROMPT_RE.search(self._normalise_prompt(prompt)))
+
+    def _supports_existential_prompt(self, prompt: str) -> bool:
+        return bool(_EXISTENTIAL_PROMPT_RE.search(self._normalise_prompt(prompt)))
+
+    def _supports_subclass_prompt(self, prompt: str) -> bool:
+        return bool(_SUBCLASS_PROMPT_RE.search(self._normalise_prompt(prompt)))
+
+    def _supports_conditional_prompt(self, prompt: str) -> bool:
+        return bool(_CONDITIONAL_PROMPT_RE.search(self._normalise_prompt(prompt)))
+
+    def _supports_negation_prompt(self, prompt: str) -> bool:
+        return bool(_NEGATION_PROMPT_RE.search(self._normalise_prompt(prompt)))
+
+    def _supports_nary_prompt(self, prompt: str) -> bool:
+        return bool(_NARY_PROMPT_RE.search(self._normalise_prompt(prompt)))
+
+    def _build_prompt_fallback_constraint(self, builder: _ConstraintBuilder, prompt: str) -> bool:
+        class_terms = tuple(self._class_candidates_for_text(prompt))
+        relation_terms = tuple(self._relation_candidates_for_text(prompt))
+
+        class_start = self._slot_sequences(class_terms, leading_space=False)
+        class_space = self._slot_sequences(class_terms, leading_space=True)
+        relation_start = self._slot_sequences(relation_terms, leading_space=False)
+        relation_space = self._slot_sequences(relation_terms, leading_space=True)
+        var_space = self._slot_sequences(_CANONICAL_VAR_TERMS, leading_space=True)
+        term_space = class_space + var_space
+
+        added_template = False
+
+        if self._supports_instance_prompt(prompt) and class_space:
+            builder.add_template([self._fixed_segment("?x is-a"), class_space])
+            added_template = True
+
+        if self._supports_subclass_prompt(prompt) and len(class_terms) >= 2:
+            builder.add_template([class_start, self._fixed_segment(" subclass-of"), class_space])
+            added_template = True
+
+        if relation_start and term_space:
+            builder.add_template([relation_start, term_space, term_space])
+            added_template = True
+
+            if self._supports_negation_prompt(prompt):
+                builder.add_template([self._fixed_segment("not"), relation_space, term_space, term_space])
+                added_template = True
+
+            if self._supports_nary_prompt(prompt):
+                builder.add_template(
+                    [
+                        relation_start,
+                        self._fixed_segment(" ["),
+                        term_space,
+                        self._fixed_segment(" ,"),
+                        term_space,
+                        self._fixed_segment(" ,"),
+                        term_space,
+                        self._fixed_segment(" ]"),
+                    ]
+                )
+                added_template = True
+
+                if self._supports_negation_prompt(prompt):
+                    builder.add_template(
+                        [
+                            self._fixed_segment("not"),
+                            relation_space,
+                            self._fixed_segment(" ["),
+                            term_space,
+                            self._fixed_segment(" ,"),
+                            term_space,
+                            self._fixed_segment(" ,"),
+                            term_space,
+                            self._fixed_segment(" ]"),
+                        ]
+                    )
+                    added_template = True
+
+            if self._supports_conditional_prompt(prompt) and class_space:
+                builder.add_template(
+                    [
+                        self._fixed_segment("every ?x is-a"),
+                        class_space,
+                        self._fixed_segment(" implies"),
+                        relation_space,
+                        self._fixed_segment(" ?x"),
+                        term_space,
+                    ]
+                )
+                builder.add_template(
+                    [
+                        self._fixed_segment("if"),
+                        relation_space,
+                        self._fixed_segment(" ?x"),
+                        term_space,
+                        self._fixed_segment(" then ?x is-a"),
+                        class_space,
+                    ]
+                )
+                added_template = True
+
+        if self._supports_existential_prompt(prompt) and class_space:
+            builder.add_template([self._fixed_segment("some ?x is-a"), class_space])
+            added_template = True
+
+        if self._supports_negation_prompt(prompt) and self._supports_instance_prompt(prompt) and class_space:
+            builder.add_template([self._fixed_segment("not ?x is-a"), class_space])
+            added_template = True
+
+        return added_template
+
     def _build_prefix_constraint(self, prompt: str | None = None) -> _PrefixConstraint:
         builder = _ConstraintBuilder(self._tokenizer)
 
@@ -784,8 +947,6 @@ class CNLSampler:
         if control_literal is not None:
             builder.add_template([self._fixed_segment(control_literal)])
         else:
-            classes = self._get_class_terms()
-            relations = self._get_relation_terms()
             plan = self._infer_prompt_plan(prompt) if prompt is not None else None
 
             if plan is not None:
@@ -839,7 +1000,11 @@ class CNLSampler:
                     )
                 else:
                     raise ValueError(f"Unknown prompt constraint template: {plan.template}")
+            elif prompt is not None:
+                self._build_prompt_fallback_constraint(builder, prompt)
             else:
+                classes = self._get_class_terms()
+                relations = self._get_relation_terms()
                 class_start = self._slot_sequences(classes, leading_space=False)
                 class_space = self._slot_sequences(classes, leading_space=True)
                 relation_start = self._slot_sequences(relations, leading_space=False)
@@ -920,14 +1085,18 @@ class CNLSampler:
             return self._prefix_constraint
 
         cache_key = self._normalise_prompt(prompt)
-        if self._infer_prompt_plan(cache_key) is None:
-            if self._prefix_constraint is None:
-                self._prefix_constraint = self._build_prefix_constraint(prompt=None)
-            return self._prefix_constraint
-
         if cache_key not in self._prompt_prefix_constraints:
             self._prompt_prefix_constraints[cache_key] = self._build_prefix_constraint(prompt=cache_key)
         return self._prompt_prefix_constraints[cache_key]
+
+    @staticmethod
+    def _has_no_supported_constraint_start(prefix_constraint) -> bool:
+        if not callable(prefix_constraint):
+            return False
+        eos_token_id = getattr(prefix_constraint, "_eos_token_id", None)
+        if eos_token_id is None:
+            return False
+        return prefix_constraint(0, []) == [int(eos_token_id)]
 
     @staticmethod
     def _score_row(score_step) -> list[float]:
@@ -992,6 +1161,10 @@ class CNLSampler:
 
         encoded = self._tokenize_prompt(prompt)
         prefix_constraint = self._get_prefix_constraint(prompt)
+        if self._has_no_supported_constraint_start(prefix_constraint):
+            message = "no lexically supported constrained continuation"
+            _LOGGER.warning("Abstaining from CNL generation for unsupported input: %s", message)
+            raise UnsupportedInputError(message)
 
         try:
             torch_module = import_module("torch")
@@ -1029,6 +1202,12 @@ class CNLSampler:
             raise UnsupportedInputError(message)
 
         encoded = self._tokenize_prompt(prompt)
+        prefix_constraint = self._get_prefix_constraint(prompt)
+        if self._has_no_supported_constraint_start(prefix_constraint):
+            message = "no lexically supported constrained continuation"
+            _LOGGER.warning("Abstaining from CNL generation for unsupported input: %s", message)
+            raise UnsupportedInputError(message)
+
         output = self._hf_model.generate(
             **encoded,
             max_new_tokens=max_tokens,
