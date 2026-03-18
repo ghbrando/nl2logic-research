@@ -1,5 +1,5 @@
 """
-Tests for src/fsm/cnl_fsm.py Ã¢â‚¬â€ Stage 2 FSM integration.
+Tests for src/fsm/cnl_fsm.py ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Stage 2 FSM integration.
 
 Test strategy
 -------------
@@ -271,7 +271,7 @@ class TestCNLSamplerAbstain:
 
 
 # ---------------------------------------------------------------------------
-# CNLSampler.sample() Ã¢â‚¬â€ mock model, no real constrained runtime needed
+# CNLSampler.sample() ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â mock model, no real constrained runtime needed
 # ---------------------------------------------------------------------------
 
 class TestCNLSamplerSample:
@@ -453,3 +453,27 @@ class TestPrefixConstraintStructure:
 
         assert allowed == [tokenizer.eos_token_id]
         assert tokenizer(" implies", add_special_tokens=False)["input_ids"][0] not in allowed
+    def test_accepting_prefix_ending_in_eos_stays_on_eos(self, monkeypatch):
+        tokenizer = PrefixConstraintTokenizer()
+        model = MagicMock()
+        model.config.decoder_start_token_id = None
+        sampler = CNLSampler(model, tokenizer)
+
+        def fake_load_terms(path, key="term"):
+            path_str = str(path)
+            if path_str.endswith("sumo_classes.jsonl"):
+                return ["Process", "Entity"]
+            if path_str.endswith("sumo_relations.jsonl"):
+                return ["agent"]
+            raise AssertionError(f"Unexpected load path: {path}")
+
+        monkeypatch.setattr("src.fsm.cnl_fsm._load_terms", fake_load_terms)
+
+        constraint = sampler._build_prefix_constraint()
+        prefix = tokenizer("?x is-a", add_special_tokens=False)["input_ids"]
+        prefix += tokenizer(" Process", add_special_tokens=False)["input_ids"]
+        prefix.append(tokenizer.eos_token_id)
+
+        allowed = constraint(0, prefix)
+
+        assert allowed == [tokenizer.eos_token_id]

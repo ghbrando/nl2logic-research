@@ -343,8 +343,23 @@ class _PrefixConstraint:
 
     def __call__(self, _batch_id: int, input_ids) -> list[int]:
         prefix = self._normalise_prefix(input_ids)
+        if self._eos_token_id is not None and prefix:
+            eos_token = int(self._eos_token_id)
+            try:
+                eos_index = prefix.index(eos_token)
+            except ValueError:
+                eos_index = -1
+            if eos_index >= 0:
+                prefix = prefix[:eos_index]
+                states = self._states_for_prefix(prefix)
+                accepting = any(self._nfa.nodes[state].accept for state in states)
+                if accepting:
+                    return [eos_token]
+
         states = self._states_for_prefix(prefix)
         if not states:
+            if self._eos_token_id is not None:
+                return [int(self._eos_token_id)]
             raise RuntimeError("No valid constrained continuation remains for the generated prefix.")
 
         allowed: set[int] = set()
@@ -358,6 +373,8 @@ class _PrefixConstraint:
             allowed.add(int(self._eos_token_id))
 
         if not allowed:
+            if self._eos_token_id is not None:
+                return [int(self._eos_token_id)]
             raise RuntimeError("Constraint automaton has no valid next tokens.")
 
         return sorted(allowed)
