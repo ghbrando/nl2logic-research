@@ -1,4 +1,4 @@
-"""LLM-based structured extraction for doctrine-to-KIF pipeline.
+"""Archived LLM-based structured extraction baseline.
 
 Instead of asking a small seq2seq model to generate CNL directly, this module
 uses an LLM to *extract* structured claims from doctrine sentences, then maps
@@ -23,7 +23,7 @@ from typing import Sequence
 
 _LOGGER = logging.getLogger(__name__)
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
+_REPO_ROOT = Path(__file__).resolve().parents[3]
 _CLASSES_PATH = _REPO_ROOT / "data" / "training_pairs" / "sumo_classes.jsonl"
 _RELATIONS_PATH = _REPO_ROOT / "data" / "training_pairs" / "sumo_relations.jsonl"
 _DOCTRINE_DOMAIN_PATH = _REPO_ROOT / "data" / "ontology" / "doctrine_domain.kif"
@@ -777,3 +777,5 @@ def assemble_kif(mapped: MappedClaim) -> AssembledFact | None:
         source_span=mapped.source_span,
         confidence=mapped.confidence,
     )
+
+

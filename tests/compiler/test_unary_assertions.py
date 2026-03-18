@@ -58,3 +58,45 @@ class TestSubclassAssertions:
     @pytest.mark.parametrize("cnl,expected", _subclass_pairs())
     def test_subclass_sumo_classes(self, compiler, cnl, expected):
         assert compiler.compile(cnl) == expected
+
+
+class TestDoctrineExtensionTerms:
+    """Doctrine domain extension terms must be accepted by the compiler.
+
+    These terms are defined in data/ontology/doctrine_domain.kif and are NOT
+    in sumo_classes.jsonl.  The compiler must accept them after the shared
+    vocab loader unions in doctrine_domain.kif.
+    """
+
+    @pytest.mark.parametrize("cnl,expected", [
+        (
+            "CombatInformation subclass-of FactualText",
+            "(subclass CombatInformation FactualText)",
+        ),
+        (
+            "IntelligenceProcess subclass-of MilitaryProcess",
+            "(subclass IntelligenceProcess MilitaryProcess)",
+        ),
+        (
+            "IntelligenceEnterprise subclass-of MilitaryOrganization",
+            "(subclass IntelligenceEnterprise MilitaryOrganization)",
+        ),
+        (
+            "IntelligenceProfessional subclass-of MilitaryPerson",
+            "(subclass IntelligenceProfessional MilitaryPerson)",
+        ),
+        (
+            "IntelligenceWarfightingFunction subclass-of WarfightingFunction",
+            "(subclass IntelligenceWarfightingFunction WarfightingFunction)",
+        ),
+        (
+            "?x is-a CombatInformation",
+            "(instance ?x CombatInformation)",
+        ),
+        (
+            "?x is-a IntelligenceProcess",
+            "(instance ?x IntelligenceProcess)",
+        ),
+    ])
+    def test_doctrine_term_compiles(self, compiler, cnl, expected):
+        assert compiler.compile(cnl) == expected

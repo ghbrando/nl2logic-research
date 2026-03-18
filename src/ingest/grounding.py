@@ -9,10 +9,12 @@ from pathlib import Path
 from typing import Iterable, Sequence
 
 from src.fsm.cnl_fsm import _PASCAL_BOUNDARY_RE, _PROMPT_CLASS_ALIASES
+from src.ontology.vocab import load_closed_class_terms, load_closed_relation_terms
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _CLASSES_PATH = _REPO_ROOT / "data" / "training_pairs" / "sumo_classes.jsonl"
 _RELATIONS_PATH = _REPO_ROOT / "data" / "training_pairs" / "sumo_relations.jsonl"
+_DOCTRINE_KIF_PATH = _REPO_ROOT / "data" / "ontology" / "doctrine_domain.kif"
 
 _CNL_TOKEN_RE = re.compile(r"\?[A-Za-z_]\w*|[A-Za-z][A-Za-z0-9_]*")
 _NORMALIZED_TEXT_RE = re.compile(r"[^a-z0-9\s]+")
@@ -161,9 +163,23 @@ class DoctrineGrounder:
         *,
         classes_path: Path = _CLASSES_PATH,
         relations_path: Path = _RELATIONS_PATH,
+        doctrine_kif: Path | None = _DOCTRINE_KIF_PATH,
     ) -> None:
-        self._classes = set(_load_terms(classes_path))
-        self._relations = set(_load_terms(relations_path))
+        """
+        Parameters
+        ----------
+        classes_path:
+            Path to SUMO class JSONL vocab.
+        relations_path:
+            Path to SUMO relations JSONL vocab.
+        doctrine_kif:
+            Path to a doctrine KIF extension whose (subclass X Y) terms are
+            unioned into the accepted class set.  Defaults to the repo's
+            doctrine_domain.kif.  Pass ``None`` for isolated testing with a
+            custom classes_path only.
+        """
+        self._classes = load_closed_class_terms(classes_path, doctrine_kif)
+        self._relations = set(load_closed_relation_terms(relations_path, doctrine_kif).keys())
         self._class_aliases = self._build_class_aliases()
 
     @staticmethod

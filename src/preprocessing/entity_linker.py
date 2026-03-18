@@ -7,10 +7,13 @@ import logging
 import re
 from pathlib import Path
 
+from src.ontology.vocab import load_closed_class_terms, load_closed_relation_terms
+
 _LOGGER = logging.getLogger(__name__)
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _CLASSES_PATH = _REPO_ROOT / "data" / "training_pairs" / "sumo_classes.jsonl"
 _RELATIONS_PATH = _REPO_ROOT / "data" / "training_pairs" / "sumo_relations.jsonl"
+_DOCTRINE_KIF_PATH = _REPO_ROOT / "data" / "ontology" / "doctrine_domain.kif"
 
 _DEFAULT_ABBREVIATIONS = {
     "OPORD": "Order",
@@ -44,10 +47,26 @@ class EntityLinker:
         *,
         classes_path: Path = _CLASSES_PATH,
         relations_path: Path = _RELATIONS_PATH,
+        doctrine_kif: Path | None = _DOCTRINE_KIF_PATH,
         abbreviation_map: dict[str, str] | None = None,
     ) -> None:
-        self._classes = set(_load_terms(classes_path))
-        self._relations = set(_load_terms(relations_path))
+        """
+        Parameters
+        ----------
+        classes_path:
+            Path to SUMO class JSONL vocab.
+        relations_path:
+            Path to SUMO relations JSONL vocab.
+        doctrine_kif:
+            Path to a doctrine KIF extension whose (subclass X Y) terms are
+            unioned into the recognised class set.  Defaults to the repo's
+            doctrine_domain.kif.  Pass ``None`` for isolated testing with a
+            custom classes_path only.
+        abbreviation_map:
+            Additional acronym-to-SUMO-term entries merged with the defaults.
+        """
+        self._classes = load_closed_class_terms(classes_path, doctrine_kif)
+        self._relations = set(load_closed_relation_terms(relations_path, doctrine_kif).keys())
         self._vocab = self._classes | self._relations
         self._lookup = self._build_lookup(abbreviation_map or {})
         self._pattern = self._build_pattern(self._lookup)

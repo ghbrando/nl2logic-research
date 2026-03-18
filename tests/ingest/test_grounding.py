@@ -45,7 +45,7 @@ def test_extract_cnl_terms_ignores_variable_tokens():
 
 def test_grounder_accepts_when_relation_and_classes_are_lexically_grounded(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="agent MilitaryProcess AutonomousAgent",
@@ -62,7 +62,7 @@ def test_grounder_accepts_when_relation_and_classes_are_lexically_grounded(tmp_p
 
 def test_grounder_routes_record_to_review_when_class_terms_are_ungrounded(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="agent MilitaryProcess AutonomousAgent",
@@ -79,7 +79,7 @@ def test_grounder_routes_record_to_review_when_class_terms_are_ungrounded(tmp_pa
 
 def test_grounder_uses_prompt_aliases_for_known_class_phrases(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="destination Transportation Region",
@@ -95,7 +95,7 @@ def test_grounder_uses_prompt_aliases_for_known_class_phrases(tmp_path: Path):
 
 def test_grounder_rejects_existential_output_without_existential_source_support(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="some ?x is-a Likely",
@@ -112,7 +112,7 @@ def test_grounder_rejects_existential_output_without_existential_source_support(
 
 def test_grounder_rejects_existential_output_when_some_modifies_non_class_phrase(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="some ?x is-a Army",
@@ -129,7 +129,7 @@ def test_grounder_rejects_existential_output_when_some_modifies_non_class_phrase
 
 def test_grounder_rejects_instance_output_without_copular_support(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="?x is-a Planning",
@@ -146,7 +146,7 @@ def test_grounder_rejects_instance_output_without_copular_support(tmp_path: Path
 
 def test_grounder_rejects_self_subclass_form(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="Army subclass-of Army",
@@ -163,7 +163,7 @@ def test_grounder_rejects_self_subclass_form(tmp_path: Path):
 
 def test_grounder_rejects_relation_outputs_with_only_variable_arguments(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="complexity ?x ?y",
@@ -186,7 +186,7 @@ def test_grounder_rejects_relation_outputs_with_only_variable_arguments(tmp_path
 
 def test_rejects_most_dangerous(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="most Dangerous ?x",
@@ -203,7 +203,7 @@ def test_rejects_most_dangerous(tmp_path: Path):
 
 def test_rejects_needs_may(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="needs ?x May",
@@ -220,7 +220,7 @@ def test_rejects_needs_may(tmp_path: Path):
 
 def test_rejects_time_on(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="time ?x On",
@@ -237,7 +237,7 @@ def test_rejects_time_on(tmp_path: Path):
 
 def test_rejects_states_unitedstates(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="states ?x UnitedStates",
@@ -254,7 +254,7 @@ def test_rejects_states_unitedstates(tmp_path: Path):
 
 def test_rejects_during_power(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="during ?x Power",
@@ -271,7 +271,7 @@ def test_rejects_during_power(tmp_path: Path):
 
 def test_rejects_domain_plan(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="domain ?x Plan",
@@ -288,7 +288,7 @@ def test_rejects_domain_plan(tmp_path: Path):
 
 def test_rejects_enemy_enemy(tmp_path: Path):
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="enemy ?x Enemy",
@@ -306,7 +306,7 @@ def test_rejects_enemy_enemy(tmp_path: Path):
 def test_legitimate_relation_not_blocked_by_weak_argument_filter(tmp_path: Path):
     """Ensure multi-word PascalCase arguments and specific terms still pass."""
     classes_path, relations_path = _make_term_files(tmp_path)
-    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path)
+    grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=None)
 
     assessment = grounder.assess(
         cnl="agent MilitaryProcess AutonomousAgent",

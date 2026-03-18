@@ -404,6 +404,11 @@ class TestCNLSamplerConfidence:
         assert tokenizer.prompts_seen == ["translate to CNL: Something is an instance of Process."]
         assert model.calls[0]["input_ids"].moved_to == "cuda:0"
         assert model.calls[0]["max_new_tokens"] == 200
+        assert callable(model.calls[0]["prefix_allowed_tokens_fn"])
+        assert model.calls[0]["num_beams"] == 4
+        assert model.calls[0]["length_penalty"] == pytest.approx(1.15)
+        assert model.calls[0]["early_stopping"] is True
+        assert model.calls[0]["renormalize_logits"] is True
         assert model.calls[0]["return_dict_in_generate"] is True
         assert model.calls[0]["output_scores"] is True
 

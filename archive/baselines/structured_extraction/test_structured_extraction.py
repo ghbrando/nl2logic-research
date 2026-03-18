@@ -1,13 +1,13 @@
-"""Test structured extraction on real FM 2-0 doctrine sentences.
+"""Test the archived structured extraction baseline on FM 2-0 sentences.
 
 Usage (local model on DGX Spark — default):
-    python scripts/test_structured_extraction.py
+    python archive/baselines/structured_extraction/test_structured_extraction.py
 
     Uses Mistral-7B-Instruct by default.  Override with:
-    python scripts/test_structured_extraction.py --model meta-llama/Meta-Llama-3.1-8B-Instruct
+    python archive/baselines/structured_extraction/test_structured_extraction.py --model meta-llama/Meta-Llama-3.1-8B-Instruct
 
 Usage (Anthropic API — optional):
-    python scripts/test_structured_extraction.py --backend anthropic --api-key $ANTHROPIC_API_KEY
+    python archive/baselines/structured_extraction/test_structured_extraction.py --backend anthropic --api-key $ANTHROPIC_API_KEY
 
 This script:
 1. Takes a curated set of real FM 2-0 sentences (mix of formalizable and not)
@@ -25,11 +25,13 @@ import os
 import sys
 from pathlib import Path
 
-# Add repo root to path
-_REPO_ROOT = Path(__file__).resolve().parents[1]
+# Add repo root and archive dir to path
+_ARCHIVE_DIR = Path(__file__).resolve().parent
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(_ARCHIVE_DIR))
 sys.path.insert(0, str(_REPO_ROOT))
 
-from src.ingest.structured_extractor import (
+from structured_extractor import (
     AssembledFact,
     ExtractionResult,
     MappedClaim,
@@ -289,3 +291,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+

@@ -1,10 +1,9 @@
-import json
 from pathlib import Path
 from lark import Lark, Transformer, v_args, Token
 
-GRAMMAR_PATH  = Path(__file__).parent / "cnl.lark"
-SUMO_CLASSES  = Path("data/training_pairs/sumo_classes.jsonl")
-SUMO_RELATIONS = Path("data/training_pairs/sumo_relations.jsonl")
+from src.ontology.vocab import load_closed_class_terms, load_closed_relation_terms
+
+GRAMMAR_PATH = Path(__file__).parent / "cnl.lark"
 
 
 # ── Transformer ────────────────────────────────────────────────────────────
@@ -114,18 +113,7 @@ class CNLCompiler:
     # ── Vocab validation ───────────────────────────────────────────────────
 
     def _load_vocab(self) -> tuple[set, dict]:
-        classes = set()
-        with open(SUMO_CLASSES, encoding="utf-8") as f:
-            for line in f:
-                classes.add(json.loads(line)["term"])
-
-        relations = {}
-        with open(SUMO_RELATIONS, encoding="utf-8") as f:
-            for line in f:
-                r = json.loads(line)
-                relations[r["term"]] = r.get("arity")
-
-        return classes, relations
+        return load_closed_class_terms(), load_closed_relation_terms()
 
     def _validate(self, tree) -> None:
         for token in tree.scan_values(lambda _: True):

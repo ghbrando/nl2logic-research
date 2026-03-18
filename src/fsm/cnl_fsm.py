@@ -33,6 +33,11 @@ from typing import Iterable, Sequence
 from lark import Lark
 
 from src.compiler.compiler import CNLCompiler
+from src.ontology.vocab import (
+    extract_kif_class_terms,
+    load_closed_class_terms,
+    load_closed_relation_terms,
+)
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -42,6 +47,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _GRAMMAR_PATH = _REPO_ROOT / "src" / "compiler" / "cnl.lark"
 _SUMO_CLASSES = _REPO_ROOT / "data" / "training_pairs" / "sumo_classes.jsonl"
 _SUMO_RELATIONS = _REPO_ROOT / "data" / "training_pairs" / "sumo_relations.jsonl"
+_DOCTRINE_KIF = _REPO_ROOT / "data" / "ontology" / "doctrine_domain.kif"
 
 # Terminals in cnl.lark that we replace with closed vocabulary alternations.
 _CLASS_TERM_RE_PATTERN = r"CLASS_TERM\s*:\s*/\[A-Z\]\[a-zA-Z0-9_\]\*/"
@@ -146,6 +152,7 @@ def _gbnf_literal_alternation(terms: list[str]) -> str:
 def build_vocabulary_grammar(
     classes_path: Path = _SUMO_CLASSES,
     relations_path: Path = _SUMO_RELATIONS,
+    doctrine_kif: Path | None = _DOCTRINE_KIF,
 ) -> str:
     """
     Build the vocabulary-closed Lark grammar used by the compiler/parser path.
@@ -153,12 +160,13 @@ def build_vocabulary_grammar(
     Reads the base grammar from cnl.lark and replaces:
       CLASS_TERM : /[A-Z][a-zA-Z0-9_]*/   (open)
       RELATION   : /[a-z][a-zA-Z0-9]*/    (open)
-    with closed alternation patterns built from all known SUMO terms.
+    with closed alternation patterns built from all known SUMO terms plus any
+    doctrine extension classes defined in doctrine_kif.
     """
     base_grammar = _GRAMMAR_PATH.read_text(encoding="utf-8")
 
-    classes = _load_terms(classes_path)
-    relations = _load_terms(relations_path)
+    classes = list(load_closed_class_terms(classes_path, doctrine_kif))
+    relations = list(load_closed_relation_terms(relations_path, doctrine_kif).keys())
 
     class_alt = _lark_regex_alternation(classes)
     relation_alt = _lark_regex_alternation(relations)
@@ -180,6 +188,7 @@ def build_vocabulary_grammar(
 def build_xgrammar_grammar(
     classes_path: Path = _SUMO_CLASSES,
     relations_path: Path = _SUMO_RELATIONS,
+    doctrine_kif: Path | None = _DOCTRINE_KIF,
 ) -> str:
     """
     Build a closed-vocabulary GBNF grammar for xgrammar-backed generation.
@@ -188,8 +197,8 @@ def build_xgrammar_grammar(
     with exact spacing. That keeps generation backend-compatible and aligns
     better with exact-match evaluation.
     """
-    classes = _load_terms(classes_path)
-    relations = _load_terms(relations_path)
+    classes = list(load_closed_class_terms(classes_path, doctrine_kif))
+    relations = list(load_closed_relation_terms(relations_path, doctrine_kif).keys())
 
     return (
         _XGRAMMAR_TEMPLATE
@@ -546,7 +555,12 @@ class CNLSampler:
 
     def _get_class_terms(self) -> list[str]:
         if self._class_terms is None:
-            self._class_terms = _load_terms(_SUMO_CLASSES)
+            # _load_terms is the monkeypatch seam used by unit tests; keep it
+            # as the base loader and union in doctrine extension terms on top.
+            base = _load_terms(_SUMO_CLASSES)
+            doctrine = list(extract_kif_class_terms(_DOCTRINE_KIF))
+            seen = set(base)
+            self._class_terms = base + [t for t in doctrine if t not in seen]
         return self._class_terms
 
     def _get_relation_terms(self) -> list[str]:
@@ -1312,12 +1326,24 @@ class CNLSampler:
             _LOGGER.warning("Abstaining from CNL generation for unsupported input: %s", message)
             raise UnsupportedInputError(message)
 
-        output = self._hf_model.generate(
-            **encoded,
-            max_new_tokens=max_tokens,
-            return_dict_in_generate=True,
-            output_scores=True,
-        )
+        try:
+            torch_module = import_module("torch")
+        except ModuleNotFoundError:
+            torch_module = None
+
+        no_grad = torch_module.no_grad if torch_module is not None else nullcontext
+        with no_grad():
+            output = self._hf_model.generate(
+                **encoded,
+                max_new_tokens=max_tokens,
+                prefix_allowed_tokens_fn=prefix_constraint,
+                num_beams=_DEFAULT_CONSTRAINED_NUM_BEAMS,
+                length_penalty=_DEFAULT_CONSTRAINED_LENGTH_PENALTY,
+                early_stopping=True,
+                renormalize_logits=True,
+                return_dict_in_generate=True,
+                output_scores=True,
+            )
         if not hasattr(output, "sequences"):
             raise ValueError("Model generation result must include sequences.")
         if not hasattr(output, "scores"):
