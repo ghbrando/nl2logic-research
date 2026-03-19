@@ -43,6 +43,25 @@
   "A recognized category of intelligence collection or production,
    e.g. HUMINT, SIGINT, GEOINT, OSINT, MASINT, CI.")
 
+(subclass HumanIntelligence IntelligenceDiscipline)
+(documentation HumanIntelligence EnglishLanguage
+  "The collection by a trained human intelligence collector of foreign
+   information from people and multimedia to identify elements,
+   intentions, composition, strength, dispositions, tactics, equipment,
+   and capabilities. FM 2-0 para 1-72 / ADP 2-0.")
+
+(subclass SignalsIntelligence IntelligenceDiscipline)
+(documentation SignalsIntelligence EnglishLanguage
+  "Intelligence derived from communications, electronic, and foreign
+   instrumentation signals. FM 2-0 para 1-84 / JP 2-0.")
+
+(subclass GeospatialIntelligence IntelligenceDiscipline)
+(documentation GeospatialIntelligence EnglishLanguage
+  "The exploitation and analysis of imagery and geospatial information
+   to describe, assess, and visually depict physical features and
+   geographically referenced activities on or about the Earth.
+   FM 2-0 para 1-69 / JP 2-0.")
+
 (subclass CombatInformation FactualText)
 (documentation CombatInformation EnglishLanguage
   "Unevaluated data gathered by or provided to the tactical commander
