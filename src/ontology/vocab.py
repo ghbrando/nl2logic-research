@@ -63,6 +63,13 @@ def load_doctrine_subclass_pairs(
     return extract_kif_subclass_pairs(doctrine_kif)
 
 
+def load_doctrine_class_terms(
+    doctrine_kif: Path = _DEFAULT_DOCTRINE_KIF,
+) -> set[str]:
+    """Return doctrine-specific child class terms from doctrine_domain.kif."""
+    return set(load_doctrine_subclass_pairs(doctrine_kif))
+
+
 def load_closed_class_terms(
     sumo_classes: Path = _DEFAULT_SUMO_CLASSES,
     doctrine_kif: Path | None = _DEFAULT_DOCTRINE_KIF,

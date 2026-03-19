@@ -14,6 +14,7 @@ from scripts.prepare_training_data import (
     prepare_training_data,
 )
 from src.compiler.compiler import CNLCompiler
+from src.ontology.vocab import load_doctrine_class_terms
 from src.training.train import PATTERN_COVERAGE_SENTENCES
 
 
@@ -242,29 +243,10 @@ class TestPrepareTrainingData:
 class TestDoctrineTermPrioritization:
     """Doctrine domain terms must be recognized as military-focus and survive balancing."""
 
-    _DOCTRINE_TERMS = [
-        "CombatInformation",
-        "DoctrinalTask",
-        "GeospatialIntelligence",
-        "HumanIntelligence",
-        "InformationCollection",
-        "IntelligenceDiscipline",
-        "IntelligenceDissemination",
-        "IntelligenceEnterprise",
-        "IntelligenceProcess",
-        "IntelligenceProduct",
-        "IntelligenceProfessional",
-        "IntelligenceWarfightingFunction",
-        "IntelligenceWarfightingFunctionTask",
-        "OperationalEnvironment",
-        "SignalsIntelligence",
-        "TacticalCommander",
-        "ThreatCourseOfAction",
-        "WarfightingFunction",
-    ]
-
     def test_all_doctrine_terms_in_focus_set(self):
-        for term in self._DOCTRINE_TERMS:
+        doctrine_terms = load_doctrine_class_terms()
+        assert len(doctrine_terms) >= 30
+        for term in doctrine_terms:
             assert term in MILITARY_FOCUS_CLASSES, (
                 f"Doctrine term '{term}' missing from MILITARY_FOCUS_CLASSES"
             )
@@ -493,7 +475,7 @@ class TestBenchmarkExclusionAndDoctrinePreservation:
 
     def test_real_doctrine_pairs_load_and_have_required_keys(self):
         pairs = load_real_doctrine_pairs()
-        assert len(pairs) > 0
+        assert len(pairs) >= 25
         for pair in pairs:
             for key in ("nl", "cnl", "kif", "pattern"):
                 assert key in pair, f"Missing key '{key}' in pair: {pair}"
@@ -518,3 +500,6 @@ class TestBenchmarkExclusionAndDoctrinePreservation:
             assert pair["cnl"] not in bm_cnls, (
                 f"Real-doctrine CNL is a benchmark CNL: {pair['cnl']!r}"
             )
+
+
+

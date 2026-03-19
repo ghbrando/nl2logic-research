@@ -140,4 +140,118 @@
 (documentation TacticalCommander EnglishLanguage
   "A commander at the tactical level of operations.")
 
+;;; ---------------------------------------------------------------------------
+;;; Additional doctrine-defined intelligence categories and subdisciplines
+;;; ---------------------------------------------------------------------------
+
+(subclass CurrentIntelligence IntelligenceProduct)
+(documentation CurrentIntelligence EnglishLanguage
+  "Updated support for ongoing operations involving time-sensitive,
+   all-source intelligence analysis and information reporting on the area
+   of operations. FM 2-0 para 1-7.")
+
+(subclass TargetIntelligence IntelligenceProduct)
+(documentation TargetIntelligence EnglishLanguage
+  "Intelligence that portrays and locates the components of a target or
+   target complex and indicates its vulnerability and relative importance.
+   FM 2-0 para 1-7 / JP 3-60.")
+
+(subclass ScientificAndTechnicalIntelligence IntelligenceProduct)
+(documentation ScientificAndTechnicalIntelligence EnglishLanguage
+  "Foundational all-source intelligence covering foreign developments in
+   basic and applied research, engineering techniques, and the scientific
+   and technical characteristics, capabilities, and limitations of foreign
+   military systems, weapons, weapon systems, and materiel. FM 2-0 para
+   1-7 / JP 2-0.")
+
+(subclass EstimativeIntelligence IntelligenceProduct)
+(documentation EstimativeIntelligence EnglishLanguage
+  "Intelligence that identifies and describes adversary capabilities and
+   intentions, and forecasts alternative future situations in relative
+   order of probability for strategy, planning, and military operations.
+   FM 2-0 para 1-7 / JP 2-0.")
+
+(subclass IdentityIntelligence IntelligenceProduct)
+(documentation IdentityIntelligence EnglishLanguage
+  "Intelligence resulting from the processing of identity attributes
+   concerning individuals, groups, networks, or populations of interest.
+   FM 2-0 para 1-7 / JP 2-0.")
+
+(subclass ForensicEnabledIntelligence IntelligenceProduct)
+(documentation ForensicEnabledIntelligence EnglishLanguage
+  "Intelligence resulting from the integration of scientifically examined
+   materials and other information to establish characterization,
+   attribution, and linkages among events, locations, items, signatures,
+   intent, and persons of interest. FM 2-0 para 1-106 / JP 2-0.")
+
+(subclass MeasurementAndSignatureIntelligence IntelligenceDiscipline)
+(documentation MeasurementAndSignatureIntelligence EnglishLanguage
+  "Information produced by quantitative and qualitative analysis of
+   physical attributes of targets and events to detect, characterize,
+   locate, and identify targets and events, derived from specialized,
+   technically derived measurements and signatures of physical phenomena.
+   FM 2-0 para 1-75 / JP 2-0.")
+
+(subclass OpenSourceIntelligence IntelligenceDiscipline)
+(documentation OpenSourceIntelligence EnglishLanguage
+  "Intelligence produced from publicly available information and collected,
+   exploited, and disseminated in a timely manner to an appropriate
+   audience for the purpose of addressing a specific intelligence
+   requirement. FM 2-0 para 1-79.")
+
+(subclass TechnicalIntelligence IntelligenceDiscipline)
+(documentation TechnicalIntelligence EnglishLanguage
+  "Intelligence derived from the collection, processing, analysis, and
+   exploitation of data and information pertaining to foreign equipment
+   and materiel for the purposes of preventing technological surprise,
+   assessing foreign scientific and technical capabilities, and developing
+   countermeasures. FM 2-0 para 1-88 / JP 2-0.")
+
+(subclass ImageryIntelligence GeospatialIntelligence)
+(documentation ImageryIntelligence EnglishLanguage
+  "Technical, geographic, and intelligence information derived through the
+   interpretation or analysis of imagery and collateral materials. FM 2-0
+   para 1-69 / JP 2-0.")
+
+(subclass CommunicationsIntelligence SignalsIntelligence)
+(documentation CommunicationsIntelligence EnglishLanguage
+  "Technical information and intelligence derived from foreign
+   communications by other than the intended recipients. FM 2-0 para 1-85
+   / JP 2-0.")
+
+(subclass ElectronicIntelligence SignalsIntelligence)
+(documentation ElectronicIntelligence EnglishLanguage
+  "Technical and geolocation intelligence derived from foreign
+   noncommunications electromagnetic radiations emanating from other than
+   nuclear detonations or radioactive sources. FM 2-0 para 1-85 / JP 3-85.")
+
+(subclass ForeignInstrumentationSignalsIntelligence SignalsIntelligence)
+(documentation ForeignInstrumentationSignalsIntelligence EnglishLanguage
+  "A subcategory of signals intelligence consisting of technical
+   information and intelligence derived from the intercept of foreign
+   electromagnetic emissions associated with the testing and operational
+   deployment of aerospace, surface, and subsurface systems. FM 2-0 para
+   1-85 / JP 2-0.")
+
+(subclass DocumentAndMediaExploitation Procedure)
+(documentation DocumentAndMediaExploitation EnglishLanguage
+  "The processing, translation, analysis, and dissemination of collected
+   hardcopy documents and electronic media that are under the U.S.
+   Government's physical control and are not publicly available. FM 2-0
+   para 1-98.")
+
+(subclass IdentityActivities Procedure)
+(documentation IdentityActivities EnglishLanguage
+  "A collection of functions and actions that appropriately recognize and
+   differentiate one person or persona from another person or persona to
+   support decision making as well as security, force protection, and law
+   enforcement. FM 2-0 para 1-107.")
+
+(subclass ProcessingExploitationAndDissemination Procedure)
+(documentation ProcessingExploitationAndDissemination EnglishLanguage
+  "The execution of the related functions that converts and refines
+   collected data into usable information, distributes the information for
+   further analysis, and, when appropriate, provides combat information to
+   commanders and staffs. FM 2-0 para 1-47 / ADP 2-0.")
 ;;; end of doctrine_domain.kif
+

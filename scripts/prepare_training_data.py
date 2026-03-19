@@ -31,6 +31,7 @@ from src.data.generate_pairs import (
     load_relations,
 )
 from src.eval.evaluate import DEFAULT_GOLD_PATH
+from src.ontology.vocab import load_doctrine_class_terms
 from src.training.train import PATTERN_COVERAGE_SENTENCES
 
 DEFAULT_LIMIT = 50_000
@@ -40,7 +41,7 @@ DEFAULT_SAMPLE_SEED = 42
 _BENCHMARK_DIR = _REPO_ROOT / "data" / "benchmarks" / "fm2-0"
 _REAL_DOCTRINE_TRAIN_PATH = _REPO_ROOT / "data" / "training_pairs" / "doctrine_real_train.jsonl"
 _TOKEN_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
-MILITARY_FOCUS_CLASSES = {
+_BASE_MILITARY_FOCUS_CLASSES = {
     # Base SUMO military classes
     "Area",
     "Artifact",
@@ -58,26 +59,8 @@ MILITARY_FOCUS_CLASSES = {
     "Region",
     "Transportation",
     "Weapon",
-    # Doctrine domain extensions (doctrine_domain.kif)
-    "CombatInformation",
-    "DoctrinalTask",
-    "GeospatialIntelligence",
-    "HumanIntelligence",
-    "InformationCollection",
-    "IntelligenceDiscipline",
-    "IntelligenceDissemination",
-    "IntelligenceEnterprise",
-    "IntelligenceProcess",
-    "IntelligenceProduct",
-    "IntelligenceProfessional",
-    "IntelligenceWarfightingFunction",
-    "IntelligenceWarfightingFunctionTask",
-    "OperationalEnvironment",
-    "SignalsIntelligence",
-    "TacticalCommander",
-    "ThreatCourseOfAction",
-    "WarfightingFunction",
 }
+MILITARY_FOCUS_CLASSES = _BASE_MILITARY_FOCUS_CLASSES | load_doctrine_class_terms(_DOCTRINE_KIF_PATH)
 MILITARY_FOCUS_RELATIONS = {
     "agent",
     "between",
@@ -422,7 +405,7 @@ def prepare_training_data(
     output_pairs = list(output_pairs) + surviving_pinned
 
     written_counts = count_pairs_by_pattern(output_pairs)
-    balanced_cap = limit // len(generated_counts) if generated_counts else 0
+    balanced_cap = selection_limit // len(generated_counts) if generated_counts else 0
     samples_by_pattern = build_samples_by_pattern(
         output_pairs,
         sample_size=sample_size,
@@ -491,3 +474,7 @@ def main(argv: list[str] | None = None) -> None:
 
 if __name__ == "__main__":
     main()
+
+
+
+

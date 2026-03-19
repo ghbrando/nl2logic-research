@@ -5,6 +5,7 @@
 !/data/benchmarks/fm2-0/
 !/data/benchmarks/fm2-0/**
 !/data/training_pairs/
+/data/training_pairs/*
 !/data/training_pairs/doctrine_real_train.jsonl
 
 
