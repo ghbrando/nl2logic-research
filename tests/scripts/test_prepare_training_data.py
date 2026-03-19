@@ -7,9 +7,13 @@ from uuid import uuid4
 
 from scripts.prepare_training_data import (
     MILITARY_FOCUS_CLASSES,
+    _REAL_DOCTRINE_TRAIN_PATH,
     is_military_focus_pair,
+    load_benchmark_overlap_sets,
+    load_real_doctrine_pairs,
     prepare_training_data,
 )
+from src.compiler.compiler import CNLCompiler
 from src.training.train import PATTERN_COVERAGE_SENTENCES
 
 
@@ -282,10 +286,11 @@ class TestDoctrineTermPrioritization:
             "kif": "(subclass Vertebrate Animal)",
             "pattern": "subclass",
         }
+        # Use InformationCollection — a doctrine term NOT in the benchmark CNL set.
         doctrine_pair = {
-            "nl": "IntelligenceProcess is a type of MilitaryProcess.",
-            "cnl": "IntelligenceProcess subclass-of MilitaryProcess",
-            "kif": "(subclass IntelligenceProcess MilitaryProcess)",
+            "nl": "InformationCollection is a type of MilitaryProcess.",
+            "cnl": "InformationCollection subclass-of MilitaryProcess",
+            "kif": "(subclass InformationCollection MilitaryProcess)",
             "pattern": "subclass",
         }
         generator_batches = [
@@ -300,12 +305,13 @@ class TestDoctrineTermPrioritization:
                 generator_batches=generator_batches,
             )
             assert len(result.pairs) == 1
-            assert result.pairs[0]["cnl"] == "IntelligenceProcess subclass-of MilitaryProcess"
+            assert result.pairs[0]["cnl"] == "InformationCollection subclass-of MilitaryProcess"
         finally:
             shutil.rmtree(scratch_dir, ignore_errors=True)
 
     def test_doctrine_pairs_preserved_in_balanced_output(self):
         """All doctrine pairs fit within cap when there are no competing non-focus pairs."""
+        # Use terms NOT in the benchmark CNL set so they survive exclusion filtering.
         doctrine_pairs = [
             {
                 "nl": f"{child} is a type of {parent}.",
@@ -314,9 +320,9 @@ class TestDoctrineTermPrioritization:
                 "pattern": "subclass",
             }
             for child, parent in [
-                ("HumanIntelligence", "IntelligenceDiscipline"),
-                ("SignalsIntelligence", "IntelligenceDiscipline"),
-                ("GeospatialIntelligence", "IntelligenceDiscipline"),
+                ("WarfightingFunction", "MilitaryProcess"),
+                ("InformationCollection", "MilitaryProcess"),
+                ("IntelligenceDissemination", "Communication"),
             ]
         ]
         generator_batches = [("subclass", doctrine_pairs)]
@@ -329,8 +335,186 @@ class TestDoctrineTermPrioritization:
                 generator_batches=generator_batches,
             )
             written_cnls = {p["cnl"] for p in result.pairs}
-            assert "HumanIntelligence subclass-of IntelligenceDiscipline" in written_cnls
-            assert "SignalsIntelligence subclass-of IntelligenceDiscipline" in written_cnls
-            assert "GeospatialIntelligence subclass-of IntelligenceDiscipline" in written_cnls
+            assert "WarfightingFunction subclass-of MilitaryProcess" in written_cnls
+            assert "InformationCollection subclass-of MilitaryProcess" in written_cnls
+            assert "IntelligenceDissemination subclass-of Communication" in written_cnls
         finally:
             shutil.rmtree(scratch_dir, ignore_errors=True)
+
+
+class TestBenchmarkExclusionAndDoctrinePreservation:
+    """FM 2-0 benchmark rows must be excluded; real-doctrine rows must be preserved."""
+
+    # One NL from each benchmark split to verify exclusion coverage.
+    _BENCHMARK_POSITIVE_NL = (
+        "Human intelligence is the collection by a trained human intelligence collector "
+        "of foreign information from people and multimedia to identify elements, intentions, "
+        "composition, strength, dispositions, tactics, equipment, and capabilities (ADP 2-0)."
+    )
+    _BENCHMARK_REVIEW_NL = (
+        "Combat information is a report that is gathered by or provided to the tactical commander."
+    )
+    _BENCHMARK_POSITIVE_CNL = "HumanIntelligence subclass-of IntelligenceDiscipline"
+    _BENCHMARK_REVIEW_CNL = "IntelligenceProcess subclass-of MilitaryProcess"
+
+    def test_load_benchmark_overlap_sets_contains_positive_nl(self):
+        bm_nls, _ = load_benchmark_overlap_sets()
+        assert self._BENCHMARK_POSITIVE_NL in bm_nls
+
+    def test_load_benchmark_overlap_sets_contains_review_nl(self):
+        bm_nls, _ = load_benchmark_overlap_sets()
+        assert self._BENCHMARK_REVIEW_NL in bm_nls
+
+    def test_load_benchmark_overlap_sets_contains_positive_cnl(self):
+        _, bm_cnls = load_benchmark_overlap_sets()
+        assert self._BENCHMARK_POSITIVE_CNL in bm_cnls
+
+    def test_load_benchmark_overlap_sets_contains_review_cnl(self):
+        _, bm_cnls = load_benchmark_overlap_sets()
+        assert self._BENCHMARK_REVIEW_CNL in bm_cnls
+
+    def test_benchmark_nl_excluded_from_prepared_output(self):
+        """A pair whose NL is a benchmark sentence must not appear in the output."""
+        benchmark_pair = {
+            "nl": self._BENCHMARK_POSITIVE_NL,
+            "cnl": "HumanIntelligence subclass-of IntelligenceDiscipline",
+            "kif": "(subclass HumanIntelligence IntelligenceDiscipline)",
+            "pattern": "subclass",
+        }
+        safe_pair = {
+            "nl": "InformationCollection is a type of MilitaryProcess.",
+            "cnl": "InformationCollection subclass-of MilitaryProcess",
+            "kif": "(subclass InformationCollection MilitaryProcess)",
+            "pattern": "subclass",
+        }
+        generator_batches = [("subclass", [benchmark_pair, safe_pair])]
+
+        scratch_dir = _make_scratch_dir()
+        try:
+            result = prepare_training_data(
+                limit=2,
+                output_path=scratch_dir / "train.jsonl",
+                generator_batches=generator_batches,
+                exclude_benchmark_overlap=True,
+            )
+            output_nls = {p["nl"] for p in result.pairs}
+            assert self._BENCHMARK_POSITIVE_NL not in output_nls
+            assert "InformationCollection is a type of MilitaryProcess." in output_nls
+        finally:
+            shutil.rmtree(scratch_dir, ignore_errors=True)
+
+    def test_benchmark_cnl_excluded_from_prepared_output(self):
+        """A pair whose CNL is a benchmark CNL must not appear in the output."""
+        benchmark_cnl_pair = {
+            "nl": "An intelligence process is a kind of military process.",
+            "cnl": self._BENCHMARK_REVIEW_CNL,
+            "kif": "(subclass IntelligenceProcess MilitaryProcess)",
+            "pattern": "subclass",
+        }
+        safe_pair = {
+            "nl": "InformationCollection is a type of MilitaryProcess.",
+            "cnl": "InformationCollection subclass-of MilitaryProcess",
+            "kif": "(subclass InformationCollection MilitaryProcess)",
+            "pattern": "subclass",
+        }
+        generator_batches = [("subclass", [benchmark_cnl_pair, safe_pair])]
+
+        scratch_dir = _make_scratch_dir()
+        try:
+            result = prepare_training_data(
+                limit=2,
+                output_path=scratch_dir / "train.jsonl",
+                generator_batches=generator_batches,
+                exclude_benchmark_overlap=True,
+            )
+            output_cnls = {p["cnl"] for p in result.pairs}
+            assert self._BENCHMARK_REVIEW_CNL not in output_cnls
+            assert "InformationCollection subclass-of MilitaryProcess" in output_cnls
+        finally:
+            shutil.rmtree(scratch_dir, ignore_errors=True)
+
+    def test_pinned_pairs_are_preserved_in_output(self):
+        """Real-doctrine pinned pairs survive balancing and appear in the output."""
+        pinned = [
+            {
+                "nl": "A warfighting function is a group of tasks and systems unified by a common purpose.",
+                "cnl": "WarfightingFunction subclass-of MilitaryProcess",
+                "kif": "(subclass WarfightingFunction MilitaryProcess)",
+                "pattern": "subclass",
+            }
+        ]
+        generator_batches = [("instance", [_pair("instance", i) for i in range(3)])]
+
+        scratch_dir = _make_scratch_dir()
+        try:
+            result = prepare_training_data(
+                limit=3,
+                output_path=scratch_dir / "train.jsonl",
+                generator_batches=generator_batches,
+                pinned_pairs=pinned,
+            )
+            output_cnls = {p["cnl"] for p in result.pairs}
+            assert "WarfightingFunction subclass-of MilitaryProcess" in output_cnls
+            assert result.pinned_count == 1
+        finally:
+            shutil.rmtree(scratch_dir, ignore_errors=True)
+
+    def test_pinned_pairs_with_benchmark_cnl_are_excluded(self):
+        """Pinned pairs whose CNL matches the benchmark are still excluded."""
+        pinned_with_benchmark_cnl = [
+            {
+                "nl": "A different sentence about intelligence processes.",
+                "cnl": self._BENCHMARK_REVIEW_CNL,
+                "kif": "(subclass IntelligenceProcess MilitaryProcess)",
+                "pattern": "subclass",
+            }
+        ]
+        generator_batches = [("instance", [_pair("instance", i) for i in range(2)])]
+
+        scratch_dir = _make_scratch_dir()
+        try:
+            result = prepare_training_data(
+                limit=2,
+                output_path=scratch_dir / "train.jsonl",
+                generator_batches=generator_batches,
+                pinned_pairs=pinned_with_benchmark_cnl,
+                exclude_benchmark_overlap=True,
+            )
+            output_cnls = {p["cnl"] for p in result.pairs}
+            assert self._BENCHMARK_REVIEW_CNL not in output_cnls
+            assert result.pinned_count == 0
+        finally:
+            shutil.rmtree(scratch_dir, ignore_errors=True)
+
+    def test_real_doctrine_train_file_exists(self):
+        assert _REAL_DOCTRINE_TRAIN_PATH.exists(), (
+            f"Missing: {_REAL_DOCTRINE_TRAIN_PATH}"
+        )
+
+    def test_real_doctrine_pairs_load_and_have_required_keys(self):
+        pairs = load_real_doctrine_pairs()
+        assert len(pairs) > 0
+        for pair in pairs:
+            for key in ("nl", "cnl", "kif", "pattern"):
+                assert key in pair, f"Missing key '{key}' in pair: {pair}"
+
+    def test_real_doctrine_pairs_all_compile(self):
+        compiler = CNLCompiler()
+        pairs = load_real_doctrine_pairs()
+        for pair in pairs:
+            compiled = compiler.compile(pair["cnl"])
+            assert compiled == pair["kif"], (
+                f"KIF mismatch for CNL '{pair['cnl']}': "
+                f"expected {pair['kif']!r}, got {compiled!r}"
+            )
+
+    def test_real_doctrine_pairs_not_in_benchmark(self):
+        bm_nls, bm_cnls = load_benchmark_overlap_sets()
+        pairs = load_real_doctrine_pairs()
+        for pair in pairs:
+            assert pair["nl"] not in bm_nls, (
+                f"Real-doctrine NL is a benchmark NL: {pair['nl']!r}"
+            )
+            assert pair["cnl"] not in bm_cnls, (
+                f"Real-doctrine CNL is a benchmark CNL: {pair['cnl']!r}"
+            )

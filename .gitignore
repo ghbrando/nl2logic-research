@@ -1,10 +1,11 @@
-# Scoped — only top-level data/ (training artifacts, not src/data or tests/data)
-/data/
-/data/
+# Scoped - only top-level data contents, with explicit allowlist
+/data/*
 !/data/benchmarks/
 !/data/benchmarks/.gitkeep
 !/data/benchmarks/fm2-0/
 !/data/benchmarks/fm2-0/**
+!/data/training_pairs/
+!/data/training_pairs/doctrine_real_train.jsonl
 
 
 

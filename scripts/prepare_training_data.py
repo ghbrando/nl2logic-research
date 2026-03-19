@@ -37,6 +37,8 @@ DEFAULT_LIMIT = 50_000
 DEFAULT_OUTPUT_PATH = _REPO_ROOT / "data" / "training_pairs" / "train_balanced_50k.jsonl"
 DEFAULT_SAMPLE_SIZE = 3
 DEFAULT_SAMPLE_SEED = 42
+_BENCHMARK_DIR = _REPO_ROOT / "data" / "benchmarks" / "fm2-0"
+_REAL_DOCTRINE_TRAIN_PATH = _REPO_ROOT / "data" / "training_pairs" / "doctrine_real_train.jsonl"
 _TOKEN_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 MILITARY_FOCUS_CLASSES = {
     # Base SUMO military classes
@@ -98,6 +100,7 @@ class PreparationResult:
     samples_by_pattern: dict[str, list[dict]]
     excluded_counts: dict[str, int]
     focused_counts: dict[str, int]
+    pinned_count: int = 0
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -236,6 +239,79 @@ def select_prepared_pairs(
     return selected, focused_counts
 
 
+def load_benchmark_overlap_sets(
+    benchmark_dir: Path = _BENCHMARK_DIR,
+) -> tuple[set[str], set[str]]:
+    """Return (benchmark_nls, benchmark_cnls) from all FM 2-0 benchmark splits.
+
+    Loads seed_positive, seed_review, and seed_abstain.  NL strings are
+    collected from all splits.  CNL strings are only collected where non-null.
+    Missing files are silently skipped.
+    """
+    files = [
+        benchmark_dir / "seed_positive.jsonl",
+        benchmark_dir / "seed_review.jsonl",
+        benchmark_dir / "seed_abstain.jsonl",
+    ]
+    benchmark_nls: set[str] = set()
+    benchmark_cnls: set[str] = set()
+    for path in files:
+        if not path.exists():
+            continue
+        with open(path, encoding="utf-8") as handle:
+            for line in handle:
+                line = line.strip()
+                if not line:
+                    continue
+                record = json.loads(line)
+                if nl := record.get("nl"):
+                    benchmark_nls.add(nl)
+                if cnl := record.get("cnl"):
+                    benchmark_cnls.add(cnl)
+    return benchmark_nls, benchmark_cnls
+
+
+def load_real_doctrine_pairs(
+    path: Path = _REAL_DOCTRINE_TRAIN_PATH,
+) -> list[dict]:
+    """Load the manually-curated real-doctrine training rows from JSONL."""
+    if not path.exists():
+        return []
+    pairs = []
+    with open(path, encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if line:
+                pairs.append(json.loads(line))
+    return pairs
+
+
+def _build_exclusion_sets(
+    excluded_nls: set[str] | None,
+    excluded_cnls: set[str] | None,
+    *,
+    exclude_gold_cnl_overlap: bool,
+    exclude_benchmark_overlap: bool,
+) -> tuple[set[str], set[str]]:
+    """Build the final NL and CNL exclusion sets, merging gold and benchmark sources.
+
+    Auto-loads gold overlap sets when either argument is None (preserving
+    existing behavior).  Benchmark overlap is merged on top when
+    exclude_benchmark_overlap=True.
+    """
+    if excluded_nls is None or excluded_cnls is None:
+        gold_nls, gold_cnls = _load_gold_overlap_sets()
+        if excluded_nls is None:
+            excluded_nls = set(gold_nls)
+        if excluded_cnls is None:
+            excluded_cnls = set(gold_cnls) if exclude_gold_cnl_overlap else set()
+    if exclude_benchmark_overlap:
+        bm_nls, bm_cnls = load_benchmark_overlap_sets()
+        excluded_nls = excluded_nls | bm_nls
+        excluded_cnls = excluded_cnls | bm_cnls
+    return excluded_nls, excluded_cnls
+
+
 def _load_gold_overlap_sets(gold_path: Path = DEFAULT_GOLD_PATH) -> tuple[set[str], set[str]]:
     with open(gold_path, encoding="utf-8") as handle:
         records = [json.loads(line) for line in handle if line.strip()]
@@ -294,6 +370,8 @@ def prepare_training_data(
     excluded_nls: set[str] | None = None,
     excluded_cnls: set[str] | None = None,
     exclude_gold_cnl_overlap: bool = True,
+    exclude_benchmark_overlap: bool = True,
+    pinned_pairs: list[dict] | None = None,
 ) -> PreparationResult:
     if generator_batches is None:
         classes = load_classes(_CLASSES_PATH)
@@ -308,17 +386,41 @@ def prepare_training_data(
         generated_counts[label] = generated_counts.get(label, 0) + len(batch)
         all_pairs.extend(batch)
 
+    resolved_nls, resolved_cnls = _build_exclusion_sets(
+        excluded_nls, excluded_cnls,
+        exclude_gold_cnl_overlap=exclude_gold_cnl_overlap,
+        exclude_benchmark_overlap=exclude_benchmark_overlap,
+    )
     all_pairs, excluded_counts = exclude_eval_overlaps(
         all_pairs,
-        excluded_nls=excluded_nls,
-        excluded_cnls=excluded_cnls,
+        excluded_nls=resolved_nls,
+        excluded_cnls=resolved_cnls,
         exclude_gold_cnl_overlap=exclude_gold_cnl_overlap,
     )
+
+    # Resolve pinned pairs first so their count can be reserved from the budget.
+    pinned_count = 0
+    surviving_pinned: list[dict] = []
+    if pinned_pairs:
+        probe_nls = {nl for _, nl in PATTERN_COVERAGE_SENTENCES}
+        surviving_pinned = [
+            p for p in pinned_pairs
+            if p.get("nl") not in resolved_nls
+            and p.get("cnl") not in resolved_cnls
+            and p.get("nl") not in probe_nls
+        ]
+        pinned_count = len(surviving_pinned)
+
+    # Reserve pinned slots from the balanced selection budget so that
+    # total output never exceeds limit.
+    selection_limit = max(0, limit - pinned_count) if limit > 0 else 0
     output_pairs, focused_counts = select_prepared_pairs(
         all_pairs,
-        limit=limit,
+        limit=selection_limit,
         seed=sample_seed,
     )
+    output_pairs = list(output_pairs) + surviving_pinned
+
     written_counts = count_pairs_by_pattern(output_pairs)
     balanced_cap = limit // len(generated_counts) if generated_counts else 0
     samples_by_pattern = build_samples_by_pattern(
@@ -339,6 +441,7 @@ def prepare_training_data(
         samples_by_pattern=samples_by_pattern,
         excluded_counts=excluded_counts,
         focused_counts=focused_counts,
+        pinned_count=pinned_count,
     )
 
 
@@ -347,6 +450,7 @@ def print_preparation_report(result: PreparationResult) -> None:
     print(f"  Output:               {result.output_path}")
     print(f"  Total pairs written:  {len(result.pairs):,}")
     print(f"  Balanced cap/pattern: {result.balanced_cap:,}")
+    print(f"  Pinned doctrine rows: {result.pinned_count:,}")
     print(f"  Excluded gold NL:     {result.excluded_counts['gold_nl']:,}")
     print(f"  Excluded gold CNL:    {result.excluded_counts['gold_cnl']:,}")
     print(f"  Excluded probe NL:    {result.excluded_counts['probe_nl']:,}")
@@ -372,12 +476,15 @@ def print_preparation_report(result: PreparationResult) -> None:
 
 def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
+    pinned_pairs = load_real_doctrine_pairs()
     result = prepare_training_data(
         limit=args.limit,
         output_path=args.output,
         sample_size=args.sample_size,
         sample_seed=args.sample_seed,
         exclude_gold_cnl_overlap=not args.allow_gold_cnl_overlap,
+        exclude_benchmark_overlap=True,
+        pinned_pairs=pinned_pairs,
     )
     print_preparation_report(result)
 
