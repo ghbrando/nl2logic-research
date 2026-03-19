@@ -28,6 +28,9 @@ _DEFAULT_DOCTRINE_KIF = _REPO_ROOT / "data" / "ontology" / "doctrine_domain.kif"
 # Ignores documentation lines, comments (;;), and blank lines.
 _KIF_SUBCLASS_RE = re.compile(r"^\s*\(subclass\s+(\S+)\s+\S+\s*\)")
 
+# Captures both child (group 1) and parent (group 2) from a subclass assertion.
+_KIF_SUBCLASS_PAIR_RE = re.compile(r"^\s*\(subclass\s+(\S+)\s+(\S+)\s*\)")
+
 
 def extract_kif_class_terms(kif_path: Path) -> set[str]:
     """Extract child class names from (subclass X Y) declarations in a KIF file.
@@ -41,6 +44,23 @@ def extract_kif_class_terms(kif_path: Path) -> set[str]:
         if m:
             terms.add(m.group(1))
     return terms
+
+
+def extract_kif_subclass_pairs(kif_path: Path) -> dict[str, str]:
+    """Return a {child: parent} mapping from (subclass X Y) declarations in a KIF file."""
+    pairs: dict[str, str] = {}
+    for line in kif_path.read_text(encoding="utf-8").splitlines():
+        m = _KIF_SUBCLASS_PAIR_RE.match(line)
+        if m:
+            pairs[m.group(1)] = m.group(2)
+    return pairs
+
+
+def load_doctrine_subclass_pairs(
+    doctrine_kif: Path = _DEFAULT_DOCTRINE_KIF,
+) -> dict[str, str]:
+    """Return the child→parent edge map from doctrine_domain.kif."""
+    return extract_kif_subclass_pairs(doctrine_kif)
 
 
 def load_closed_class_terms(

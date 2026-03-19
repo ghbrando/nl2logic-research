@@ -36,6 +36,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _CLASSES_PATH = _REPO_ROOT / "data" / "training_pairs" / "sumo_classes.jsonl"
 _RELATIONS_PATH = _REPO_ROOT / "data" / "training_pairs" / "sumo_relations.jsonl"
 _OUTPUT_PATH = _REPO_ROOT / "data" / "training_pairs" / "nl_cnl_pairs.jsonl"
+_DOCTRINE_KIF_PATH = _REPO_ROOT / "data" / "ontology" / "doctrine_domain.kif"
 
 # CNL terminal constraints (mirroring cnl.lark exactly)
 _CLASS_RE = re.compile(r"^[A-Z][a-zA-Z0-9_]*$")
@@ -179,6 +180,37 @@ _SUBCLASS_EXPANSIONS: dict[str, list[str]] = {
     ],
     "PositionalAttribute": [
         "Vertical",
+    ],
+    # Doctrine domain parents → doctrine child classes (doctrine_domain.kif)
+    "MilitaryProcess": [
+        "IntelligenceProcess", "WarfightingFunction", "IntelligenceWarfightingFunction",
+        "ThreatCourseOfAction", "DoctrinalTask", "IntelligenceWarfightingFunctionTask",
+        "InformationCollection",
+    ],
+    "MilitaryOrganization": [
+        "IntelligenceEnterprise",
+    ],
+    "MilitaryPerson": [
+        "IntelligenceProfessional",
+    ],
+    "ContentBearingObject": [
+        "IntelligenceProduct",
+    ],
+    "Procedure": [
+        "IntelligenceDiscipline", "HumanIntelligence", "SignalsIntelligence",
+        "GeospatialIntelligence",
+    ],
+    "FactualText": [
+        "CombatInformation",
+    ],
+    "Region": [
+        "OperationalEnvironment",
+    ],
+    "Communication": [
+        "IntelligenceDissemination",
+    ],
+    "MilitaryCommander": [
+        "TacticalCommander",
     ],
 }
 
@@ -482,6 +514,44 @@ def gen_subclass_pairs(
         ]
         if include_doc_templates and (doc := _clean_doc(classes[i].get("doc", ""))):
             nls.append(doc)
+        for nl in nls:
+            pairs.append(_pair(nl, cnl, kif, "subclass"))
+    return pairs
+
+
+def gen_doctrine_subclass_pairs(
+    doctrine_kif: Path,
+    compiler,
+) -> list[dict]:
+    """{Child} subclass-of {Parent}  →  (subclass {Child} {Parent})
+
+    Generates pairs from real ontological edges in doctrine_domain.kif.
+    Every (subclass X Y) declaration becomes a set of NL paraphrases.
+    Unlike gen_subclass_pairs, the child/parent relationship here is
+    semantically correct, not alphabetically arbitrary.
+    """
+    from src.ontology.vocab import load_doctrine_subclass_pairs
+
+    pairs = []
+    edges = load_doctrine_subclass_pairs(doctrine_kif)
+    for child, parent in edges.items():
+        child_nat = pascal_to_natural(child)
+        parent_nat = pascal_to_natural(parent)
+        cnl = f"{child} subclass-of {parent}"
+        kif = _compile_safe(compiler, cnl)
+        if kif is None:
+            continue
+        art_child = _article_for(child_nat)
+        art_parent = _article_for(parent_nat)
+        nls = [
+            f"{child} is a type of {parent}.",
+            f"Every {child} is a {parent}.",
+            f"{child} is a subclass of {parent}.",
+            f"A {child_nat} is a type of {parent_nat}.",
+            f"{art_child.title()} {child_nat} is a type of {parent_nat}.",
+            f"Every {child_nat} is {art_parent} {parent_nat}.",
+            f"A {child_nat} is a subclass of {parent_nat}.",
+        ]
         for nl in nls:
             pairs.append(_pair(nl, cnl, kif, "subclass"))
     return pairs
@@ -959,6 +1029,7 @@ def main() -> None:
     generators = [
         ("instance",    gen_instance_pairs(classes, compiler, include_doc_templates=args.include_doc_templates)),
         ("subclass",    gen_subclass_pairs(classes, compiler, include_doc_templates=args.include_doc_templates)),
+        ("subclass",    gen_doctrine_subclass_pairs(_DOCTRINE_KIF_PATH, compiler)),
         ("binary",      gen_binary_pairs(relations, compiler, include_doc_templates=args.include_doc_templates)),
         ("nary",        gen_nary_pairs(relations, compiler, include_doc_templates=args.include_doc_templates)),
         ("conditional", gen_conditional_every_pairs(relations, compiler)),

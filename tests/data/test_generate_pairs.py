@@ -17,12 +17,14 @@ import pytest
 
 from src.compiler.compiler import CNLCompiler
 from src.data.generate_pairs import (
+    _DOCTRINE_KIF_PATH,
     _article_for,
     _clean_doc,
     count_pairs_by_pattern,
     gen_binary_pairs,
     gen_conditional_every_pairs,
     gen_conditional_if_pairs,
+    gen_doctrine_subclass_pairs,
     gen_existential_pairs,
     gen_instance_pairs,
     gen_negation_pairs,
@@ -746,3 +748,56 @@ class TestBalancedSampling:
 
         assert "negation" in counts
         assert counts["negation"] <= 14 // len(counts)
+
+
+class TestGenDoctrineSubclassPairs:
+    """Tests for gen_doctrine_subclass_pairs using the real doctrine_domain.kif."""
+
+    def test_returns_non_empty_list(self, compiler):
+        pairs = gen_doctrine_subclass_pairs(_DOCTRINE_KIF_PATH, compiler)
+        assert len(pairs) > 0
+
+    def test_all_pairs_have_subclass_pattern(self, compiler):
+        pairs = gen_doctrine_subclass_pairs(_DOCTRINE_KIF_PATH, compiler)
+        assert all(p["pattern"] == "subclass" for p in pairs)
+
+    def test_all_pairs_have_required_keys(self, compiler):
+        pairs = gen_doctrine_subclass_pairs(_DOCTRINE_KIF_PATH, compiler)
+        for pair in pairs:
+            assert "nl" in pair
+            assert "cnl" in pair
+            assert "kif" in pair
+            assert "pattern" in pair
+
+    def test_known_doctrine_edge_humint(self, compiler):
+        pairs = gen_doctrine_subclass_pairs(_DOCTRINE_KIF_PATH, compiler)
+        cnls = {p["cnl"] for p in pairs}
+        assert "HumanIntelligence subclass-of IntelligenceDiscipline" in cnls
+
+    def test_known_doctrine_edge_sigint(self, compiler):
+        pairs = gen_doctrine_subclass_pairs(_DOCTRINE_KIF_PATH, compiler)
+        cnls = {p["cnl"] for p in pairs}
+        assert "SignalsIntelligence subclass-of IntelligenceDiscipline" in cnls
+
+    def test_known_doctrine_edge_geoint(self, compiler):
+        pairs = gen_doctrine_subclass_pairs(_DOCTRINE_KIF_PATH, compiler)
+        cnls = {p["cnl"] for p in pairs}
+        assert "GeospatialIntelligence subclass-of IntelligenceDiscipline" in cnls
+
+    def test_kif_matches_cnl_compilation(self, compiler):
+        from src.compiler.compiler import CNLCompiler
+        c = CNLCompiler()
+        pairs = gen_doctrine_subclass_pairs(_DOCTRINE_KIF_PATH, compiler)
+        for pair in pairs:
+            expected_kif = c.compile(pair["cnl"])
+            assert pair["kif"] == expected_kif, (
+                f"KIF mismatch for CNL '{pair['cnl']}': "
+                f"stored={pair['kif']!r}, compiled={expected_kif!r}"
+            )
+
+    def test_multiple_nl_paraphrases_per_edge(self, compiler):
+        pairs = gen_doctrine_subclass_pairs(_DOCTRINE_KIF_PATH, compiler)
+        from collections import Counter
+        cnl_counts = Counter(p["cnl"] for p in pairs)
+        # Each edge should produce at least 4 NL paraphrases
+        assert all(count >= 4 for count in cnl_counts.values())

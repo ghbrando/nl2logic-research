@@ -15,11 +15,13 @@ if str(_REPO_ROOT) not in sys.path:
 from src.compiler.compiler import CNLCompiler
 from src.data.generate_pairs import (
     _CLASSES_PATH,
+    _DOCTRINE_KIF_PATH,
     _RELATIONS_PATH,
     count_pairs_by_pattern,
     gen_binary_pairs,
     gen_conditional_every_pairs,
     gen_conditional_if_pairs,
+    gen_doctrine_subclass_pairs,
     gen_existential_pairs,
     gen_instance_pairs,
     gen_negation_pairs,
@@ -37,6 +39,7 @@ DEFAULT_SAMPLE_SIZE = 3
 DEFAULT_SAMPLE_SEED = 42
 _TOKEN_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 MILITARY_FOCUS_CLASSES = {
+    # Base SUMO military classes
     "Area",
     "Artifact",
     "Attack",
@@ -53,6 +56,25 @@ MILITARY_FOCUS_CLASSES = {
     "Region",
     "Transportation",
     "Weapon",
+    # Doctrine domain extensions (doctrine_domain.kif)
+    "CombatInformation",
+    "DoctrinalTask",
+    "GeospatialIntelligence",
+    "HumanIntelligence",
+    "InformationCollection",
+    "IntelligenceDiscipline",
+    "IntelligenceDissemination",
+    "IntelligenceEnterprise",
+    "IntelligenceProcess",
+    "IntelligenceProduct",
+    "IntelligenceProfessional",
+    "IntelligenceWarfightingFunction",
+    "IntelligenceWarfightingFunctionTask",
+    "OperationalEnvironment",
+    "SignalsIntelligence",
+    "TacticalCommander",
+    "ThreatCourseOfAction",
+    "WarfightingFunction",
 }
 MILITARY_FOCUS_RELATIONS = {
     "agent",
@@ -125,6 +147,7 @@ def build_generator_batches(
     return [
         ("instance", gen_instance_pairs(classes, compiler, include_doc_templates=False)),
         ("subclass", gen_subclass_pairs(classes, compiler, include_doc_templates=False)),
+        ("subclass", gen_doctrine_subclass_pairs(_DOCTRINE_KIF_PATH, compiler)),
         ("binary", gen_binary_pairs(relations, compiler, include_doc_templates=False)),
         ("nary", gen_nary_pairs(relations, compiler, include_doc_templates=False)),
         ("conditional", gen_conditional_every_pairs(relations, compiler)),

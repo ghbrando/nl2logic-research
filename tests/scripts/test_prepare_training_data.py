@@ -5,7 +5,11 @@ import shutil
 from pathlib import Path
 from uuid import uuid4
 
-from scripts.prepare_training_data import is_military_focus_pair, prepare_training_data
+from scripts.prepare_training_data import (
+    MILITARY_FOCUS_CLASSES,
+    is_military_focus_pair,
+    prepare_training_data,
+)
 from src.training.train import PATTERN_COVERAGE_SENTENCES
 
 
@@ -227,5 +231,106 @@ class TestPrepareTrainingData:
 
             assert [pair["nl"] for pair in result.pairs] == ["There exists a plan for an operation."]
             assert result.excluded_counts["gold_cnl"] == 0
+        finally:
+            shutil.rmtree(scratch_dir, ignore_errors=True)
+
+
+class TestDoctrineTermPrioritization:
+    """Doctrine domain terms must be recognized as military-focus and survive balancing."""
+
+    _DOCTRINE_TERMS = [
+        "CombatInformation",
+        "DoctrinalTask",
+        "GeospatialIntelligence",
+        "HumanIntelligence",
+        "InformationCollection",
+        "IntelligenceDiscipline",
+        "IntelligenceDissemination",
+        "IntelligenceEnterprise",
+        "IntelligenceProcess",
+        "IntelligenceProduct",
+        "IntelligenceProfessional",
+        "IntelligenceWarfightingFunction",
+        "IntelligenceWarfightingFunctionTask",
+        "OperationalEnvironment",
+        "SignalsIntelligence",
+        "TacticalCommander",
+        "ThreatCourseOfAction",
+        "WarfightingFunction",
+    ]
+
+    def test_all_doctrine_terms_in_focus_set(self):
+        for term in self._DOCTRINE_TERMS:
+            assert term in MILITARY_FOCUS_CLASSES, (
+                f"Doctrine term '{term}' missing from MILITARY_FOCUS_CLASSES"
+            )
+
+    def test_doctrine_pair_recognized_as_military_focus(self):
+        pair = {
+            "nl": "HumanIntelligence is a type of IntelligenceDiscipline.",
+            "cnl": "HumanIntelligence subclass-of IntelligenceDiscipline",
+            "kif": "(subclass HumanIntelligence IntelligenceDiscipline)",
+            "pattern": "subclass",
+        }
+        assert is_military_focus_pair(pair) is True
+
+    def test_doctrine_pair_prioritized_over_non_focus(self):
+        """A doctrine pair wins the slot when competing with a non-focus pair at the cap."""
+        non_focus = {
+            "nl": "Vertebrate is a type of Animal.",
+            "cnl": "Vertebrate subclass-of Animal",
+            "kif": "(subclass Vertebrate Animal)",
+            "pattern": "subclass",
+        }
+        doctrine_pair = {
+            "nl": "IntelligenceProcess is a type of MilitaryProcess.",
+            "cnl": "IntelligenceProcess subclass-of MilitaryProcess",
+            "kif": "(subclass IntelligenceProcess MilitaryProcess)",
+            "pattern": "subclass",
+        }
+        generator_batches = [
+            ("subclass", [non_focus, doctrine_pair]),
+        ]
+
+        scratch_dir = _make_scratch_dir()
+        try:
+            result = prepare_training_data(
+                limit=1,
+                output_path=scratch_dir / "train.jsonl",
+                generator_batches=generator_batches,
+            )
+            assert len(result.pairs) == 1
+            assert result.pairs[0]["cnl"] == "IntelligenceProcess subclass-of MilitaryProcess"
+        finally:
+            shutil.rmtree(scratch_dir, ignore_errors=True)
+
+    def test_doctrine_pairs_preserved_in_balanced_output(self):
+        """All doctrine pairs fit within cap when there are no competing non-focus pairs."""
+        doctrine_pairs = [
+            {
+                "nl": f"{child} is a type of {parent}.",
+                "cnl": f"{child} subclass-of {parent}",
+                "kif": f"(subclass {child} {parent})",
+                "pattern": "subclass",
+            }
+            for child, parent in [
+                ("HumanIntelligence", "IntelligenceDiscipline"),
+                ("SignalsIntelligence", "IntelligenceDiscipline"),
+                ("GeospatialIntelligence", "IntelligenceDiscipline"),
+            ]
+        ]
+        generator_batches = [("subclass", doctrine_pairs)]
+
+        scratch_dir = _make_scratch_dir()
+        try:
+            result = prepare_training_data(
+                limit=3,
+                output_path=scratch_dir / "train.jsonl",
+                generator_batches=generator_batches,
+            )
+            written_cnls = {p["cnl"] for p in result.pairs}
+            assert "HumanIntelligence subclass-of IntelligenceDiscipline" in written_cnls
+            assert "SignalsIntelligence subclass-of IntelligenceDiscipline" in written_cnls
+            assert "GeospatialIntelligence subclass-of IntelligenceDiscipline" in written_cnls
         finally:
             shutil.rmtree(scratch_dir, ignore_errors=True)
