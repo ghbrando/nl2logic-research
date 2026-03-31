@@ -9,7 +9,11 @@ from pathlib import Path
 from typing import Iterable, Sequence
 
 from src.fsm.cnl_fsm import _PASCAL_BOUNDARY_RE, _PROMPT_CLASS_ALIASES
-from src.ontology.vocab import load_closed_class_terms, load_closed_relation_terms
+from src.ontology.vocab import (
+    load_closed_class_terms,
+    load_closed_relation_terms,
+    load_doctrine_subclass_pairs,
+)
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _CLASSES_PATH = _REPO_ROOT / "data" / "training_pairs" / "sumo_classes.jsonl"
@@ -38,7 +42,9 @@ _SUBCLASS_RE = re.compile(
     r"^\s*(?P<left>[A-Za-z][A-Za-z0-9_]*)\s+subclass-of\s+(?P<right>[A-Za-z][A-Za-z0-9_]*)\s*$"
 )
 _COPULAR_SOURCE_RE = re.compile(r"\b(?:is|are|was|were)\s+(?:an?|the|some)\b", re.IGNORECASE)
+_DOCTRINE_SUBCLASS_SOURCE_RE = re.compile(r"\b(?:is|are|was|were)\s+(?:(?:an?|the)\s+|intelligence\b)", re.IGNORECASE)
 _EXISTENTIAL_SOURCE_RE = re.compile(r"\b(?:some|there\s+is|there\s+are|exists|exist)\b", re.IGNORECASE)
+_DOCTRINE_IMPLIED_PARENT_EXCLUSIONS = frozenset({"MilitaryProcess", "Procedure"})
 
 # ---------------------------------------------------------------------------
 # Weak single-word argument filter
@@ -180,6 +186,7 @@ class DoctrineGrounder:
         """
         self._classes = load_closed_class_terms(classes_path, doctrine_kif)
         self._relations = set(load_closed_relation_terms(relations_path, doctrine_kif).keys())
+        self._doctrine_subclass_pairs = load_doctrine_subclass_pairs(doctrine_kif) if doctrine_kif is not None else {}
         self._class_aliases = self._build_class_aliases()
 
     @staticmethod
@@ -228,6 +235,33 @@ class DoctrineGrounder:
     def _supports_unary_mapping(source_text: str) -> bool:
         return bool(_COPULAR_SOURCE_RE.search(source_text))
 
+    @staticmethod
+    def _supports_doctrine_subclass_source(source_text: str) -> bool:
+        return bool(_DOCTRINE_SUBCLASS_SOURCE_RE.search(source_text))
+
+    def _implied_doctrine_subclass_parent(
+        self,
+        *,
+        cnl: str,
+        contexts: Sequence[str],
+        source_text: str,
+    ) -> str | None:
+        match = _SUBCLASS_RE.match(cnl.strip())
+        if match is None:
+            return None
+
+        child = match.group("left")
+        parent = match.group("right")
+        if self._doctrine_subclass_pairs.get(child) != parent:
+            return None
+        if parent in _DOCTRINE_IMPLIED_PARENT_EXCLUSIONS:
+            return None
+        if not self._supports_doctrine_subclass_source(source_text):
+            return None
+        if not self._grounded_class(child, contexts):
+            return None
+        return parent
+
     def _supports_existential_mapping(self, source_text: str, class_terms: Sequence[str]) -> bool:
         if not _EXISTENTIAL_SOURCE_RE.search(source_text):
             return False
@@ -251,10 +285,16 @@ class DoctrineGrounder:
         *,
         cnl: str,
         source_text: str,
+        contexts: Sequence[str],
         relation_terms: Sequence[str],
         class_terms: Sequence[str],
     ) -> tuple[str, str] | None:
         pattern = self._classify_cnl(cnl)
+        implied_doctrine_parent = self._implied_doctrine_subclass_parent(
+            cnl=cnl,
+            contexts=contexts,
+            source_text=source_text,
+        )
 
         if pattern == "subclass":
             match = _SUBCLASS_RE.match(cnl.strip())
@@ -263,7 +303,9 @@ class DoctrineGrounder:
                     "degenerate_form",
                     f"Degenerate self-subclass statement is not accepted: {match.group('left')} subclass-of {match.group('right')}",
                 )
-            if len(class_terms) < 2 or not self._supports_unary_mapping(source_text):
+            if len(class_terms) < 2 or not (
+                self._supports_unary_mapping(source_text) or implied_doctrine_parent is not None
+            ):
                 return (
                     "weak_grounding",
                     "Subclass output is not sufficiently supported by the source sentence structure.",
@@ -335,6 +377,13 @@ class DoctrineGrounder:
             if text and text.strip()
         )
 
+        normalized_source = _normalise_text(subclaim_text or normalized_text or original_text)
+        implied_doctrine_parent = self._implied_doctrine_subclass_parent(
+            cnl=cnl,
+            contexts=contexts,
+            source_text=normalized_source,
+        )
+
         ungrounded_relations = [
             term
             for term in relation_terms
@@ -343,12 +392,15 @@ class DoctrineGrounder:
         ungrounded_classes = [
             term
             for term in class_terms
-            if term in self._classes and not self._grounded_class(term, contexts)
+            if term in self._classes
+            and term != implied_doctrine_parent
+            and not self._grounded_class(term, contexts)
         ]
 
         structural_issue = self._structural_issue(
             cnl=cnl,
-            source_text=_normalise_text(subclaim_text or normalized_text or original_text),
+            source_text=normalized_source,
+            contexts=contexts,
             relation_terms=relation_terms,
             class_terms=class_terms,
         )

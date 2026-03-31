@@ -1,9 +1,17 @@
 ﻿from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
+from uuid import uuid4
 
 from src.ingest.grounding import DoctrineGrounder, extract_cnl_terms
+
+
+def _make_scratch_dir() -> Path:
+    path = Path(".pytest_grounding_doctrine") / uuid4().hex
+    path.mkdir(parents=True, exist_ok=False)
+    return path
 
 
 def _make_term_files(tmp_root: Path) -> tuple[Path, Path]:
@@ -12,6 +20,8 @@ def _make_term_files(tmp_root: Path) -> tuple[Path, Path]:
     classes = [
         "MilitaryProcess", "AutonomousAgent", "Transportation", "Region",
         "Likely", "Planning", "Army",
+        "HumanIntelligence", "SignalsIntelligence", "GeospatialIntelligence",
+        "IntelligenceDiscipline", "IntelligenceProcess",
         # Terms needed for weak-argument regression tests
         "Dangerous", "May", "On", "UnitedStates", "Power", "Plan", "Enemy",
         "Security", "Key", "Human", "Surprise",
@@ -159,6 +169,84 @@ def test_grounder_rejects_self_subclass_form(tmp_path: Path):
     assert assessment.accepted is False
     assert assessment.reason == "degenerate_form"
     assert "self-subclass" in assessment.detail
+
+
+def test_grounder_accepts_doctrine_implied_parent_for_humint_definition():
+    scratch_dir = _make_scratch_dir()
+    try:
+        classes_path, relations_path = _make_term_files(scratch_dir)
+        doctrine_kif = scratch_dir / "doctrine.kif"
+        doctrine_kif.write_text(
+            "(subclass HumanIntelligence IntelligenceDiscipline)\n",
+            encoding="utf-8",
+        )
+        grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=doctrine_kif)
+
+        assessment = grounder.assess(
+            cnl="HumanIntelligence subclass-of IntelligenceDiscipline",
+            original_text="Human intelligence is the collection by a trained human intelligence collector of foreign information from people and multimedia.",
+            normalized_text="Human intelligence is the collection by a trained human intelligence collector of foreign information from people and multimedia.",
+            linked_text="Human intelligence is the collection by a trained human intelligence collector of foreign information from people and multimedia.",
+            subclaim_text="Human intelligence is the collection by a trained human intelligence collector of foreign information from people and multimedia.",
+        )
+
+        assert assessment.accepted is True
+        assert assessment.reason is None
+        assert assessment.ungrounded_terms == []
+    finally:
+        shutil.rmtree(scratch_dir, ignore_errors=True)
+
+
+def test_grounder_accepts_doctrine_implied_parent_for_sigint_definition():
+    scratch_dir = _make_scratch_dir()
+    try:
+        classes_path, relations_path = _make_term_files(scratch_dir)
+        doctrine_kif = scratch_dir / "doctrine.kif"
+        doctrine_kif.write_text(
+            "(subclass SignalsIntelligence IntelligenceDiscipline)\n",
+            encoding="utf-8",
+        )
+        grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=doctrine_kif)
+
+        assessment = grounder.assess(
+            cnl="SignalsIntelligence subclass-of IntelligenceDiscipline",
+            original_text="Signals intelligence is intelligence derived from communications, electronic, and foreign instrumentation signals.",
+            normalized_text="Signals intelligence is intelligence derived from communications, electronic, and foreign instrumentation signals.",
+            linked_text="Signals intelligence is intelligence derived from communications, electronic, and foreign instrumentation signals.",
+            subclaim_text="Signals intelligence is intelligence derived from communications, electronic, and foreign instrumentation signals.",
+        )
+
+        assert assessment.accepted is True
+        assert assessment.reason is None
+        assert assessment.ungrounded_terms == []
+    finally:
+        shutil.rmtree(scratch_dir, ignore_errors=True)
+
+
+def test_grounder_does_not_imply_excluded_militaryprocess_parent():
+    scratch_dir = _make_scratch_dir()
+    try:
+        classes_path, relations_path = _make_term_files(scratch_dir)
+        doctrine_kif = scratch_dir / "doctrine.kif"
+        doctrine_kif.write_text(
+            "(subclass IntelligenceProcess MilitaryProcess)\n",
+            encoding="utf-8",
+        )
+        grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=doctrine_kif)
+
+        assessment = grounder.assess(
+            cnl="IntelligenceProcess subclass-of MilitaryProcess",
+            original_text="The intelligence process is a model and common framework to guide Army professionals in their thoughts.",
+            normalized_text="The intelligence process is a model and common framework to guide Army professionals in their thoughts.",
+            linked_text="The intelligence process is a model and common framework to guide Army professionals in their thoughts.",
+            subclaim_text="The intelligence process is a model and common framework to guide Army professionals in their thoughts.",
+        )
+
+        assert assessment.accepted is False
+        assert assessment.reason == "ungrounded_class_terms"
+        assert assessment.ungrounded_terms == ["MilitaryProcess"]
+    finally:
+        shutil.rmtree(scratch_dir, ignore_errors=True)
 
 
 def test_grounder_rejects_relation_outputs_with_only_variable_arguments(tmp_path: Path):

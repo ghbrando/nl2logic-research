@@ -500,6 +500,86 @@ class TestPrefixConstraintStructure:
         assert allowed == [tokenizer.eos_token_id]
 class TestPromptAwareConstraints:
 
+    def test_infers_doctrine_subclass_plan_from_definition_prompt(self, monkeypatch):
+        sampler = CNLSampler(MagicMock(), MagicMock())
+
+        def fake_load_terms(path, key="term"):
+            path_str = str(path)
+            if path_str.endswith("sumo_classes.jsonl"):
+                return []
+            if path_str.endswith("sumo_relations.jsonl"):
+                return []
+            raise AssertionError(f"Unexpected load path: {path}")
+
+        monkeypatch.setattr("src.fsm.cnl_fsm._load_terms", fake_load_terms)
+        monkeypatch.setattr("src.fsm.cnl_fsm.extract_kif_class_terms", lambda _path: {"SignalsIntelligence"})
+        monkeypatch.setattr(
+            "src.fsm.cnl_fsm.load_doctrine_subclass_pairs",
+            lambda _path: {"SignalsIntelligence": "IntelligenceDiscipline"},
+        )
+
+        plan = sampler._infer_prompt_plan(
+            "Signals intelligence is intelligence derived from communications, electronic, and foreign instrumentation signals."
+        )
+
+        assert plan is not None
+        assert plan.template == "subclass"
+        assert plan.first_terms == ("SignalsIntelligence",)
+        assert plan.second_terms == ("IntelligenceDiscipline",)
+
+    def test_doctrine_definition_constraint_prefers_subclass_start(self, monkeypatch):
+        tokenizer = PrefixConstraintTokenizer()
+        model = MagicMock()
+        model.config.decoder_start_token_id = None
+        sampler = CNLSampler(model, tokenizer)
+
+        def fake_load_terms(path, key="term"):
+            path_str = str(path)
+            if path_str.endswith("sumo_classes.jsonl"):
+                return []
+            if path_str.endswith("sumo_relations.jsonl"):
+                return ["agent"]
+            raise AssertionError(f"Unexpected load path: {path}")
+
+        monkeypatch.setattr("src.fsm.cnl_fsm._load_terms", fake_load_terms)
+        monkeypatch.setattr("src.fsm.cnl_fsm.extract_kif_class_terms", lambda _path: {"HumanIntelligence"})
+        monkeypatch.setattr(
+            "src.fsm.cnl_fsm.load_doctrine_subclass_pairs",
+            lambda _path: {"HumanIntelligence": "IntelligenceDiscipline"},
+        )
+
+        constraint = sampler._build_prefix_constraint(
+            "Human intelligence is the collection by a trained human intelligence collector of foreign information."
+        )
+        allowed = constraint(0, [])
+
+        assert tokenizer("HumanIntelligence", add_special_tokens=False)["input_ids"][0] in allowed
+        assert tokenizer("?x is-a", add_special_tokens=False)["input_ids"][0] not in allowed
+
+    def test_excluded_doctrine_parent_does_not_force_subclass_plan(self, monkeypatch):
+        sampler = CNLSampler(MagicMock(), MagicMock())
+
+        def fake_load_terms(path, key="term"):
+            path_str = str(path)
+            if path_str.endswith("sumo_classes.jsonl"):
+                return []
+            if path_str.endswith("sumo_relations.jsonl"):
+                return []
+            raise AssertionError(f"Unexpected load path: {path}")
+
+        monkeypatch.setattr("src.fsm.cnl_fsm._load_terms", fake_load_terms)
+        monkeypatch.setattr("src.fsm.cnl_fsm.extract_kif_class_terms", lambda _path: {"IntelligenceProcess"})
+        monkeypatch.setattr(
+            "src.fsm.cnl_fsm.load_doctrine_subclass_pairs",
+            lambda _path: {"IntelligenceProcess": "MilitaryProcess"},
+        )
+
+        plan = sampler._infer_prompt_plan(
+            "The intelligence process is a model and common framework to guide Army professionals in their thoughts."
+        )
+
+        assert plan is None
+
     def test_infers_binary_agent_plan_from_prompt(self, monkeypatch):
         sampler = CNLSampler(MagicMock(), MagicMock())
 

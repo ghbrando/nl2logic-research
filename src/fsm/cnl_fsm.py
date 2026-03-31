@@ -37,6 +37,7 @@ from src.ontology.vocab import (
     extract_kif_class_terms,
     load_closed_class_terms,
     load_closed_relation_terms,
+    load_doctrine_subclass_pairs,
 )
 
 # ---------------------------------------------------------------------------
@@ -94,6 +95,9 @@ _SUBCLASS_PROMPT_RE = re.compile(r"\b(?:subclass|kind of|type of|class of)\b", r
 _CONDITIONAL_PROMPT_RE = re.compile(r"^(?:every|each|all|no)\b|\bif\b", re.IGNORECASE)
 _NEGATION_PROMPT_RE = re.compile(r"\b(?:not|no|never)\b", re.IGNORECASE)
 _NARY_PROMPT_RE = re.compile(r"\bamong\b|\[[^\]]+,", re.IGNORECASE)
+_COPULAR_DEFINITION_RE = re.compile(r"^(?P<subject>.+?)\s+(?:is|are|was|were)\s+(?P<predicate>.+)$", re.IGNORECASE)
+_DEFINITIONAL_PREDICATE_RE = re.compile(r"^(?:an?|the)\s+|^intelligence\b", re.IGNORECASE)
+_DOCTRINE_IMPLIED_PARENT_EXCLUSIONS = frozenset({"MilitaryProcess", "Procedure"})
 _XGRAMMAR_TEMPLATE = """
 root ::= sentence
 sentence ::= assertion | quantified | conditional
@@ -455,6 +459,7 @@ class CNLSampler:
         self._prompt_prefix_constraints: dict[str, _PrefixConstraint] = {}
         self._class_terms: list[str] | None = None
         self._relation_terms: list[str] | None = None
+        self._doctrine_subclass_pairs: dict[str, str] | None = None
         self._naturalized_class_index: dict[str, list[str]] | None = None
         self._naturalized_relation_index: dict[str, list[str]] | None = None
         self._confidence_threshold = confidence_threshold
@@ -567,6 +572,11 @@ class CNLSampler:
         if self._relation_terms is None:
             self._relation_terms = _load_terms(_SUMO_RELATIONS)
         return self._relation_terms
+
+    def _get_doctrine_subclass_pairs(self) -> dict[str, str]:
+        if self._doctrine_subclass_pairs is None:
+            self._doctrine_subclass_pairs = load_doctrine_subclass_pairs(_DOCTRINE_KIF)
+        return self._doctrine_subclass_pairs
 
     def _get_naturalized_class_index(self) -> dict[str, list[str]]:
         if self._naturalized_class_index is None:
@@ -693,12 +703,45 @@ class CNLSampler:
             third_terms=third_terms,
         )
 
+    def _infer_doctrine_subclass_plan(self, text: str) -> _PromptConstraintPlan | None:
+        if self._supports_existential_prompt(text, ()):
+            return None
+        if self._supports_conditional_prompt(text) or self._supports_negation_prompt(text) or self._supports_nary_prompt(text):
+            return None
+
+        matched = _COPULAR_DEFINITION_RE.fullmatch(text)
+        if matched is None:
+            return None
+
+        predicate = matched.group("predicate").strip()
+        if not _DEFINITIONAL_PREDICATE_RE.match(predicate):
+            return None
+
+        subject_terms = self._class_candidates_for_phrase(matched.group("subject"))
+        doctrine_pairs = self._get_doctrine_subclass_pairs()
+        for child in subject_terms:
+            parent = doctrine_pairs.get(child)
+            if parent is None:
+                continue
+            if parent in _DOCTRINE_IMPLIED_PARENT_EXCLUSIONS:
+                continue
+            return _PromptConstraintPlan(
+                template="subclass",
+                first_terms=(child,),
+                second_terms=(parent,),
+            )
+        return None
+
     def _infer_prompt_plan(self, prompt: str) -> _PromptConstraintPlan | None:
         text = self._normalise_prompt(prompt).strip().rstrip(".!?")
         text = re.sub(r"\s+", " ", text)
 
         def match(pattern: str):
             return re.fullmatch(pattern, text, flags=re.IGNORECASE)
+
+        doctrine_subclass_plan = self._infer_doctrine_subclass_plan(text)
+        if doctrine_subclass_plan is not None:
+            return doctrine_subclass_plan
 
         matched = match(
             r"for every (?P<subject>.+?), the (?P<relation>[a-z][a-z0-9]*) relation holds with (?:a|an) (?P<object>.+)",
@@ -1073,9 +1116,12 @@ class CNLSampler:
                 first_space = self._slot_sequences(plan.first_terms, leading_space=True)
                 second_space = self._slot_sequences(plan.second_terms, leading_space=True)
                 third_space = self._slot_sequences(plan.third_terms, leading_space=True)
+                first_start = self._slot_sequences(plan.first_terms, leading_space=False)
 
                 if plan.template == "binary":
                     builder.add_template([relation_start, first_space, second_space])
+                elif plan.template == "subclass":
+                    builder.add_template([first_start, self._fixed_segment(" subclass-of"), second_space])
                 elif plan.template == "conditional_every":
                     builder.add_template(
                         [
