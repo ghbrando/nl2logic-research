@@ -1,0 +1,1 @@
+{"record_id":"doctrine-intelligence-discipline-parent","kif":"(subclass IntelligenceDiscipline Procedure)","rationale":"Explicit background assumption copied from the local doctrine extension; not asserted by the HUMINT source passage. This demo does not load full SUMO.","source_file":"data/ontology/doctrine_domain.kif"}

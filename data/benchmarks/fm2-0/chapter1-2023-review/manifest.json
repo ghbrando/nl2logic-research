@@ -1,0 +1,44 @@
+{
+  "source": {
+    "path": "C:\\CBU\\Projects\\nl2logic-research\\src\\data\\ARMY FM_2-0.pdf",
+    "sha256": "1fa30a47ed8db31185ac0add9e13582f33ebbd092faddbd52c6eb408d7ccd52f"
+  },
+  "doc_id": "fm2-0-2023",
+  "chapter": 1,
+  "pdf_pages": [
+    17,
+    44
+  ],
+  "seed": 42,
+  "exclusions": [
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\data\\benchmarks\\fm2-0\\seed_positive.jsonl",
+      "sha256": "8b4861554a7325f30225ce735b9dce1e25b4edb69e2b7fe527ce606620e61954"
+    },
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\data\\benchmarks\\fm2-0\\seed_abstain.jsonl",
+      "sha256": "18ce2771f9264789daea8b76e45ad9b47f8d38d2ac295e89547550d5bbda5cda"
+    },
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\data\\benchmarks\\fm2-0\\seed_review.jsonl",
+      "sha256": "af11ff75ce605975a013dba77fafb20ddb1590d27c5a1da188bb3b87cf2e7b2e"
+    },
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\data\\training_pairs\\doctrine_real_train.jsonl",
+      "sha256": "565bbc17948a89361b90c6bb04628d6ee57e7e7221a894141c37dcc077a5aec7"
+    }
+  ],
+  "pool_count": 115,
+  "selected_count": 100,
+  "status": "draft_unscored",
+  "pdfplumber_version": "0.11.10",
+  "phenomena_counts": {
+    "relation": 44,
+    "modality": 12,
+    "other": 35,
+    "definition": 14,
+    "negation": 3,
+    "condition": 5
+  },
+  "selection": "First complete sentence (at least six words) of numbered paragraphs; surface-tag round robin, seeded shuffle. Not a representative random sample."
+}

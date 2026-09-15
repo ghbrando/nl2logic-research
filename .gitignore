@@ -11,6 +11,14 @@
 
 
 # Byte-compiled / optimized / DLL files
+/vampire/5.0.1/
+/results/reasoning/
+/results/comparisons/
+
+# Scratch dirs the tests create at the repo root (Windows tmp-path workaround;
+# see tests/ingest/test_grounding.py and friends), plus stale ad-hoc run dirs.
+/.pytest_*/
+/tmp*/
 __pycache__/
 *.py[codz]
 *$py.class

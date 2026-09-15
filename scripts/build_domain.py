@@ -3,10 +3,16 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+from src.reasoning.theory import build_theory, UnsupportedFormula
+from src.reasoning.vampire import run_vampire
 DEFAULT_ACCEPTED_PATH = _REPO_ROOT / "data" / "ontology" / "fm2-0_kif.jsonl"
 DEFAULT_THEORY_PATH = _REPO_ROOT / "data" / "ontology" / "fm2-0_domain.kif"
 DEFAULT_METADATA_PATH = _REPO_ROOT / "data" / "ontology" / "fm2-0_domain_metadata.json"
@@ -107,19 +113,34 @@ def write_domain_bundle(
 
 
 def run_vampire_validation(vampire_command: str, theory_path: Path) -> subprocess.CompletedProcess[str]:
+    """Validate the ground classification subset, never pass raw KIF to Vampire."""
     try:
-        return subprocess.run(
-            [vampire_command, str(theory_path)],
-            check=False,
-            capture_output=True,
-            text=True,
+        formulas = [line.split(";", 1)[0].strip() for line in theory_path.read_text(encoding="utf-8").splitlines()]
+        theory, _, _ = build_theory([{"kif": line} for line in formulas if line])
+        problem = theory_path.with_suffix(".p")
+        problem.write_text(theory, encoding="utf-8")
+        outcome = run_vampire(vampire_command, problem)
+        # Only a completed satisfiability check validates the bundle.
+        return subprocess.CompletedProcess(
+            [vampire_command, str(problem)],
+            0 if outcome.status == "Satisfiable" else 1,
+            stdout=outcome.stdout, stderr=outcome.stderr or (
+                "" if outcome.status == "Satisfiable" else f"Validation result: {outcome.status}"
+            ),
         )
+    except UnsupportedFormula as exc:
+        raise DomainBuildError(f"Validation supports only ground classification KIF: {exc}") from exc
     except OSError as exc:
         raise DomainBuildError(f"Failed to invoke Vampire command '{vampire_command}': {exc}") from exc
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    if args.vampire and args.sumo:
+        raise DomainBuildError(
+            "Referenced SUMO paths are not loaded by this exporter. Use reason_ontology.py "
+            "with explicit --background JSONL assumptions for validated reasoning."
+        )
     records = load_accepted_records(args.accepted)
     write_domain_bundle(
         records,

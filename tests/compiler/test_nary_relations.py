@@ -38,7 +38,8 @@ class TestNaryRelations:
         assert compiler.compile("between [ ?a , ?b , ?c ]") == "(between ?a ?b ?c)"
 
     def test_ternary_located(self, compiler):
-        assert compiler.compile("located [ ?obj , ?region , ?time ]") == "(located ?obj ?region ?time)"
+        with pytest.raises(ValueError, match="expects 2 arguments, got 3"):
+            compiler.compile("located [ ?obj , ?region , ?time ]")
 
     # Arity 4
     def test_quaternary_before_on_path(self, compiler):
@@ -67,11 +68,19 @@ class TestNaryRelations:
         kif = compiler.compile(cnl)
         assert kif == "(between ?alpha ?bravo ?charlie)"
 
-    # Grammar has no arity enforcement — binary form parses as binary_assert.
-    # Arity validation is the validator's responsibility, not the compiler's.
-    def test_binary_syntax_accepted_by_grammar(self, compiler):
-        result = compiler.compile("between ?a ?b")
-        assert result == "(between ?a ?b)"
+    def test_binary_syntax_rejected_for_ternary_relation(self, compiler):
+        with pytest.raises(ValueError, match="expects 3 arguments, got 2"):
+            compiler.compile("between ?a ?b")
+
+    @pytest.mark.parametrize("cnl", [
+        "agent [MilitaryProcess, AutonomousAgent, Artifact]",
+        "not agent [MilitaryProcess, AutonomousAgent, Artifact]",
+        "every ?x is-a Process implies agent [ ?x, ?y, ?z ]",
+        "if agent ?x ?y then between ?x ?y",
+    ])
+    def test_wrong_arity_rejected_in_nested_forms(self, compiler, cnl):
+        with pytest.raises(ValueError, match="expects .* arguments, got"):
+            compiler.compile(cnl)
 
     # SUMO-derived parametrized coverage
     @pytest.mark.parametrize("cnl,expected", _nary_pairs())

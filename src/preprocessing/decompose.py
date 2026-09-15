@@ -102,6 +102,10 @@ def _split_coordinated_clauses(text: str) -> list[str] | None:
 
 
 def _split_once(text: str) -> list[str]:
+    # Splitting inside alternatives, conditions, or negation can promote a
+    # scoped clause into an unconditional fact. Keep the entire source intact.
+    if re.search(r"\b(?:or|either|neither|nor|if|unless|not|no|never)\b|n['’]t\b", text, re.IGNORECASE):
+        return [_normalise_sentence(text)]
     for splitter in (_split_semicolon_list, _split_relative_clause, _split_coordinated_clauses):
         parts = splitter(text)
         if parts:

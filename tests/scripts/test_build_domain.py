@@ -104,20 +104,36 @@ def test_write_domain_bundle_writes_theory_and_metadata_files(tmp_path: Path):
 
 def test_run_vampire_validation_invokes_subprocess(monkeypatch, tmp_path: Path):
     theory_path = tmp_path / "domain.kif"
-    theory_path.write_text("(agent MilitaryProcess AutonomousAgent)\n", encoding="utf-8")
+    theory_path.write_text("(subclass MilitaryProcess Process)\n", encoding="utf-8")
     captured: dict[str, object] = {}
 
-    def fake_run(command, check, capture_output, text):
+    def fake_run(command, check, capture_output, text, **kwargs):
         captured["command"] = command
         captured["check"] = check
         captured["capture_output"] = capture_output
         captured["text"] = text
-        return subprocess.CompletedProcess(command, 0, stdout="success", stderr="")
+        return subprocess.CompletedProcess(command, 0, stdout="% SZS status Satisfiable\n", stderr="")
 
     monkeypatch.setattr(subprocess, "run", fake_run)
 
     result = run_vampire_validation("vampire", theory_path)
 
-    assert captured["command"] == ["vampire", str(theory_path)]
+    assert captured["command"][-1] == str(theory_path.with_suffix(".p").resolve())
+    assert "--input_syntax" in captured["command"]
+    assert "subclass('MilitaryProcess','Process')" in theory_path.with_suffix(".p").read_text()
     assert result.returncode == 0
-    assert result.stdout == "success"
+    assert result.stdout == "% SZS status Satisfiable\n"
+
+
+def test_validation_rejects_unsupported_kif(tmp_path):
+    path = tmp_path / "domain.kif"
+    path.write_text("(agent MilitaryProcess AutonomousAgent)")
+    with pytest.raises(DomainBuildError, match="ground classification"):
+        run_vampire_validation("unused", path)
+
+
+def test_validation_does_not_treat_inconsistency_as_success(monkeypatch, tmp_path):
+    path = tmp_path / "domain.kif"
+    path.write_text("(subclass A B)")
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: subprocess.CompletedProcess([], 0, "% SZS status Unsatisfiable\n", ""))
+    assert run_vampire_validation("vampire", path).returncode == 1

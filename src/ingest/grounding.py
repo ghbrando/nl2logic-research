@@ -41,10 +41,27 @@ _INSTANCE_START_RE = re.compile(r"^\s*\?[A-Za-z_]\w*\s+is-a\s+", re.IGNORECASE)
 _SUBCLASS_RE = re.compile(
     r"^\s*(?P<left>[A-Za-z][A-Za-z0-9_]*)\s+subclass-of\s+(?P<right>[A-Za-z][A-Za-z0-9_]*)\s*$"
 )
+_SUBCLASS_CLAIM_RE = re.compile(r"([A-Za-z][A-Za-z0-9_]*)\s+subclass-of\s+([A-Za-z][A-Za-z0-9_]*)")
 _COPULAR_SOURCE_RE = re.compile(r"\b(?:is|are|was|were)\s+(?:an?|the|some)\b", re.IGNORECASE)
 _DOCTRINE_SUBCLASS_SOURCE_RE = re.compile(r"\b(?:is|are|was|were)\s+(?:(?:an?|the)\s+|intelligence\b)", re.IGNORECASE)
+_ENUMERATIVE_SOURCE_RE = re.compile(r"\b(?:consists?\s+of|comprises?)\b", re.IGNORECASE)
 _EXISTENTIAL_SOURCE_RE = re.compile(r"\b(?:some|there\s+is|there\s+are|exists|exist)\b", re.IGNORECASE)
 _DOCTRINE_IMPLIED_PARENT_EXCLUSIONS = frozenset({"MilitaryProcess", "Procedure"})
+
+
+def _plural_tolerant(phrase: str) -> str:
+    """Match a naturalized class phrase against its plural in source text.
+
+    Doctrine enumerations are plural ("SIGINT capabilities consist of terrestrial
+    collection systems"), while naturalized class terms are singular, so an exact
+    match never fires on them.
+    """
+    escaped = re.escape(phrase)
+    if len(phrase) > 1 and phrase[-1] == "y" and phrase[-2].lower() not in "aeiou":
+        return rf"{re.escape(phrase[:-1])}(?:y|ies)"
+    if phrase.endswith(("s", "x", "z", "ch", "sh")):
+        return rf"{escaped}(?:es)?"
+    return rf"{escaped}(?:s)?"
 
 # ---------------------------------------------------------------------------
 # Weak single-word argument filter
@@ -205,14 +222,102 @@ class DoctrineGrounder:
         pattern = rf"(?<![a-z0-9]){re.escape(phrase)}(?![a-z0-9])"
         return re.search(pattern, text) is not None
 
+    @staticmethod
+    def _contains_class_phrase(text: str, phrase: str) -> bool:
+        """Match a class phrase allowing its plural.
+
+        Class terms are singular nouns; doctrine names them in the plural when it
+        enumerates ("CI capabilities consist of CI teams"). Matching the plural is
+        the same term, not a weaker match.
+        """
+        if not text or not phrase:
+            return False
+        pattern = rf"(?<![a-z0-9]){_plural_tolerant(phrase)}(?![a-z0-9])"
+        return re.search(pattern, text) is not None
+
     def _grounded_class(self, term: str, contexts: Sequence[str]) -> bool:
         normalized_term = _naturalize_term(term)
         candidates = [normalized_term, *self._class_aliases.get(term, ())]
-        return any(self._contains_phrase(context, candidate) for context in contexts for candidate in candidates)
+        return any(
+            self._contains_class_phrase(context, candidate)
+            for context in contexts
+            for candidate in candidates
+        )
 
     def _grounded_relation(self, term: str, contexts: Sequence[str]) -> bool:
         normalized_term = _naturalize_term(term)
         return any(self._contains_phrase(context, normalized_term) for context in contexts)
+
+    def _supports_enumerative_subclass_direction(
+        self, child_phrases: list[str], parent_phrases: list[str], source: str
+    ) -> bool:
+        """License `child subclass-of parent` from `<parent> consist of ... <child>`.
+
+        Doctrine routinely states a category by enumerating its members
+        ("HUMINT capabilities consist of HUMINT collection teams, HUMINT
+        operations cells, ..."). That asserts the same child-to-parent direction
+        as "a HUMINT collection team is a HUMINT capability", with the two terms
+        in the opposite surface order, so the copular check above cannot see it.
+
+        Only the consist-of/comprise family licenses this reading. Mereological
+        frames ("is the compilation of", "includes", "is part of") are excluded
+        on purpose: a data repository is part of an intelligence architecture
+        without being a kind of one, and accepting those would let the gate
+        convert part-of evidence into subclass claims.
+        """
+        for parent_phrase in parent_phrases:
+            head = (
+                rf"^(?:(?:a|an|the)\s+)?{_plural_tolerant(parent_phrase)}\s+"
+                rf"(?:consists?\s+of|comprises?)\s+"
+            )
+            match = re.search(head, source, re.IGNORECASE)
+            if match is None:
+                continue
+            enumeration = source[match.end():]
+            for child_phrase in child_phrases:
+                if re.search(
+                    rf"(?<![a-z0-9]){_plural_tolerant(child_phrase)}(?![a-z0-9])",
+                    enumeration,
+                    re.IGNORECASE,
+                ):
+                    return True
+        return False
+
+    @staticmethod
+    def _subclass_claims(cnl: str) -> list[tuple[str, str]]:
+        """Every subclass claim in the output, not just a single-claim output.
+
+        An enumeration produces one claim per member, so checking only a
+        fullmatch would let a multi-claim output skip the direction check.
+        """
+        return [
+            (match.group(1), match.group(2))
+            for match in _SUBCLASS_CLAIM_RE.finditer(cnl.strip())
+        ]
+
+    def _supports_subclass_direction(self, cnl: str, source: str, implied_parent: str | None) -> bool:
+        claims = self._subclass_claims(cnl)
+        if not claims:
+            return False
+        return all(
+            self._supports_one_subclass_direction(child, parent, source, implied_parent)
+            for child, parent in claims
+        )
+
+    def _supports_one_subclass_direction(
+        self, child: str, parent: str, source: str, implied_parent: str | None
+    ) -> bool:
+        child_phrases = [_naturalize_term(child), *self._class_aliases.get(child, ())]
+        parent_phrases = [_naturalize_term(parent), *self._class_aliases.get(parent, ())]
+        for phrase in child_phrases:
+            head = rf"^(?:(?:a|an|the)\s+)?{re.escape(phrase)}\s+(?:is|are)\s+"
+            if implied_parent is not None and re.search(head, source):
+                return True
+            for parent_phrase in parent_phrases:
+                tail = rf"(?:(?:a|an|the)\s+)?(?:(?:type|kind|form)\s+of\s+)?{re.escape(parent_phrase)}(?![a-z0-9])"
+                if re.search(head + tail, source):
+                    return True
+        return self._supports_enumerative_subclass_direction(child_phrases, parent_phrases, source)
 
     @staticmethod
     def _classify_cnl(cnl: str) -> str:
@@ -234,6 +339,16 @@ class DoctrineGrounder:
     @staticmethod
     def _supports_unary_mapping(source_text: str) -> bool:
         return bool(_COPULAR_SOURCE_RE.search(source_text))
+
+    @staticmethod
+    def _supports_enumerative_source(source_text: str) -> bool:
+        """Recognize the consist-of/comprise frame as subclass-bearing structure.
+
+        Subclass outputs otherwise require a copula, which an enumeration never
+        has. This only opens the structural gate; the direction check still has
+        to tie the specific child and parent to the frame.
+        """
+        return bool(_ENUMERATIVE_SOURCE_RE.search(source_text))
 
     @staticmethod
     def _supports_doctrine_subclass_source(source_text: str) -> bool:
@@ -297,14 +412,16 @@ class DoctrineGrounder:
         )
 
         if pattern == "subclass":
-            match = _SUBCLASS_RE.match(cnl.strip())
-            if match and match.group("left") == match.group("right"):
-                return (
-                    "degenerate_form",
-                    f"Degenerate self-subclass statement is not accepted: {match.group('left')} subclass-of {match.group('right')}",
-                )
+            for child, parent in self._subclass_claims(cnl):
+                if child == parent:
+                    return (
+                        "degenerate_form",
+                        f"Degenerate self-subclass statement is not accepted: {child} subclass-of {parent}",
+                    )
             if len(class_terms) < 2 or not (
-                self._supports_unary_mapping(source_text) or implied_doctrine_parent is not None
+                self._supports_unary_mapping(source_text)
+                or self._supports_enumerative_source(source_text)
+                or implied_doctrine_parent is not None
             ):
                 return (
                     "weak_grounding",
@@ -373,11 +490,13 @@ class DoctrineGrounder:
         relation_terms, class_terms, all_terms = extract_cnl_terms(cnl)
         contexts = _dedupe_preserve_order(
             _normalise_text(text)
-            for text in (original_text, normalized_text, linked_text, subclaim_text)
+            # Rewrites are candidates, not independent evidence. Until explicit
+            # source-span support exists for coreference, review added terms.
+            for text in (original_text,)
             if text and text.strip()
         )
 
-        normalized_source = _normalise_text(subclaim_text or normalized_text or original_text)
+        normalized_source = _normalise_text(original_text)
         implied_doctrine_parent = self._implied_doctrine_subclass_parent(
             cnl=cnl,
             contexts=contexts,
@@ -435,6 +554,28 @@ class DoctrineGrounder:
                 class_terms=class_terms,
                 terms=all_terms,
                 ungrounded_terms=ungrounded_terms,
+            )
+        # These operators require scope-aware entailment, which this lexical
+        # gate cannot establish. Preserve the candidate for human review.
+        if re.search(
+            r"\b(?:or|either|neither|nor|if|unless|not|no|never|may|might|can|could|must|shall|should|would|only|except)\b|n['’]t\b",
+            original_text,
+            re.IGNORECASE,
+        ):
+            return GroundingAssessment(
+                accepted=False, reason="unverified_scope",
+                detail="Source contains logical scope or modality requiring review.",
+                relation_terms=relation_terms, class_terms=class_terms,
+                terms=all_terms, ungrounded_terms=[],
+            )
+        if self._subclass_claims(cnl) and not self._supports_subclass_direction(
+            cnl, normalized_source, implied_doctrine_parent
+        ):
+            return GroundingAssessment(
+                accepted=False, reason="unverified_subclass_direction",
+                detail="Source does not establish the candidate child-to-parent direction.",
+                relation_terms=relation_terms, class_terms=class_terms,
+                terms=all_terms, ungrounded_terms=[],
             )
         return GroundingAssessment(
             accepted=True,

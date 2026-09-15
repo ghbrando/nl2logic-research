@@ -405,3 +405,130 @@ def test_legitimate_relation_not_blocked_by_weak_argument_filter(tmp_path: Path)
     )
 
     assert assessment.accepted is True
+
+
+def _assess_source(grounder, source, cnl, rewritten=None):
+    return grounder.assess(
+        cnl=cnl, original_text=source,
+        normalized_text=rewritten or source, linked_text=rewritten or source,
+        subclaim_text=rewritten or source,
+    )
+
+
+def test_subclass_direction_must_follow_source():
+    grounder = DoctrineGrounder()
+    cnl = 'Weapon subclass-of Artifact'
+    assert _assess_source(grounder, 'A weapon is an artifact.', cnl).accepted
+    result = _assess_source(grounder, 'An artifact is a weapon.', cnl)
+    assert not result.accepted
+    assert result.reason == 'unverified_subclass_direction'
+
+
+def test_rewrite_cannot_supply_its_own_evidence():
+    result = _assess_source(
+        DoctrineGrounder(), 'An artifact is present.',
+        'Weapon subclass-of Artifact', 'A weapon is an artifact.',
+    )
+    assert not result.accepted
+    assert 'Weapon' in result.ungrounded_terms
+
+
+def test_rewrite_cannot_reverse_original_direction():
+    result = _assess_source(
+        DoctrineGrounder(), 'An artifact is a weapon.',
+        'Weapon subclass-of Artifact', 'A weapon is an artifact.',
+    )
+    assert not result.accepted
+    assert result.reason == 'unverified_subclass_direction'
+
+
+def test_original_scope_survives_a_rewrite_that_drops_it():
+    grounder = DoctrineGrounder()
+    for source in [
+        'A weapon is not an artifact.',
+        'A weapon may be an artifact.',
+        'A weapon is an artifact or a human is an animal.',
+        'If a weapon is an artifact, a human is an animal.',
+        'A weapon is an artifact only when a condition holds.',
+    ]:
+        result = _assess_source(
+            grounder, source, 'Weapon subclass-of Artifact',
+            'A weapon is an artifact.',
+        )
+        assert not result.accepted, source
+
+
+def test_doctrine_implied_parent_requires_child_as_subject():
+    result = _assess_source(
+        DoctrineGrounder(),
+        'The collection is the responsibility of human intelligence.',
+        'HumanIntelligence subclass-of IntelligenceDiscipline',
+    )
+    assert not result.accepted
+
+
+def test_enumerative_frame_licenses_subclass_direction():
+    """"X capabilities consist of Y" states the same direction as "a Y is an X"."""
+    result = _assess_source(
+        DoctrineGrounder(),
+        'Human intelligence capabilities consist of human intelligence collection teams.',
+        'HumanIntelligenceCollectionTeam subclass-of HumanIntelligenceCapability',
+    )
+    assert result.accepted, result.reason
+
+
+def test_enumerative_frame_tolerates_irregular_plurals():
+    result = _assess_source(
+        DoctrineGrounder(),
+        'Signals intelligence capabilities consist of terrestrial collection systems.',
+        'TerrestrialCollectionSystem subclass-of SignalsIntelligenceCapability',
+    )
+    assert result.accepted, result.reason
+
+
+def test_enumerative_frame_does_not_license_the_reverse_claim():
+    result = _assess_source(
+        DoctrineGrounder(),
+        'Human intelligence capabilities consist of human intelligence collection teams.',
+        'HumanIntelligenceCapability subclass-of HumanIntelligenceCollectionTeam',
+    )
+    assert not result.accepted
+    assert result.reason == 'unverified_subclass_direction'
+
+
+def test_compilation_frame_is_admitted_but_fails_the_direction_check():
+    """A data repository is part of an architecture without being a kind of one.
+
+    The copula in "is the compilation of" gets this past the structural gate, so
+    the direction check is what has to reject it.
+    """
+    result = _assess_source(
+        DoctrineGrounder(),
+        'The intelligence architecture is the compilation of data repositories.',
+        'DataRepository subclass-of IntelligenceArchitecture',
+    )
+    assert not result.accepted
+    assert result.reason == 'unverified_subclass_direction'
+
+
+def test_other_mereological_frames_are_not_subclass_bearing_structure():
+    grounder = DoctrineGrounder()
+    for source in (
+        'The intelligence architecture includes data repositories.',
+        'Data repositories are part of the intelligence architecture.',
+    ):
+        result = _assess_source(
+            grounder, source, 'DataRepository subclass-of IntelligenceArchitecture',
+        )
+        assert not result.accepted, source
+        assert result.reason == 'weak_grounding', source
+
+
+def test_enumerative_frame_requires_the_child_after_the_frame_verb():
+    result = _assess_source(
+        DoctrineGrounder(),
+        'Human intelligence collection teams consist of trained collectors.',
+        'HumanIntelligenceCollectionTeam subclass-of HumanIntelligenceCapability',
+    )
+    assert not result.accepted
+    assert result.reason == 'unverified_subclass_direction'

@@ -4,6 +4,19 @@ from src.preprocessing.decompose import decompose
 
 
 class TestDecompose:
+    @pytest.mark.parametrize("nl", [
+        "A weapon is an artifact or a human is an animal.",
+        "A weapon is an artifact; or a human is an animal.",
+        "If the brigade advances, and the battalion defends, the commander withdraws.",
+        "The commander does not advance, and the battalion defends.",
+        "The commander doesn't advance, and the battalion defends.",
+        "No commander advances, and the battalion defends.",
+    ])
+    def test_scoped_clauses_never_become_independent_claims(self, nl):
+        # Unsupported whole sentences may abstain, but no fragment is safe.
+        parts = decompose(nl)
+        assert parts == [] or parts == [nl]
+
     def test_single_sentence_passes_through_unchanged(self):
         nl = "Every Process is in the agent relation with an Agent."
 

@@ -122,3 +122,13 @@ class CNLCompiler:
                     raise ValueError(f"Unknown SUMO class: '{token}'")
                 if token.type == "RELATION" and str(token) not in self._relations:
                     raise ValueError(f"Unknown SUMO relation: '{token}'")
+        for node in tree.iter_subtrees():
+            if node.data not in {"binary_assert", "nary_assert"}:
+                continue
+            relation = str(node.children[0])
+            expected = self._relations[relation]
+            actual = len(node.children) - 1
+            if expected is not None and actual != expected:
+                raise ValueError(
+                    f"Relation '{relation}' expects {expected} arguments, got {actual}"
+                )

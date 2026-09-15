@@ -407,6 +407,35 @@ class _PrefixConstraint:
         return sorted(allowed)
 
 
+_ENUMERATION_FRAME_RE = re.compile(
+    r"(?P<parent>.+?)\s+(?:consists?\s+of|comprises?)\s+(?P<items>.+)",
+    re.IGNORECASE,
+)
+_ENUMERATION_SPLIT_RE = re.compile(r";|,|\band\b", re.IGNORECASE)
+
+
+def _singularize_phrase(phrase: str) -> str:
+    """Strip a regular plural from the head noun of an enumeration item.
+
+    Doctrine enumerations are plural ("HUMINT collection teams"); the class index
+    is singular. Only the final word is singularized: modifiers can be legitimately
+    plural ("HUMINT operations cells" -> "HUMINT operations cell"), and stripping
+    those too makes the phrase match nothing.
+    """
+    words = phrase.split()
+    if not words:
+        return phrase
+    head = words[-1]
+    lowered = head.lower()
+    if lowered.endswith("ies") and len(lowered) > 4:
+        head = head[:-3] + "y"
+    elif lowered.endswith(("ses", "xes", "ches", "shes")):
+        head = head[:-2]
+    elif lowered.endswith("s") and not lowered.endswith(("ss", "us", "is")):
+        head = head[:-1]
+    return " ".join([*words[:-1], head])
+
+
 @dataclass(frozen=True)
 class _PromptConstraintPlan:
     template: str
@@ -731,6 +760,85 @@ class CNLSampler:
                 second_terms=(parent,),
             )
         return None
+
+    def _resolve_enumeration_term(self, phrase: str) -> str | None:
+        """Resolve one enumeration item to a single class, or nothing.
+
+        `_class_candidates_for_phrase` falls back to token-subset matching, so a
+        phrase like "assigned biometric collection equipment" can match both the
+        full term and a shorter one. The longest naturalized term is the head
+        phrase; a tie means the item is genuinely ambiguous and is refused.
+        """
+        singular = _singularize_phrase(phrase)
+        candidates = self._class_candidates_for_phrase(singular)
+        if not candidates:
+            return None
+        head_word = singular.split()[-1].lower() if singular.split() else ""
+        # A resolution that ignores the item's head noun describes a modifier,
+        # not the item ("HUMINT operations cells" must not resolve to Cell only
+        # because the word appears).
+        candidates = [
+            term for term in candidates
+            if head_word in self._naturalize_term(term).split()
+        ]
+        if not candidates:
+            return None
+        ranked = sorted(
+            candidates,
+            key=lambda term: len(self._naturalize_term(term).split()),
+            reverse=True,
+        )
+        if len(ranked) > 1:
+            best_width = len(self._naturalize_term(ranked[0]).split())
+            runner_width = len(self._naturalize_term(ranked[1]).split())
+            if best_width == runner_width:
+                return None
+        return ranked[0]
+
+    def infer_enumerated_subclass_cnl(self, prompt: str) -> str | None:
+        """Translate "X capabilities consist of A, B, and C" into subclass claims.
+
+        Doctrine states a category by listing its members, which the copular
+        templates cannot see. Each item becomes `<item> subclass-of <category>`,
+        following the categorical reading recorded in doctrine_domain.kif.
+
+        Every item must resolve. A partial enumeration is refused rather than
+        emitted, because silently dropping a member states less than the source
+        does and would disagree with a reviewer's gold label for the same
+        sentence.
+        """
+        text = self._normalise_prompt(prompt).strip().rstrip(".!?")
+        text = re.sub(r"\s+", " ", text)
+        if (
+            self._supports_conditional_prompt(text)
+            or self._supports_negation_prompt(text)
+            or self._supports_existential_prompt(text, ())
+        ):
+            return None
+
+        matched = _ENUMERATION_FRAME_RE.fullmatch(text)
+        if matched is None:
+            return None
+
+        parent = self._resolve_enumeration_term(matched.group("parent"))
+        if parent is None:
+            return None
+
+        items = [chunk.strip() for chunk in _ENUMERATION_SPLIT_RE.split(matched.group("items"))]
+        items = [chunk for chunk in items if chunk]
+        if len(items) < 2:
+            return None
+
+        children: list[str] = []
+        for chunk in items:
+            child = self._resolve_enumeration_term(chunk)
+            if child is None or child == parent:
+                return None
+            if child not in children:
+                children.append(child)
+        if len(children) < 2:
+            return None
+        return " ".join(f"{child} subclass-of {parent}" for child in children)
 
     def _infer_prompt_plan(self, prompt: str) -> _PromptConstraintPlan | None:
         text = self._normalise_prompt(prompt).strip().rstrip(".!?")

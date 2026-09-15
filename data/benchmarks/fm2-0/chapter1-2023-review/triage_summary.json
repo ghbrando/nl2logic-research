@@ -1,0 +1,57 @@
+{
+  "summary": {
+    "total": 100,
+    "verdicts": {
+      "expressible": 28,
+      "partial": 34,
+      "blocked": 38
+    },
+    "expressible_bibliographic": 8,
+    "expressible_substantive": 20,
+    "blockers_all": {
+      "PURPOSIVE": 13,
+      "EVALUATIVE": 13,
+      "MODALITY": 13,
+      "QUANTIFIER": 13,
+      "META": 13,
+      "TEMPORAL": 12,
+      "DISJUNCTION": 7,
+      "ATTRIBUTE": 6,
+      "CONDITION": 4,
+      "REFERENCE": 3,
+      "SCOPED_NEGATION": 3,
+      "ATTITUDE": 2,
+      "CARDINALITY": 1
+    },
+    "blockers_on_blocked_only": {
+      "EVALUATIVE": 13,
+      "MODALITY": 11,
+      "QUANTIFIER": 9,
+      "TEMPORAL": 8,
+      "DISJUNCTION": 4,
+      "PURPOSIVE": 3,
+      "META": 3,
+      "REFERENCE": 2,
+      "SCOPED_NEGATION": 2,
+      "ATTRIBUTE": 2,
+      "CARDINALITY": 1,
+      "ATTITUDE": 1,
+      "CONDITION": 1
+    }
+  },
+  "blocker_glossary": {
+    "MODALITY": "must / should / may / can / is responsible for - no deontic or alethic operator in the grammar",
+    "DISJUNCTION": "or / whether-or inside the claim - the grammar has conjunction only",
+    "QUANTIFIER": "most / many / often / generally / primarily, or a comparative or superlative - the grammar has only every/some/no",
+    "ATTRIBUTE": "adjectival or literal values (timely, accurate, well-trained) - terms are class names or variables only",
+    "EVALUATIVE": "vague evaluative predicate (crucial, difficult, significant, important) with no formal content",
+    "TEMPORAL": "continuity, ordering, or aspect (continuously, throughout, in advance of, currently)",
+    "SCOPED_NEGATION": "negation inside a restrictive clause - not applies to a whole atomic assertion only",
+    "CONDITION": "a condition the grammar cannot state (gerund clause, when appropriate, when available)",
+    "PURPOSIVE": "the claim lives in a to-... / in-order-to-... purpose clause",
+    "ATTITUDE": "propositional attitude (the Army views ... as, JP 2-0 recognizes)",
+    "CARDINALITY": "numeric counts",
+    "REFERENCE": "unresolved anaphora (it, they, this) in the claim",
+    "META": "document self-reference or bibliography (ATP 2-22.7 provides ..., see chapter 5, Figure 1-2)"
+  }
+}

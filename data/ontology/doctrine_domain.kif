@@ -253,5 +253,58 @@
    collected data into usable information, distributes the information for
    further analysis, and, when appropriate, provides combat information to
    commanders and staffs. FM 2-0 para 1-47 / ADP 2-0.")
+;;; ════════════════════════════════════════════════════════════════════════════
+;;; Intelligence discipline capabilities (FM 2-0 chapter 1)
+;;; ════════════════════════════════════════════════════════════════════════════
+;;;
+;;; Doctrine states these categories by enumeration: "CI capabilities consist of
+;;; CI teams and assigned biometric collection equipment."  Following the
+;;; categorical reading, each enumerated item is a KIND of the named capability,
+;;; so a capability class must be able to subsume both organizations (teams) and
+;;; artifacts (equipment, sensors, platforms).  Object is therefore its SUMO
+;;; parent — a capability here is the set of physical things that provide it, not
+;;; an abstract attribute.
+;;;
+;;; IMPORTANT: this file declares only that these terms EXIST and where they sit
+;;; in SUMO.  It deliberately does NOT assert the doctrine claims themselves
+;;; (e.g. "CITeam subclass-of CICapability"); those must be
+;;; derived from the passage by the pipeline, or the extraction is circular and
+;;; the benchmark measures its own background knowledge.
+
+(subclass CICapability Object)
+(documentation CICapability EnglishLanguage
+  "The personnel and equipment that provide counterintelligence. FM 2-0 para 1-67.")
+
+(subclass HUMINTCapability Object)
+(documentation HUMINTCapability EnglishLanguage
+  "The teams, cells, and equipment that provide human intelligence. FM 2-0 para 1-73.")
+
+;; Enumerated members. Each is anchored to its SUMO genus here; its membership
+;; in a capability category is a doctrine claim for the pipeline to derive.
+
+(subclass CITeam MilitaryUnit)
+(documentation CITeam EnglishLanguage
+  "A counterintelligence team. FM 2-0 para 1-67.")
+
+(subclass BiometricCollectionEquipment Device)
+(documentation BiometricCollectionEquipment EnglishLanguage
+  "Equipment assigned for collecting biometric data. FM 2-0 paras 1-67, 1-73.")
+
+(subclass HUMINTCollectionTeam MilitaryUnit)
+(documentation HUMINTCollectionTeam EnglishLanguage
+  "A team that conducts human intelligence collection. FM 2-0 para 1-73.")
+
+(subclass HUMINTOperationsCell MilitaryUnit)
+(documentation HUMINTOperationsCell EnglishLanguage
+  "A cell that directs and manages human intelligence operations. FM 2-0 para 1-73.")
+
+;;; The GEOINT, MASINT, and SIGINT enumerations in paras 1-70, 1-77, and 1-86
+;;; are deliberately absent. Their members are stated as coordinated noun
+;;; phrases ("manned and unmanned platforms", "chemical, biological,
+;;; radiological, and nuclear (CBRN) detectors") that do not segment reliably
+;;; into items, and the rule abstains rather than emit a partial enumeration.
+;;; Adding their terms before the segmentation works would leave this file
+;;; carrying vocabulary nothing can derive.
+
 ;;; end of doctrine_domain.kif
 

@@ -155,6 +155,31 @@ class TestBuildPipeline:
 
 
 class TestProcessSentence:
+    @pytest.mark.parametrize("source,cnl,reason", [
+        ("An artifact is a weapon.", "Weapon subclass-of Artifact", "unverified_subclass_direction"),
+        ("A weapon is an artifact or a human is an animal.", "Weapon subclass-of Artifact", "unverified_scope"),
+        ("An artifact is a physical object.", "Weapon subclass-of Artifact", "ungrounded_class_terms"),
+    ])
+    def test_real_grounder_reviews_unsupported_rewrites(self, source, cnl, reason):
+        from src.compiler.compiler import CNLCompiler
+
+        class CandidateSampler:
+            def sample(self, prompt):
+                return cnl
+
+        accepted, reviewed, rejected = process_sentence(
+            DocSentence(source, 1, 0, "TEST"), [], None,
+            _FakeLinker(), CandidateSampler(), CNLCompiler(),
+            normalization_result=NormalizationResult(
+                normalized=["A weapon is an artifact."], ambiguous=[], original=source,
+            ),
+        )
+        assert accepted == []
+        assert rejected == []
+        assert len(reviewed) == 1
+        assert reviewed[0].reason == reason
+        assert reviewed[0].original == source
+
     def test_successfully_translated_subclaim_produces_accepted_kif_record(self, monkeypatch):
         doc_sentence = DocSentence("Original sentence.", 5, 2, "TASKS")
         monkeypatch.setattr(

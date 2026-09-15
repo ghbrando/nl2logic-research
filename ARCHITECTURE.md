@@ -155,6 +155,21 @@ Responsibilities:
 - write accepted KIF, review records, rejects, and index artifacts
 - provide the main operational entry point for real PDF ingestion
 
+## Bounded reasoning implementation
+
+`scripts/reason_ontology.py` and `src/reasoning/` implement a first classification
+slice: ground subclass/instance facts and explicit negations, translated to TPTP
+with subclass transitivity and instance inheritance. Background JSONL assumptions
+are explicitly loaded and distinguished from source claims. Vampire checks
+consistency before attempting the question and its negation. Answers retain
+named proof inputs, source passages, and full run artifacts.
+
+See [the runnable example](examples/reasoning/README.md) for commands and limits.
+This is not full SUMO reasoning or natural-language QA. `query_ontology.py`
+remains an index filter. The legacy domain exporter's optional Vampire validation
+now translates only the supported ground classification subset and rejects
+unsupported KIF; referenced SUMO paths cannot be passed off as loaded axioms.
+
 ## Output Routing
 
 The pipeline deliberately separates confidence levels:
@@ -181,6 +196,27 @@ That path was useful for:
 It is not the main research architecture and should not drive current design decisions.
 
 ## Current Bottlenecks
+
+### Current semantic safeguards and limits
+
+- Decomposition preserves sentences containing alternatives, conditions, or
+  explicit negation instead of promoting their clauses to independent facts.
+  Unsupported whole sentences may still abstain.
+- The compiler enforces known relation arities, including inside negations and
+  conditionals. Relations with unspecified arity are still vocabulary-checked;
+  argument types and variable scope are not yet validated.
+- Grounding uses the original sentence as evidence. Terms supplied only by a
+  rewrite go to review until explicit source-span support for coreference exists.
+- Subclass acceptance requires a supported child-to-parent source pattern.
+  Existing doctrine-parent mappings remain background assumptions, and require
+  the child to be the subject of the source definition.
+- Candidates whose original source contains scope markers such as negation,
+  alternatives, conditions, or modality go to review. This conservative rule
+  can reduce automatic coverage even for correct translations.
+
+These checks are targeted safeguards, not a semantic entailment verifier.
+General relation argument direction, class-versus-instance typing, and complex
+scope remain open work. Reviewed seed labels are not model-performance evidence.
 
 The main open problems are:
 
