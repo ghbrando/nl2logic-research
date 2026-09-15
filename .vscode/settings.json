@@ -1,0 +1,35 @@
+{
+  // The test suite writes scratch data to dirs at the repo root rather than to
+  // pytest's tmp_path (see tests/ingest/test_grounding.py and five siblings).
+  // They are gitignored, but the explorer still renders them, which buries the
+  // real top-level layout. Hide them here; they are recreated as tests run.
+  "files.exclude": {
+    "**/__pycache__": true,
+    ".pytest_cache": true,
+    ".pytest_*": true,
+    "tmp*": true
+  },
+  "search.exclude": {
+    "**/__pycache__": true,
+    ".pytest_*": true,
+    "tmp*": true,
+    ".venv": true,
+    "data/training_pairs/*.jsonl": true,
+    "results": true,
+    "vampire": true
+  },
+  // Keeps the file watcher off large generated trees.
+  "files.watcherExclude": {
+    "**/__pycache__/**": true,
+    "**/.pytest_*/**": true,
+    "**/.venv/**": true,
+    "**/results/**": true,
+    "**/vampire/**": true
+  },
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": ["tests"],
+  "[python]": {
+    "editor.rulers": [100]
+  }
+}
