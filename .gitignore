@@ -15,6 +15,13 @@
 /results/reasoning/
 /results/comparisons/
 
+# Trained checkpoints (src/training/train.py writes here). Never commit weights.
+/models/
+
+# Default output of scripts/run_benchmark_diagnostic.py, overwritten every run.
+# Named diagnostic runs kept as references stay tracked.
+/results/diagnostic_latest.jsonl
+
 # Scratch dirs the tests create at the repo root (Windows tmp-path workaround;
 # see tests/ingest/test_grounding.py and friends), plus stale ad-hoc run dirs.
 /.pytest_*/
