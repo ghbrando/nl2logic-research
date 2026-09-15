@@ -19,11 +19,28 @@ _KIF_SUBCLASS_RE = re.compile(r"\(subclass\s+(\S+)\s+([^\s)]+)\s*\)")
 _ONTOLOGY_SUBCLASS_CACHE: set[tuple[str, str]] | None = None
 
 
+def load_asserted_subclass_pairs(path: Path) -> set[tuple[str, str]]:
+    """Every (child, parent) the given ontology file asserts.
+
+    KIF line comments start with `;`. A commented-out assertion is not asserted,
+    and counting it would let a disabled claim mask a genuine derivation.
+    """
+    live = "\n".join(
+        line.split(";", 1)[0]
+        for line in path.read_text(encoding="utf-8").splitlines()
+    )
+    return set(_KIF_SUBCLASS_RE.findall(live))
+
+
+def subclass_claims(kif: str) -> list[tuple[str, str]]:
+    """Every (child, parent) claim in a KIF output."""
+    return _KIF_SUBCLASS_RE.findall(kif or "")
+
+
 def _asserted_subclass_pairs() -> set[tuple[str, str]]:
     global _ONTOLOGY_SUBCLASS_CACHE
     if _ONTOLOGY_SUBCLASS_CACHE is None:
-        text = _DOCTRINE_KIF_PATH.read_text(encoding="utf-8")
-        _ONTOLOGY_SUBCLASS_CACHE = set(_KIF_SUBCLASS_RE.findall(text))
+        _ONTOLOGY_SUBCLASS_CACHE = load_asserted_subclass_pairs(_DOCTRINE_KIF_PATH)
     return _ONTOLOGY_SUBCLASS_CACHE
 
 

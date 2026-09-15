@@ -42,6 +42,41 @@ being handed back rather than a passage being formalized.
 only two novel accepts in the current run are the chapter-1 consist-of
 enumerations, and both are unscored pending review.
 
+### The training split has the same shape
+
+`scripts/audit_ontology_leakage.py` reports:
+
+```
+  subclass assertions            : 40
+  used as training targets       : 25
+  used as benchmark targets      : 9
+  used by both                   : 0
+  never used                     : 6
+
+file                                            targets  restated  novel
+data/training_pairs/doctrine_real_train.jsonl        27        27      0
+data/benchmarks/fm2-0/seed_positive.jsonl             4         4      0
+data/benchmarks/fm2-0/seed_review.jsonl               6         5      1
+```
+
+All 27 doctrine training targets and all 4 seed positives are claims
+`doctrine_domain.kif` already asserts. Training and benchmark targets do not
+overlap *each other* — 25 and 9, disjoint — which is why the exact-text leakage
+check passes. But they partition one 40-assertion pool, and that same file
+licenses acceptance at the gate.
+
+So the doctrine split measures recall over a closed vocabulary the system
+already has. A model trained on 25 of those assertions and evaluated on 9 more
+is being asked to reproduce a lookup table, not to formalize a passage. Exactly
+one shipped target is outside the pool:
+`(subclass GeneralMilitaryIntelligence IntelligenceProduct)`.
+
+Run the audit before quoting any coverage number:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/audit_ontology_leakage.py --training data/training_pairs/doctrine_real_train.jsonl --benchmark data/benchmarks/fm2-0/seed_positive.jsonl --benchmark data/benchmarks/fm2-0/seed_review.jsonl
+```
+
 Fixing this properly means scoring against passages whose answers the ontology
 does not already contain — which is what the chapter-1 review packet is for.
 
