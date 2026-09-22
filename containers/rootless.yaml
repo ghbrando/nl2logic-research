@@ -1,0 +1,5 @@
+# With rootless Docker, container UID 0 maps to the invoking host user.
+# The base Compose file uses the host UID for rootful Docker instead.
+services:
+  research:
+    user: "0:0"

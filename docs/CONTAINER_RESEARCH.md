@@ -1,0 +1,94 @@
+# Isolated research on DGX Spark
+
+Status: configuration prepared; image build and GPU execution not yet validated.
+Use one worker first. The controller and both workers currently host inference
+processes. Arrange capacity before GPU work; these files do not stop services.
+
+## Isolation boundaries
+
+- Run as the invoking user's numeric UID/GID, with all capabilities dropped,
+  no new privileges, and a read-only container filesystem and repository mount.
+- Persist writes only in project-specific `outputs` and `cache` directories.
+  Temporary writes go to a bounded private `/tmp` and private shared memory.
+- Default to no network and no GPU. Separate overrides enable model downloads
+  or GPU access. No host networking, host IPC, privileged mode, SSH credentials,
+  home-directory mount, or Docker socket mount is used.
+- Set CPU, RAM, swap, process and log bounds. RAM limits are not a reliable GPU
+  memory quota. Containers share the host kernel and GPU; they are not VMs or
+  protection against all GPU contention, driver failures or hostile code.
+- The existing Docker daemon stores image layers in its own storage, commonly
+  `/var/lib/docker`. Runtime research outputs stay under the chosen state path.
+  Strictly keeping image storage out of system directories requires a separately
+  configured rootless daemon; do not move the shared daemon's data directory.
+
+## Host prerequisites
+
+Docker Engine with Compose and NVIDIA Container Toolkit on an ARM64 Spark.
+Use `ssh shared-dev` as `save-water` for controller access. Worker operations
+require an authorized `save-water` login; do not use shared accounts or
+credentials from cluster documentation. If worker login is unavailable, defer
+worker builds and tests until that access is provisioned.
+The controller's `save-water` account currently cannot access the Docker socket.
+Prefer administrator-managed launches or an administrator-reviewed rootless GPU
+setup. Docker group membership provides root-level host privileges; running the
+container as a non-root UID does not remove that privilege from Docker clients.
+Do not change shared daemon/runtime settings as part of a project launch.
+With rootless Docker, add `-f containers/rootless.yaml` to every Compose command.
+Container UID 0 maps to `save-water` on the host, so it can write to the project
+state directories without granting host root access. Keep the other isolation
+settings from the base file. Rootless GPU support and cgroup limits require
+separate validation on the chosen worker.
+
+The image starts from NVIDIA's Spark playbook PyTorch image and constrains pip
+to its installed torch version. Other dependencies currently follow repository
+bounds, so builds are not fully locked. Record the image ID and
+`/opt/nl2logic-packages.txt`; freeze versions and the base digest after validation.
+
+## Prepare on the chosen worker
+
+Run as `save-water`, from its separate repo checkout, with Docker access:
+
+```bash
+export LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)"
+export NL2LOGIC_STATE="$HOME/nl2logic-state"
+mkdir -p "$NL2LOGIC_STATE/outputs" "$NL2LOGIC_STATE/cache"
+docker compose -f containers/compose.yaml config --quiet
+docker compose -f containers/compose.yaml build
+docker compose -f containers/compose.yaml run --rm research python -m pip check
+```
+
+Keep these exports in the shell used for subsequent commands. Do not use the
+existing conda/tmux launcher inside this container; invoke Python directly.
+
+Download the default model without GPU access, then use offline containers:
+
+```bash
+docker compose -f containers/compose.yaml -f containers/download.yaml run --rm research python -c "from huggingface_hub import snapshot_download; snapshot_download('google/flan-t5-small')"
+```
+
+After capacity is available, verify CUDA and a small allocation:
+
+```bash
+docker compose -f containers/compose.yaml -f containers/gpu.yaml run --rm research python -c "import torch; print(torch.__version__, torch.version.cuda); assert torch.cuda.is_available(); print(torch.cuda.get_device_name(0)); print(torch.ones(32, device='cuda').sum().item())"
+```
+
+Run a small training job with an explicitly chosen input and unique output path:
+
+```bash
+docker compose -f containers/compose.yaml -f containers/gpu.yaml run --rm -e HF_HUB_OFFLINE=1 research python src/training/train.py --train-file /workspace/data/training_pairs/doctrine_real_train.jsonl --output-dir /outputs/smoke-001 --epochs 1 --batch-size 1 --limit 32
+```
+
+This checks infrastructure, not research validity. Freeze reviewed evaluation
+splits and run the project's leakage/preflight checks before a research run.
+For tests that create files beside the source, copy `/workspace` into `/tmp`
+inside the container and run tests there; the repository mount is intentionally
+read-only. Large data and checkpoints may require revised, measured limits.
+
+Start with independent jobs on workers. Multi-node NCCL needs a separately
+reviewed network/RDMA configuration; the offline GPU override is single-node.
+
+References:
+- https://build.nvidia.com/spark/pytorch-fine-tune
+- https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
+- https://docs.docker.com/engine/security/rootless/
+- https://docs.docker.com/engine/install/linux-postinstall/

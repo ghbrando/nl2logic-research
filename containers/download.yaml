@@ -1,0 +1,4 @@
+# Opt-in outbound access for downloading model assets. No published ports.
+services:
+  research:
+    network_mode: bridge

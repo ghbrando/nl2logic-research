@@ -1,0 +1,44 @@
+name: nl2logic-research
+services:
+  research:
+    image: nl2logic-research:spark
+    build:
+      context: ..
+      dockerfile: containers/Dockerfile
+      args:
+        BASE_IMAGE: ${NL2LOGIC_BASE_IMAGE:-nvcr.io/nvidia/pytorch:25.11-py3}
+    user: "${LOCAL_UID:?Set LOCAL_UID}:${LOCAL_GID:?Set LOCAL_GID}"
+    working_dir: /workspace
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    init: true
+    restart: "no"
+    network_mode: none
+    cpus: "4.0"
+    mem_limit: 12g
+    memswap_limit: 12g
+    pids_limit: 256
+    shm_size: 1g
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=2g,mode=1777
+    volumes:
+      - type: bind
+        source: ..
+        target: /workspace
+        read_only: true
+      - type: bind
+        source: ${NL2LOGIC_STATE:?Set NL2LOGIC_STATE}/outputs
+        target: /outputs
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${NL2LOGIC_STATE:?Set NL2LOGIC_STATE}/cache
+        target: /cache
+        bind:
+          create_host_path: false
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"

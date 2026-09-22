@@ -1,0 +1,18 @@
+# Spark-compatible starting point from NVIDIA's PyTorch fine-tuning playbook.
+# For a frozen experiment, override with a verified image digest.
+ARG BASE_IMAGE=nvcr.io/nvidia/pytorch:25.11-py3
+FROM ${BASE_IMAGE}
+USER root
+WORKDIR /workspace
+COPY requirements.txt /tmp/project-requirements.txt
+# Preserve the NVIDIA image's CUDA-enabled torch build during dependency resolution.
+RUN python -c "import torch; print('torch==' + torch.__version__)" > /tmp/torch-constraint.txt \
+    && python -m pip install --no-cache-dir -c /tmp/torch-constraint.txt \
+       -r /tmp/project-requirements.txt sentencepiece \
+    && python -m pip check \
+    && python -m pip freeze > /opt/nl2logic-packages.txt
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
+    HOME=/tmp/home HF_HOME=/cache/huggingface XDG_CACHE_HOME=/cache
+USER 1000:1000
+ENTRYPOINT []
+CMD ["python", "--version"]
