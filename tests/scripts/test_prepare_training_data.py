@@ -11,11 +11,18 @@ from scripts.prepare_training_data import (
     is_military_focus_pair,
     load_benchmark_overlap_sets,
     load_real_doctrine_pairs,
-    prepare_training_data,
+    prepare_training_data as _prepare_training_data,
 )
 from src.compiler.compiler import CNLCompiler
 from src.ontology.vocab import load_doctrine_class_terms
 from src.training.train import PATTERN_COVERAGE_SENTENCES
+
+
+def prepare_training_data(**kwargs):
+    # Most selection tests use intentionally non-CNL placeholder records.
+    # Pass strict validation explicitly in tests of the real preparation gate.
+    kwargs.setdefault("require_closed_targets", False)
+    return _prepare_training_data(**kwargs)
 
 
 def _pair(pattern: str, index: int) -> dict[str, str]:
@@ -34,6 +41,34 @@ def _make_scratch_dir() -> Path:
 
 
 class TestPrepareTrainingData:
+    def test_closed_target_filter_rejects_open_variables_and_kif_mismatch(self):
+        generator_batches = [
+            ("instance", [{"nl": "Something is a process.", "cnl": "?x is-a Process",
+                           "kif": "(instance ?x Process)", "pattern": "instance"},
+                          {"nl": "Broken target.", "cnl": "not CNL syntax",
+                           "kif": "(not CNL syntax)", "pattern": "instance"}]),
+            ("subclass", [{"nl": "Process is an entity.", "cnl": "Process subclass-of Entity",
+                           "kif": "(subclass Process Entity)", "pattern": "subclass"},
+                          {"nl": "A process is an entity.", "cnl": "Process subclass-of Entity",
+                           "kif": "(subclass Entity Process)", "pattern": "subclass"}]),
+            ("existential", [{"nl": "There is a process.", "cnl": "some ?x is-a Process",
+                              "kif": "(exists (?x) (instance ?x Process))", "pattern": "existential"}]),
+        ]
+        scratch_dir = _make_scratch_dir()
+        try:
+            result = prepare_training_data(
+                limit=2, output_path=scratch_dir / "train.jsonl",
+                generator_batches=generator_batches, excluded_nls=set(), excluded_cnls=set(),
+                exclude_benchmark_overlap=False, require_closed_targets=True,
+            )
+            assert len(result.pairs) == 2
+            assert {p["pattern"] for p in result.pairs} == {"subclass", "existential"}
+            assert result.excluded_counts["invalid_or_open_target"] == 2
+            assert result.excluded_counts["kif_mismatch"] == 1
+            assert result.balanced_cap == 1
+        finally:
+            shutil.rmtree(scratch_dir, ignore_errors=True)
+
     def test_output_file_is_written(self):
         generator_batches = [
             ("instance", [_pair("instance", index) for index in range(6)]),

@@ -86,6 +86,16 @@ class PreparationResult:
     pinned_count: int = 0
 
 
+class _ClosedTargetCompiler:
+    """Make generator-level validation reject free variables before paraphrasing."""
+
+    def __init__(self, compiler: CNLCompiler):
+        self._compiler = compiler
+
+    def compile(self, cnl: str) -> str:
+        return self._compiler.compile(cnl, require_closed=True)
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Prepare a balanced NL->CNL training artifact for Stage 1 fine-tuning."
@@ -121,6 +131,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--allow-gold-cnl-overlap",
         action="store_true",
         help="Keep training paraphrases whose CNL matches the gold eval set while still excluding exact gold NL and probe NL overlaps.",
+    )
+    parser.add_argument(
+        "--allow-open-targets",
+        action="store_true",
+        help="Legacy diagnostic only: permit CNL targets with free variables or mismatched KIF.",
     )
     return parser.parse_args(argv)
 
@@ -343,6 +358,28 @@ def exclude_eval_overlaps(
     return filtered, excluded_counts
 
 
+def filter_closed_targets(pairs: list[dict], compiler: CNLCompiler) -> tuple[list[dict], dict[str, int]]:
+    """Keep only closed CNL whose compiled KIF matches the stored target."""
+    compiled: dict[str, str | None] = {}
+    kept: list[dict] = []
+    rejected = {"invalid_or_open_target": 0, "kif_mismatch": 0}
+    for pair in pairs:
+        cnl = pair["cnl"]
+        if cnl not in compiled:
+            try:
+                compiled[cnl] = compiler.compile(cnl, require_closed=True)
+            except Exception:
+                compiled[cnl] = None
+        actual_kif = compiled[cnl]
+        if actual_kif is None:
+            rejected["invalid_or_open_target"] += 1
+        elif actual_kif != pair["kif"]:
+            rejected["kif_mismatch"] += 1
+        else:
+            kept.append(pair)
+    return kept, rejected
+
+
 def prepare_training_data(
     *,
     limit: int = DEFAULT_LIMIT,
@@ -355,12 +392,16 @@ def prepare_training_data(
     exclude_gold_cnl_overlap: bool = True,
     exclude_benchmark_overlap: bool = True,
     pinned_pairs: list[dict] | None = None,
+    require_closed_targets: bool = True,
 ) -> PreparationResult:
     if generator_batches is None:
         classes = load_classes(_CLASSES_PATH)
         relations = load_relations(_RELATIONS_PATH)
         compiler = CNLCompiler()
-        generator_batches = build_generator_batches(classes, relations, compiler)
+        generator_batches = build_generator_batches(
+            classes, relations,
+            _ClosedTargetCompiler(compiler) if require_closed_targets else compiler,
+        )
 
     all_pairs: list[dict] = []
     generated_counts: dict[str, int] = {}
@@ -380,6 +421,9 @@ def prepare_training_data(
         excluded_cnls=resolved_cnls,
         exclude_gold_cnl_overlap=exclude_gold_cnl_overlap,
     )
+    if require_closed_targets:
+        all_pairs, rejected = filter_closed_targets(all_pairs, CNLCompiler())
+        excluded_counts.update(rejected)
 
     # Resolve pinned pairs first so their count can be reserved from the budget.
     pinned_count = 0
@@ -392,6 +436,10 @@ def prepare_training_data(
             and p.get("cnl") not in resolved_cnls
             and p.get("nl") not in probe_nls
         ]
+        if require_closed_targets:
+            surviving_pinned, rejected = filter_closed_targets(surviving_pinned, CNLCompiler())
+            for key, count in rejected.items():
+                excluded_counts[key] += count
         pinned_count = len(surviving_pinned)
 
     # Reserve pinned slots from the balanced selection budget so that
@@ -405,7 +453,8 @@ def prepare_training_data(
     output_pairs = list(output_pairs) + surviving_pinned
 
     written_counts = count_pairs_by_pattern(output_pairs)
-    balanced_cap = selection_limit // len(generated_counts) if generated_counts else 0
+    active_patterns = {pair["pattern"] for pair in all_pairs}
+    balanced_cap = selection_limit // len(active_patterns) if active_patterns else 0
     samples_by_pattern = build_samples_by_pattern(
         output_pairs,
         sample_size=sample_size,
@@ -437,6 +486,8 @@ def print_preparation_report(result: PreparationResult) -> None:
     print(f"  Excluded gold NL:     {result.excluded_counts['gold_nl']:,}")
     print(f"  Excluded gold CNL:    {result.excluded_counts['gold_cnl']:,}")
     print(f"  Excluded probe NL:    {result.excluded_counts['probe_nl']:,}")
+    print(f"  Excluded open/invalid targets: {result.excluded_counts.get('invalid_or_open_target', 0):,}")
+    print(f"  Excluded KIF mismatches:       {result.excluded_counts.get('kif_mismatch', 0):,}")
     print("  Per-pattern counts:")
     for pattern in result.generated_counts:
         print(f"    {pattern:15s}: {result.written_counts.get(pattern, 0):>7,}")
@@ -468,6 +519,7 @@ def main(argv: list[str] | None = None) -> None:
         exclude_gold_cnl_overlap=not args.allow_gold_cnl_overlap,
         exclude_benchmark_overlap=True,
         pinned_pairs=pinned_pairs,
+        require_closed_targets=not args.allow_open_targets,
     )
     print_preparation_report(result)
 

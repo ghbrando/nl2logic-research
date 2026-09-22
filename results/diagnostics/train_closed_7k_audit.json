@@ -1,0 +1,36 @@
+{
+  "train_file": "data\\training_pairs\\train_closed_7k.jsonl",
+  "sha256": "c2bd0060f32d14e87c6fc3fa86c7c369a5c1f86bfcc0f8f0b9bd414175d52461",
+  "counts": {
+    "total": 6999,
+    "valid_closed_cnl": 6999
+  },
+  "by_pattern": {
+    "binary": {
+      "total": 1162,
+      "valid_closed_cnl": 1162
+    },
+    "conditional": {
+      "total": 1162,
+      "valid_closed_cnl": 1162
+    },
+    "existential": {
+      "total": 1162,
+      "valid_closed_cnl": 1162
+    },
+    "nary": {
+      "total": 1162,
+      "valid_closed_cnl": 1162
+    },
+    "negation": {
+      "total": 1162,
+      "valid_closed_cnl": 1162
+    },
+    "subclass": {
+      "total": 1189,
+      "valid_closed_cnl": 1189
+    }
+  },
+  "examples": {},
+  "interpretation": "A syntactic/scope/KIF consistency audit, not a semantic judgment of NL or doctrine."
+}
