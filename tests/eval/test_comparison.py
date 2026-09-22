@@ -71,6 +71,14 @@ def test_compiler_failure_is_not_abstention():
     assert summarize([result])["abstention_accuracy"] == 0
 
 
+def test_unbound_prediction_cannot_be_accepted():
+    result = evaluate_method([row()], lambda text: "?x is-a Weapon",
+                             grounder=AcceptingGrounder())[0]
+    assert result["route"] == "compile_error"
+    assert "Unbound variables" in result["error"]
+    assert result["kif"] is None
+
+
 def test_training_overlap_is_unscored(tmp_path):
     path = tmp_path / "training.jsonl"
     write_rows(path, [{"nl": "  A WEAPON  is an artifact. "}])
@@ -89,6 +97,13 @@ def test_malformed_reviewed_gold_is_rejected(tmp_path, changes):
     path = tmp_path / "bad.jsonl"
     write_rows(path, [{**row(), **changes}])
     with pytest.raises(ValueError):
+        read_benchmark([path])
+
+
+def test_unbound_gold_is_rejected(tmp_path):
+    path = tmp_path / "unbound.jsonl"
+    write_rows(path, [{**row(), "cnl": "?x is-a Weapon", "kif": "(instance ?x Weapon)"}])
+    with pytest.raises(ValueError, match="Unbound variables"):
         read_benchmark([path])
 
 

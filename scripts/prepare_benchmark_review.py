@@ -38,9 +38,10 @@ def first_sentence(text: str) -> str | None:
     return first if len(first.split()) >= 6 and first.endswith((".", "!", "?")) else None
 
 
-def page_candidates(text: str, *, pdf_page: int, chapter: int, doc_id: str) -> list[dict]:
+def page_candidates(text: str, *, pdf_page: int, chapter: int, doc_id: str,
+                    publication: str = "FM 2-0") -> list[dict]:
     lines = text.splitlines()
-    footer = next((line for line in reversed(lines) if "FM 2-0" in line), "")
+    footer = next((line for line in reversed(lines) if publication in line), "")
     printed = re.search(rf"\b{chapter}-\d+\b", footer)
     records, paragraph, buffer = [], None, []
 
@@ -68,7 +69,7 @@ def page_candidates(text: str, *, pdf_page: int, chapter: int, doc_id: str) -> l
         if match:
             flush()
             paragraph, buffer = match.group(1), [match.group(2)]
-        elif ("FM 2-0" in line and re.search(r"\b20\d\d\b", line)) or re.match(r"^(?:Chapter |SECTION |Figure \d|Table \d|[\u26ab\u2022\u25aa\u25cf])", line) or (line.isupper() and len(line) < 100):
+        elif (publication in line and re.search(r"\b20\d\d\b", line)) or re.match(r"^(?:Chapter |SECTION |Figure \d|Table \d|[\u26ab\u2022\u25aa\u25cf\uf06c\uf06e])", line) or (line.isupper() and len(line) < 100):
             flush()
             paragraph, buffer = None, []
         elif paragraph and line:
@@ -103,6 +104,7 @@ def main(argv=None):
     parser.add_argument("--pdf", required=True, type=Path)
     parser.add_argument("--doc-id", required=True, help="Include document edition/year")
     parser.add_argument("--chapter", required=True, type=int)
+    parser.add_argument("--publication", default="FM 2-0", help="Publication marker printed in page footers")
     parser.add_argument("--first-page", required=True, type=int, help="One-based PDF page")
     parser.add_argument("--last-page", required=True, type=int, help="Inclusive PDF page")
     parser.add_argument("--count", type=int, default=100)
@@ -127,7 +129,8 @@ def main(argv=None):
         for number in range(args.first_page, args.last_page + 1):
             text = pdf.pages[number - 1].extract_text() or ""
             pages.append({"pdf_page": number, "text": text})
-            pool.extend(page_candidates(text, pdf_page=number, chapter=args.chapter, doc_id=args.doc_id))
+            pool.extend(page_candidates(text, pdf_page=number, chapter=args.chapter, doc_id=args.doc_id,
+                                        publication=args.publication))
     selected = select_candidates(pool, args.count, args.seed, excluded)
     if len(selected) < args.count:
         parser.exit(2, f"Only {len(selected)} eligible passages available; requested {args.count}. No output written.\n")
@@ -141,6 +144,7 @@ def main(argv=None):
         writer.writerows(selected)
     manifest = {
         "source": fingerprint(args.pdf), "doc_id": args.doc_id, "chapter": args.chapter,
+        "publication": args.publication,
         "pdf_pages": [args.first_page, args.last_page], "seed": args.seed,
         "exclusions": [fingerprint(p) for p in args.exclude], "pool_count": len(pool),
         "selected_count": len(selected), "status": "draft_unscored",

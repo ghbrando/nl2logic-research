@@ -1,0 +1,52 @@
+{
+  "train_file": "data\\training_pairs\\train_balanced_7k.jsonl",
+  "sha256": "77ace557ec997ad1690a0e3c5f22b03def311dfc1dd2381b6a00c338acc92e67",
+  "counts": {
+    "total": 7000,
+    "unbound_variable": 2372,
+    "valid_closed_cnl": 4628
+  },
+  "by_pattern": {
+    "binary": {
+      "total": 1000,
+      "unbound_variable": 224,
+      "valid_closed_cnl": 776
+    },
+    "conditional": {
+      "total": 1000,
+      "unbound_variable": 495,
+      "valid_closed_cnl": 505
+    },
+    "existential": {
+      "total": 1000,
+      "valid_closed_cnl": 1000
+    },
+    "instance": {
+      "total": 1000,
+      "unbound_variable": 1000
+    },
+    "nary": {
+      "total": 1000,
+      "valid_closed_cnl": 541,
+      "unbound_variable": 459
+    },
+    "negation": {
+      "total": 1000,
+      "valid_closed_cnl": 806,
+      "unbound_variable": 194
+    },
+    "subclass": {
+      "total": 1000,
+      "valid_closed_cnl": 1000
+    }
+  },
+  "examples": {
+    "unbound_variable": {
+      "line": 1,
+      "pattern": "instance",
+      "cnl": "?x is-a Organization",
+      "error": "Unbound variables: ?x"
+    }
+  },
+  "interpretation": "A syntactic/scope/KIF consistency audit, not a semantic judgment of NL or doctrine."
+}
