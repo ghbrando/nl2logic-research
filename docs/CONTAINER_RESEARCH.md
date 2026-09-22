@@ -89,14 +89,15 @@ docker compose -f containers/compose.yaml -f containers/rootless.yaml -f contain
 Run a small training job with an explicitly chosen input and unique output path:
 
 The post-training compiler check needs generated `sumo_classes.jsonl` and
-`sumo_relations.jsonl`, which Git ignores. Copy the validated files into
-`$NL2LOGIC_STATE/vocab` on the worker and add `containers/vocab.yaml` to the
-training command. Keep this vocabulary read-only in the container and record
-its SHA-256 hashes with the run. The first smoke attempt completed training but
-failed the post-training check because these files were absent.
+`sumo_relations.jsonl`, which Git ignores. Put these and the selected training
+JSONL in `$NL2LOGIC_STATE/inputs` on the worker, then add
+`containers/inputs.yaml` to the training command. This mounts the input snapshot
+read-only over `/workspace/data/training_pairs`. Record its SHA-256 hashes with
+the run. The first smoke attempt completed training but failed the post-training
+check because the vocabulary was absent.
 
 ```bash
-docker compose -f containers/compose.yaml -f containers/rootless.yaml -f containers/gpu-rootless.yaml -f containers/vocab.yaml run --rm -e HF_HUB_OFFLINE=1 research python src/training/train.py --train-file /workspace/data/training_pairs/doctrine_real_train.jsonl --output-dir /outputs/smoke-001 --epochs 1 --batch-size 1 --limit 27
+docker compose -f containers/compose.yaml -f containers/rootless.yaml -f containers/gpu-rootless.yaml -f containers/inputs.yaml run --rm -e HF_HUB_OFFLINE=1 research python src/training/train.py --train-file /workspace/data/training_pairs/doctrine_real_train.jsonl --output-dir /outputs/smoke-001 --epochs 1 --batch-size 1 --limit 27
 ```
 
 This checks infrastructure, not research validity. Freeze reviewed evaluation

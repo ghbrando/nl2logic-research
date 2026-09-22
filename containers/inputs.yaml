@@ -1,0 +1,11 @@
+# Generated vocabulary is absent from Git. Mount a project-owned input snapshot
+# over the training-pairs directory so the read-only repository remains intact.
+services:
+  research:
+    volumes:
+      - type: bind
+        source: ${NL2LOGIC_STATE:?Set NL2LOGIC_STATE}/inputs
+        target: /workspace/data/training_pairs
+        read_only: true
+        bind:
+          create_host_path: false
