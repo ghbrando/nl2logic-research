@@ -1,9 +1,9 @@
 # Isolated research on DGX Spark
 
-Status: rootless Docker and a small GPU allocation validated on `spark-87dc`.
-Both workers have separate `save-water` accounts and rootless daemons. Only
-`spark-87dc` has the research image built. The controller and both workers host
-inference processes; arrange capacity before a training run.
+Status: a one-epoch training smoke test and fresh-container checkpoint reload
+completed on `spark-87dc`. Both workers have separate `save-water` accounts and
+rootless daemons. Only `spark-87dc` has the research image built. Check active
+inference services and available capacity before longer runs.
 
 ## Isolation boundaries
 
@@ -50,13 +50,21 @@ NVIDIA DALI's packaging <=25 requirement. The base digest and added packages
 are pinned. Record the image ID and `/opt/nl2logic-packages.txt` for each build.
 
 On 2026-09-22, `spark-87dc` built image
-`sha256:c38a21a71c9689c31ea96d2f5afa4f549b75c50b0ce5c34d751910637f550053`
-(about 9.5 GB) from the pinned build inputs in repository revision `5d311cb`.
+`sha256:93c056f4bb9416eea1c678915b72958f326e1643836d4bf326ad2c2cffa55632`
+(about 9.5 GB) from the pinned build inputs in repository revision `1bc820a`.
 `pip check` passed;
 PyTorch `2.10.0a0+b558c986e8.nv25.11` with CUDA 13.0 returned 32.0 from a
 small GB10 tensor. Eleven training-module tests passed with scratch files in
 `/tmp`. The read-only source mount, writable output mount, 12 GiB memory limit,
-and 256 process limit were verified. No model training has been run yet.
+and 256 process limit were verified.
+
+The 27-record doctrine input produced 24 training and 3 validation pairs.
+One epoch completed 24 steps with validation loss 3.50087. The adapter was
+reloaded in a fresh GPU container and generated a response. Sample outputs did
+not compile as CNL, so this confirms the infrastructure path only. The run
+manifest, tokenizer, and adapter are under
+`/home/save-water/nl2logic-state/outputs/smoke-20260922-03` on `spark-87dc`
+and copied with matching hashes to the same path on the controller.
 
 ## Prepare on the chosen worker
 

@@ -1,5 +1,12 @@
 # DGX research handoff
 
+As of 2026-09-22, the current execution path is the rootless container setup
+in `docs/CONTAINER_RESEARCH.md`. A 27-record training smoke test completed on
+`spark-87dc`; the adapter reloaded successfully, but sample outputs did not
+compile as CNL. The checkpoint and run manifest are available on the worker
+and controller at `/home/save-water/nl2logic-state/outputs/smoke-20260922-03`.
+The conda/tmux launcher below predates the container setup.
+
 ## While hardware is being prepared
 
 The CPU pipeline defaults to source-only extraction. Review the proposed labels
