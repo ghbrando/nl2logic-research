@@ -4,11 +4,11 @@ ARG BASE_IMAGE=nvcr.io/nvidia/pytorch:25.11-py3
 FROM ${BASE_IMAGE}
 USER root
 WORKDIR /workspace
-COPY requirements.txt /tmp/project-requirements.txt
+COPY containers/requirements.txt /tmp/container-requirements.txt
 # Preserve the NVIDIA image's CUDA-enabled torch build during dependency resolution.
 RUN python -c "import torch; print('torch==' + torch.__version__)" > /tmp/torch-constraint.txt \
     && python -m pip install --no-cache-dir -c /tmp/torch-constraint.txt \
-       -r /tmp/project-requirements.txt sentencepiece \
+       -r /tmp/container-requirements.txt \
     && python -m pip check \
     && python -m pip freeze > /opt/nl2logic-packages.txt
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \

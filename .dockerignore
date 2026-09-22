@@ -1,4 +1,4 @@
 **
-!requirements.txt
 !containers/
 !containers/Dockerfile
+!containers/requirements.txt

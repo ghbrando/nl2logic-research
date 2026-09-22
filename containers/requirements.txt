@@ -1,0 +1,7 @@
+# The NVIDIA PyTorch image supplies CUDA-enabled torch, lark, packaging 25,
+# and pytest. Do not install the repo's packaging 26 pin: DALI requires <=25.
+transformers>=4.36,<5
+peft>=0.7,<1
+accelerate>=0.25,<2
+sentencepiece
+pynvml>=12

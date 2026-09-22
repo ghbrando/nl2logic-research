@@ -43,8 +43,10 @@ settings from the base file. Rootless GPU support and cgroup limits require
 separate validation on the chosen worker.
 
 The image starts from NVIDIA's Spark playbook PyTorch image and constrains pip
-to its installed torch version. Other dependencies currently follow repository
-bounds, so builds are not fully locked. Record the image ID and
+to its installed torch version. Container dependencies live in
+`containers/requirements.txt`; the repo's packaging 26 pin conflicts with
+NVIDIA DALI's packaging <=25 requirement. Other dependencies are not fully
+locked. Record the image ID and
 `/opt/nl2logic-packages.txt`; freeze versions and the base digest after validation.
 
 ## Prepare on the chosen worker
@@ -55,9 +57,9 @@ Run as `save-water`, from its separate repo checkout, with Docker access:
 export LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)"
 export NL2LOGIC_STATE="$HOME/nl2logic-state"
 mkdir -p "$NL2LOGIC_STATE/outputs" "$NL2LOGIC_STATE/cache"
-docker compose -f containers/compose.yaml config --quiet
-docker compose -f containers/compose.yaml build
-docker compose -f containers/compose.yaml run --rm research python -m pip check
+docker compose -f containers/compose.yaml -f containers/rootless.yaml config --quiet
+docker compose -f containers/compose.yaml -f containers/rootless.yaml build
+docker compose -f containers/compose.yaml -f containers/rootless.yaml run --rm research python -m pip check
 ```
 
 Keep these exports in the shell used for subsequent commands. Do not use the
@@ -66,7 +68,7 @@ existing conda/tmux launcher inside this container; invoke Python directly.
 Download the default model without GPU access, then use offline containers:
 
 ```bash
-docker compose -f containers/compose.yaml -f containers/download.yaml run --rm research python -c "from huggingface_hub import snapshot_download; snapshot_download('google/flan-t5-small')"
+docker compose -f containers/compose.yaml -f containers/rootless.yaml -f containers/download.yaml run --rm research python -c "from huggingface_hub import snapshot_download; snapshot_download('google/flan-t5-small')"
 ```
 
 After capacity is available, verify CUDA and a small allocation:
