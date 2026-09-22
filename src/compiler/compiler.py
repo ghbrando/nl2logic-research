@@ -103,11 +103,13 @@ class CNLToKIF(Transformer):
 
 class CNLCompiler:
 
-    def __init__(self):
+    def __init__(self, *, extra_classes: set[str] | None = None):
         grammar       = GRAMMAR_PATH.read_text(encoding="utf-8")
         self._parser  = Lark(grammar, parser="earley", ambiguity="resolve")
         self._tx      = CNLToKIF()
         self._classes, self._relations = self._load_vocab()
+        if extra_classes:
+            self._classes.update(extra_classes)
         self._relation_kinds = None
 
     def compile(

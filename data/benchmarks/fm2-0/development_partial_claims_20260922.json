@@ -1,0 +1,33 @@
+{
+  "purpose": "Exploratory development of source-entailed partial claims; not evaluation gold",
+  "source": {
+    "pdf_path": "src/data/ARMY FM_2-0.pdf",
+    "pdf_sha256": "1fa30a47ed8db31185ac0add9e13582f33ebbd092faddbd52c6eb408d7ccd52f",
+    "pages_path": "data/benchmarks/fm2-0/chapter1-2023-review/source_pages.jsonl",
+    "candidates_path": "data/benchmarks/fm2-0/chapter1-2023-review/candidates.jsonl"
+  },
+  "claims": [
+    {
+      "record_id": "fm2-0-2023-p37-1-93",
+      "doc_id": "fm2-0-2023",
+      "edition": "01 October 2023",
+      "page": "1-21",
+      "pdf_page": 37,
+      "paragraph": "1-93",
+      "source_span": "Biometrics is the process of recognizing an individual based on measurable anatomical, physiological, and behavioral characteristics (JP 2-0).",
+      "coverage": "partial",
+      "claim_text": "Biometrics, in its process sense, is a process.",
+      "declarations": ["(instance BiometricsProcess Class)"],
+      "cnl": "BiometricsProcess subclass-of Process",
+      "kif": "(subclass BiometricsProcess Process)",
+      "terms": ["BiometricsProcess", "Process"],
+      "status": "reviewed",
+      "reviewer_type": "ai",
+      "reviewed_by": "Codex",
+      "split": "development",
+      "entailment_rationale": "The cited sentence explicitly calls biometrics a process. The separate class name identifies only that process sense; the paragraph also uses biometrics for characteristics of an individual.",
+      "omitted_qualifiers": ["The recognition of an individual and the measurable anatomical, physiological, and behavioral characteristics that define the process are omitted. This claim must not be read as covering biometrics in its characteristics sense."],
+      "notes": "A deliberately minimal positive to exercise declaration/assertion separation. It is AI-reviewed development evidence, not an evaluation label or a training example."
+    }
+  ]
+}
