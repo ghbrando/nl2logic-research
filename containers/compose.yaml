@@ -6,7 +6,7 @@ services:
       context: ..
       dockerfile: containers/Dockerfile
       args:
-        BASE_IMAGE: ${NL2LOGIC_BASE_IMAGE:-nvcr.io/nvidia/pytorch:25.11-py3}
+        BASE_IMAGE: ${NL2LOGIC_BASE_IMAGE:-nvcr.io/nvidia/pytorch:25.11-py3@sha256:417cbf33f87b5378849df37983552cd1f8bc8b62fe1ceabe004de816a55dff21}
     user: "${LOCAL_UID:?Set LOCAL_UID}:${LOCAL_GID:?Set LOCAL_GID}"
     working_dir: /workspace
     read_only: true

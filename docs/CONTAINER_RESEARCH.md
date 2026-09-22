@@ -1,8 +1,9 @@
 # Isolated research on DGX Spark
 
-Status: configuration prepared; image build and GPU execution not yet validated.
-Use one worker first. The controller and both workers currently host inference
-processes. Arrange capacity before GPU work; these files do not stop services.
+Status: rootless Docker and a small GPU allocation validated on `spark-87dc`.
+Both workers have separate `save-water` accounts and rootless daemons. Only
+`spark-87dc` has the research image built. The controller and both workers host
+inference processes; arrange capacity before a training run.
 
 ## Isolation boundaries
 
@@ -45,9 +46,16 @@ separate validation on the chosen worker.
 The image starts from NVIDIA's Spark playbook PyTorch image and constrains pip
 to its installed torch version. Container dependencies live in
 `containers/requirements.txt`; the repo's packaging 26 pin conflicts with
-NVIDIA DALI's packaging <=25 requirement. Other dependencies are not fully
-locked. Record the image ID and
-`/opt/nl2logic-packages.txt`; freeze versions and the base digest after validation.
+NVIDIA DALI's packaging <=25 requirement. The base digest and added packages
+are pinned. Record the image ID and `/opt/nl2logic-packages.txt` for each build.
+
+On 2026-09-22, `spark-87dc` built image
+`sha256:c97390c632923357e32935ab77fe70494322268881876c62928df72c6567a1f8`
+(about 9.5 GB) from repository revision `cd48202`. `pip check` passed;
+PyTorch `2.10.0a0+b558c986e8.nv25.11` with CUDA 13.0 returned 32.0 from a
+small GB10 tensor. Eleven training-module tests passed with scratch files in
+`/tmp`. The read-only source mount, writable output mount, 12 GiB memory limit,
+and 256 process limit were verified. No model training has been run yet.
 
 ## Prepare on the chosen worker
 

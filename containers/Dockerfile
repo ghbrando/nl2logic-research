@@ -1,6 +1,6 @@
 # Spark-compatible starting point from NVIDIA's PyTorch fine-tuning playbook.
 # For a frozen experiment, override with a verified image digest.
-ARG BASE_IMAGE=nvcr.io/nvidia/pytorch:25.11-py3
+ARG BASE_IMAGE=nvcr.io/nvidia/pytorch:25.11-py3@sha256:417cbf33f87b5378849df37983552cd1f8bc8b62fe1ceabe004de816a55dff21
 FROM ${BASE_IMAGE}
 USER root
 WORKDIR /workspace
