@@ -55,6 +55,12 @@ def main() -> None:
             generated = model.generate(**encoded, max_new_tokens=64)
             cnls = [s.strip() for s in tokenizer.batch_decode(generated, skip_special_tokens=True)]
             for pair, cnl in zip(batch, cnls, strict=True):
+                expected_error = None
+                try:
+                    compiled_expected_kif = compiler.compile(pair.cnl, require_closed=True)
+                except Exception as exc:
+                    compiled_expected_kif = None
+                    expected_error = f"{type(exc).__name__}: {exc}"
                 error = None
                 try:
                     kif = compiler.compile(cnl, require_closed=True)
@@ -67,23 +73,34 @@ def main() -> None:
                     "nl": pair.nl, "pattern": pair.pattern,
                     "expected_cnl": pair.cnl, "generated_cnl": cnl,
                     "expected_kif": expected_kif, "generated_kif": kif,
+                    "expected_valid_cnl": compiled_expected_kif is not None,
+                    "expected_compile_error": expected_error,
                     "valid_cnl": valid, "exact_cnl": exact,
-                    "exact_kif": kif == expected_kif if expected_kif is not None else None,
+                    "exact_kif": kif == compiled_expected_kif if compiled_expected_kif is not None else None,
                     "compile_error": error,
                 }
                 output.write(json.dumps(row, ensure_ascii=False) + "\n")
                 counts["total"] += 1
                 p = patterns[pair.pattern or "unknown"]
                 p["total"] += 1
+                if compiled_expected_kif is not None:
+                    counts["expected_valid_cnl"] += 1
+                    p["expected_valid_cnl"] += 1
+                    if kif == compiled_expected_kif:
+                        counts["exact_kif_on_valid_targets"] += 1
+                        p["exact_kif_on_valid_targets"] += 1
+                else:
+                    counts["expected_invalid_cnl"] += 1
+                    p["expected_invalid_cnl"] += 1
+                    if exact:
+                        counts["copied_invalid_target"] += 1
+                        p["copied_invalid_target"] += 1
                 if valid:
                     counts["valid_cnl"] += 1
                     p["valid_cnl"] += 1
                 if exact:
                     counts["exact_cnl"] += 1
                     p["exact_cnl"] += 1
-                if expected_kif is not None and kif == expected_kif:
-                    counts["exact_kif"] += 1
-                    p["exact_kif"] += 1
     summary = {
         "interpretation": "Synthetic grouped validation split; not an independent doctrine test or semantic entailment check.",
         "train_file": str(args.train_file),
@@ -92,7 +109,9 @@ def main() -> None:
         "seed": args.seed, "loaded_pairs": len(pairs),
         "train_pairs": len(training), "validation_pairs": len(validation),
         "device": device, "counts": dict(counts),
-        "rates": {key: counts[key] / counts["total"] for key in ("valid_cnl", "exact_cnl", "exact_kif")},
+        "rates": {key: counts[key] / counts["total"] for key in ("expected_valid_cnl", "valid_cnl", "exact_cnl")}
+        | {"exact_kif_on_valid_targets": counts["exact_kif_on_valid_targets"] / counts["expected_valid_cnl"]
+           if counts["expected_valid_cnl"] else None},
         "by_pattern": {key: dict(value) for key, value in sorted(patterns.items())},
     }
     (args.output_dir / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
