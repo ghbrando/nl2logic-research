@@ -1,0 +1,75 @@
+{
+  "ontology_sha256": "bc8ce888735bd82f9b30998910ef247a39a722d0bdcecc0aa5ae006398680d89",
+  "candidate_sha256": "2d4544581f0607a01993e10880cc0b553d9bd2be67f0416e2e41b9617f673b57",
+  "selection": [
+    "1-67",
+    "1-73",
+    "1-4",
+    "1-42",
+    "1-7",
+    "1-13",
+    "1-6",
+    "1-8",
+    "1-93",
+    "1-104",
+    "1-38",
+    "1-51",
+    "1-54",
+    "1-70",
+    "1-115",
+    "1-98",
+    "1-75",
+    "1-79",
+    "1-88",
+    "1-106"
+  ],
+  "checks": [
+    {
+      "record_id": "fm2-0-2023-p33-1-67",
+      "proposed_cnl": "CITeam subclass-of CICapability\nBiometricCollectionEquipment subclass-of CICapability",
+      "compiled_kif": "(subclass CITeam CICapability)\n(subclass BiometricCollectionEquipment CICapability)",
+      "claims": [
+        {
+          "child": "CITeam",
+          "parent": "CICapability",
+          "already_asserted": false,
+          "already_reachable": false
+        },
+        {
+          "child": "BiometricCollectionEquipment",
+          "parent": "CICapability",
+          "already_asserted": false,
+          "already_reachable": false
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "record_id": "fm2-0-2023-p34-1-73",
+      "proposed_cnl": "HUMINTCollectionTeam subclass-of HUMINTCapability\nHUMINTOperationsCell subclass-of HUMINTCapability\nBiometricCollectionEquipment subclass-of HUMINTCapability",
+      "compiled_kif": "(subclass HUMINTCollectionTeam HUMINTCapability)\n(subclass HUMINTOperationsCell HUMINTCapability)\n(subclass BiometricCollectionEquipment HUMINTCapability)",
+      "claims": [
+        {
+          "child": "HUMINTCollectionTeam",
+          "parent": "HUMINTCapability",
+          "already_asserted": false,
+          "already_reachable": false
+        },
+        {
+          "child": "HUMINTOperationsCell",
+          "parent": "HUMINTCapability",
+          "already_asserted": false,
+          "already_reachable": false
+        },
+        {
+          "child": "BiometricCollectionEquipment",
+          "parent": "HUMINTCapability",
+          "already_asserted": false,
+          "already_reachable": false
+        }
+      ],
+      "status": "draft"
+    }
+  ],
+  "human_reviewed_rows": 0
+}

@@ -180,7 +180,7 @@ def test_grounder_accepts_doctrine_implied_parent_for_humint_definition():
             "(subclass HumanIntelligence IntelligenceDiscipline)\n",
             encoding="utf-8",
         )
-        grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=doctrine_kif)
+        grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=doctrine_kif, allow_background_axioms=True)
 
         assessment = grounder.assess(
             cnl="HumanIntelligence subclass-of IntelligenceDiscipline",
@@ -206,7 +206,7 @@ def test_grounder_accepts_doctrine_implied_parent_for_sigint_definition():
             "(subclass SignalsIntelligence IntelligenceDiscipline)\n",
             encoding="utf-8",
         )
-        grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=doctrine_kif)
+        grounder = DoctrineGrounder(classes_path=classes_path, relations_path=relations_path, doctrine_kif=doctrine_kif, allow_background_axioms=True)
 
         assessment = grounder.assess(
             cnl="SignalsIntelligence subclass-of IntelligenceDiscipline",

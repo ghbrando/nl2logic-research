@@ -32,6 +32,18 @@ prevalence in doctrine. Exact normalized matches to the three seed files and
 
 ## Review instructions
 
+Start with [review batch 01](REVIEW_BATCH_01.md) for a focused 20-row calibration
+pass. Its separate `review-batch-01.csv` keeps all annotation fields blank and
+all rows as drafts; machine suggestions are in separate columns. The first two
+proposals compile to five subclass edges absent from the doctrine assertions
+and their transitive closure, but these examples already informed rule
+development and are not a blind test. `review-batch-01-checks.json` records the
+source/ontology hashes and the technical checks, not human approval.
+
+To export explicitly reviewed rows from this batch, use the command below with
+`--annotations .../review-batch-01.csv` and a new output filename. Leaving a row
+as `draft` excludes it from the export. Original `review.csv` is unchanged.
+
 For each row in `review.csv`:
 
 1. Check the text, PDF page, paragraph, and context. If extraction needs repair,

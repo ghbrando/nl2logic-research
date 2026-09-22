@@ -1,5 +1,5 @@
 from pathlib import Path
-from lark import Lark, Transformer, v_args, Token
+from lark import Lark, Transformer, v_args, Token, Tree
 
 from src.ontology.vocab import load_closed_class_terms, load_closed_relation_terms
 
@@ -105,10 +105,27 @@ class CNLCompiler:
         self._tx      = CNLToKIF()
         self._classes, self._relations = self._load_vocab()
 
-    def compile(self, cnl: str) -> str:
+    def compile(self, cnl: str, *, require_closed: bool = False) -> str:
         tree = self._parser.parse(cnl.strip())
         self._validate(tree)
+        if require_closed:
+            free = self._free_variables(tree)
+            if free:
+                raise ValueError(f"Unbound variables: {', '.join(sorted(free))}")
         return self._tx.transform(tree)
+
+    @staticmethod
+    def _free_variables(node, bound=frozenset()) -> set[str]:
+        """Track lexical scope; bindings never leak into sibling sentences."""
+        if isinstance(node, Token):
+            return {str(node)} if node.type == "VAR" and str(node) not in bound else set()
+        if not isinstance(node, Tree):
+            return set()
+        children = node.children
+        if node.data in {"every", "some", "no"}:
+            bound = bound | {str(children[0])}
+            children = children[1:]
+        return set().union(*(CNLCompiler._free_variables(child, bound) for child in children))
 
     # ── Vocab validation ───────────────────────────────────────────────────
 

@@ -1,0 +1,38 @@
+{
+  "status": "blocked",
+  "background_policy": "source-only",
+  "blockers": [
+    "No eligible reviewed positive targets beyond direct ontology restatements."
+  ],
+  "counts": {
+    "records": 15,
+    "reviewed_test": 15,
+    "eligible": 15,
+    "positive": 4,
+    "beyond_direct_restatements": 0
+  },
+  "training_text_overlap": {},
+  "scope_errors": {},
+  "benchmark_files": [
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\data\\benchmarks\\fm2-0\\seed_positive.jsonl",
+      "sha256": "8b4861554a7325f30225ce735b9dce1e25b4edb69e2b7fe527ce606620e61954"
+    },
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\data\\benchmarks\\fm2-0\\seed_abstain.jsonl",
+      "sha256": "18ce2771f9264789daea8b76e45ad9b47f8d38d2ac295e89547550d5bbda5cda"
+    }
+  ],
+  "training_files": [
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\data\\training_pairs\\doctrine_real_train.jsonl",
+      "sha256": "565bbc17948a89361b90c6bb04628d6ee57e7e7221a894141c37dcc077a5aec7"
+    }
+  ],
+  "limitations": [
+    "Novelty check covers direct subclass restatements only, not logical entailment.",
+    "Exact-text checks do not detect paraphrase or document leakage.",
+    "Human label quality, sample size and blind split independence need separate review.",
+    "No model execution or hardware validation is performed."
+  ]
+}

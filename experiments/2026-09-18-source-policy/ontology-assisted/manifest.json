@@ -1,0 +1,86 @@
+{
+  "benchmark_files": [
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\data\\benchmarks\\fm2-0\\seed_positive.jsonl",
+      "sha256": "8b4861554a7325f30225ce735b9dce1e25b4edb69e2b7fe527ce606620e61954"
+    },
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\data\\benchmarks\\fm2-0\\seed_abstain.jsonl",
+      "sha256": "18ce2771f9264789daea8b76e45ad9b47f8d38d2ac295e89547550d5bbda5cda"
+    }
+  ],
+  "training_files": [
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\data\\training_pairs\\doctrine_real_train.jsonl",
+      "sha256": "565bbc17948a89361b90c6bb04628d6ee57e7e7221a894141c37dcc077a5aec7"
+    }
+  ],
+  "training_text_overlap": {},
+  "leakage_check": "normalized_exact_text_only",
+  "code": [
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\src\\eval\\comparison.py",
+      "sha256": "12fa1ea27da21677d0691e96b90497d508cd1e25299f1a11ba53ed98d2d5f98e"
+    },
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\src\\eval\\comparison_predictors.py",
+      "sha256": "2e1001cdeb1dc0770ab1e7331cf78fcfe4cab53ccc243d16a93528708edc639b"
+    },
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\src\\fsm\\cnl_fsm.py",
+      "sha256": "e383791de04e5c89e37e50985cfb175626fdf4a4e041f31e9b021cf420a209d0"
+    },
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\src\\ingest\\grounding.py",
+      "sha256": "232ac9c69607e7c9d9743650b190348e76e1d30eb982ef55ea83dab4c3d3e235"
+    },
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\src\\compiler\\compiler.py",
+      "sha256": "e4d354a979e3a0c402d8bc3d812bcea1b22ac03f181a34334e68a6551f9154aa"
+    },
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\src\\compiler\\cnl.lark",
+      "sha256": "924b79b700371d95ec183e333347d7c936bb85dd618c52792bed3ef8127f3a74"
+    },
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\src\\ontology\\vocab.py",
+      "sha256": "6039daf7e8358caf5b06fb255419f0bb4b54efb250aa04fab88e9c4f14742962"
+    }
+  ],
+  "knowledge": [
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\data\\training_pairs\\sumo_classes.jsonl",
+      "sha256": "f82124772ec842d902f626530feb891e8991336a3bc37753c8df2eea5cd88bed"
+    },
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\data\\training_pairs\\sumo_relations.jsonl",
+      "sha256": "d1a7bb3aec5ad0027305e4a17a5d2ed9423272a38d625fa5f80c19bed979c1f2"
+    },
+    {
+      "path": "C:\\CBU\\Projects\\nl2logic-research\\data\\ontology\\doctrine_domain.kif",
+      "sha256": "bc8ce888735bd82f9b30998910ef247a39a722d0bdcecc0aa5ae006398680d89"
+    }
+  ],
+  "python": "3.14.0",
+  "packages": {
+    "lark": "1.3.1",
+    "torch": null,
+    "transformers": null,
+    "peft": null
+  },
+  "model_path": null,
+  "methods": [
+    "rules"
+  ],
+  "max_tokens": 200,
+  "generation": {
+    "num_beams": 4,
+    "length_penalty": 1.15,
+    "do_sample": false,
+    "early_stopping": true,
+    "renormalize_logits": true
+  },
+  "protocol": "Original passage -> shared unsupported-input gate -> predictor -> shared compiler -> shared grounding. No normalization/decomposition.",
+  "background_policy": "ontology-assisted",
+  "interpretation": "Diagnostic benchmark, not a blind held-out test. Source-only disables implied ontology parents; lexical grounding is not entailment verification. Drafts never contribute to scored metrics."
+}

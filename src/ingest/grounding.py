@@ -187,6 +187,7 @@ class DoctrineGrounder:
         classes_path: Path = _CLASSES_PATH,
         relations_path: Path = _RELATIONS_PATH,
         doctrine_kif: Path | None = _DOCTRINE_KIF_PATH,
+        allow_background_axioms: bool = False,
     ) -> None:
         """
         Parameters
@@ -203,7 +204,11 @@ class DoctrineGrounder:
         """
         self._classes = load_closed_class_terms(classes_path, doctrine_kif)
         self._relations = set(load_closed_relation_terms(relations_path, doctrine_kif).keys())
-        self._doctrine_subclass_pairs = load_doctrine_subclass_pairs(doctrine_kif) if doctrine_kif is not None else {}
+        # Vocabulary remains available; background edges are not source evidence.
+        self._doctrine_subclass_pairs = (
+            load_doctrine_subclass_pairs(doctrine_kif)
+            if allow_background_axioms and doctrine_kif is not None else {}
+        )
         self._class_aliases = self._build_class_aliases()
 
     @staticmethod

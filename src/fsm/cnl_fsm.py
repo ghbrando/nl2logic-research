@@ -479,7 +479,9 @@ class CNLSampler:
         *,
         grammar_str: str | None = None,
         confidence_threshold: float = 0.7,
+        allow_background_axioms: bool = False,
     ):
+        self._allow_background_axioms = allow_background_axioms
         self._hf_model = hf_model
         self._tokenizer = tokenizer
         self._grammar = grammar_str if grammar_str is not None else build_xgrammar_grammar()
@@ -733,6 +735,8 @@ class CNLSampler:
         )
 
     def _infer_doctrine_subclass_plan(self, text: str) -> _PromptConstraintPlan | None:
+        if not self._allow_background_axioms:
+            return None
         if self._supports_existential_prompt(text, ()):
             return None
         if self._supports_conditional_prompt(text) or self._supports_negation_prompt(text) or self._supports_nary_prompt(text):

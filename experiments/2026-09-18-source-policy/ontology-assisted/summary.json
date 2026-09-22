@@ -1,0 +1,71 @@
+{
+  "requested_runs_complete": true,
+  "methods": {
+    "rules": {
+      "status": "completed",
+      "metrics": {
+        "total": 15,
+        "scored": 15,
+        "unscored": 0,
+        "routes_all": {
+          "accepted": 3,
+          "review": 1,
+          "abstain": 11
+        },
+        "routes_scored": {
+          "accepted": 3,
+          "review": 1,
+          "abstain": 11
+        },
+        "accepted_exact_matches": 3,
+        "accepted_exact_precision": 1.0,
+        "accepted_coverage": 0.2,
+        "correct_accepted_positive_coverage": 0.75,
+        "abstention_accuracy": 1.0,
+        "false_accepts_on_abstain_gold": 0,
+        "accepted_mismatches_needing_adjudication": 0,
+        "accepted_restating_ontology": 3,
+        "accepted_novel": 0,
+        "accepted_novel_coverage": 0.0,
+        "accepted_restating_ontology_all": 3,
+        "review_queue_size": 1,
+        "human_review_seconds": null,
+        "total_latency_seconds": 0.2879395002964884,
+        "metric_limit": "Exact KIF agreement is a proxy, not semantic precision. Review count is workload, not measured human effort. Accepted coverage includes claims the doctrine ontology already asserts; accepted_novel_coverage excludes them and is the figure to compare methods on."
+      },
+      "by_document": {
+        "fm2-0": {
+          "total": 15,
+          "scored": 15,
+          "unscored": 0,
+          "routes_all": {
+            "accepted": 3,
+            "review": 1,
+            "abstain": 11
+          },
+          "routes_scored": {
+            "accepted": 3,
+            "review": 1,
+            "abstain": 11
+          },
+          "accepted_exact_matches": 3,
+          "accepted_exact_precision": 1.0,
+          "accepted_coverage": 0.2,
+          "correct_accepted_positive_coverage": 0.75,
+          "abstention_accuracy": 1.0,
+          "false_accepts_on_abstain_gold": 0,
+          "accepted_mismatches_needing_adjudication": 0,
+          "accepted_restating_ontology": 3,
+          "accepted_novel": 0,
+          "accepted_novel_coverage": 0.0,
+          "accepted_restating_ontology_all": 3,
+          "review_queue_size": 1,
+          "human_review_seconds": null,
+          "total_latency_seconds": 0.2879395002964884,
+          "metric_limit": "Exact KIF agreement is a proxy, not semantic precision. Review count is workload, not measured human effort. Accepted coverage includes claims the doctrine ontology already asserts; accepted_novel_coverage excludes them and is the figure to compare methods on."
+        }
+      },
+      "by_phenomenon": {}
+    }
+  }
+}

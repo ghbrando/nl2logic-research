@@ -11,8 +11,8 @@ class RulesPredictor:
     This deliberately excludes the decoder's combinatorial fallback grammar.
     Doctrine parent mappings are shared background knowledge, not learned facts.
     """
-    def __init__(self):
-        self.router = CNLSampler(None, None)
+    def __init__(self, *, allow_background_axioms: bool = False):
+        self.router = CNLSampler(None, None, allow_background_axioms=allow_background_axioms)
 
     def __call__(self, nl: str) -> str | None:
         prompt = format_prompt(nl)
@@ -45,10 +45,11 @@ class RulesPredictor:
 
 
 class Seq2SeqPredictor:
-    def __init__(self, model, tokenizer, *, constrained: bool, max_tokens: int = 200):
+    def __init__(self, model, tokenizer, *, constrained: bool, max_tokens: int = 200,
+                 allow_background_axioms: bool = False):
         self.model, self.tokenizer = model, tokenizer
         self.constrained, self.max_tokens = constrained, max_tokens
-        self.sampler = CNLSampler(model, tokenizer)
+        self.sampler = CNLSampler(model, tokenizer, allow_background_axioms=allow_background_axioms)
 
     def __call__(self, nl: str) -> str | None:
         prompt = format_prompt(nl)

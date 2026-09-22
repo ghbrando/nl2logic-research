@@ -501,7 +501,7 @@ class TestPrefixConstraintStructure:
 class TestPromptAwareConstraints:
 
     def test_infers_doctrine_subclass_plan_from_definition_prompt(self, monkeypatch):
-        sampler = CNLSampler(MagicMock(), MagicMock())
+        sampler = CNLSampler(MagicMock(), MagicMock(), allow_background_axioms=True)
 
         def fake_load_terms(path, key="term"):
             path_str = str(path)
@@ -531,7 +531,7 @@ class TestPromptAwareConstraints:
         tokenizer = PrefixConstraintTokenizer()
         model = MagicMock()
         model.config.decoder_start_token_id = None
-        sampler = CNLSampler(model, tokenizer)
+        sampler = CNLSampler(model, tokenizer, allow_background_axioms=True)
 
         def fake_load_terms(path, key="term"):
             path_str = str(path)

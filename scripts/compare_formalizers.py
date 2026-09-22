@@ -16,6 +16,7 @@ if str(ROOT) not in sys.path:
 from src.eval.comparison import evaluate_method, fingerprint, read_benchmark, summarize, training_overlap
 from src.eval.comparison_predictors import RulesPredictor, Seq2SeqPredictor
 from src.eval.model_predictor import load_model_and_tokenizer
+from src.ingest.grounding import DoctrineGrounder
 from src.fsm.cnl_fsm import _DEFAULT_CONSTRAINED_NUM_BEAMS, _DEFAULT_CONSTRAINED_LENGTH_PENALTY
 
 
@@ -34,8 +35,11 @@ def main(argv=None) -> int:
     parser.add_argument("--model-path", type=Path, help="Same checkpoint for both model arms; no oracle fallback")
     parser.add_argument("--training-data", type=Path, action="append", help="Repeat for actual checkpoint training files; overlapping texts are unscored")
     parser.add_argument("--max-tokens", type=int, default=200)
+    parser.add_argument("--background-policy", choices=["source-only", "ontology-assisted"],
+                        default="source-only", help="Ontology-assisted is a diagnostic legacy baseline")
     parser.add_argument("--output-dir", type=Path)
     args = parser.parse_args(argv)
+    allow_background = args.background_policy == "ontology-assisted"
     if args.max_tokens <= 0:
         parser.error("--max-tokens must be positive")
     directory = ROOT / "data/benchmarks/fm2-0"
@@ -73,7 +77,8 @@ def main(argv=None) -> int:
                        "length_penalty": _DEFAULT_CONSTRAINED_LENGTH_PENALTY,
                        "do_sample": False, "early_stopping": True, "renormalize_logits": True},
         "protocol": "Original passage -> shared unsupported-input gate -> predictor -> shared compiler -> shared grounding. No normalization/decomposition.",
-        "interpretation": "Diagnostic benchmark, not a blind held-out test. Rules and grounding share existing ontology mappings; drafts never contribute to scored metrics.",
+        "background_policy": args.background_policy,
+        "interpretation": "Diagnostic benchmark, not a blind held-out test. Source-only disables implied ontology parents; lexical grounding is not entailment verification. Drafts never contribute to scored metrics.",
     }
     if args.model_path and args.model_path.is_dir():
         manifest["checkpoint_files"] = [fingerprint(p) for p in sorted(args.model_path.rglob("*")) if p.is_file()]
@@ -82,7 +87,7 @@ def main(argv=None) -> int:
     predictors = {}
     unavailable = {}
     if "rules" in args.methods:
-        predictors["rules"] = RulesPredictor()
+        predictors["rules"] = RulesPredictor(allow_background_axioms=allow_background)
     requested_models = [m for m in dict.fromkeys(args.methods) if m != "rules"]
     if requested_models:
         try:
@@ -92,7 +97,7 @@ def main(argv=None) -> int:
             if hasattr(model, "generation_config"):
                 model.generation_config.do_sample = False
             for method in requested_models:
-                predictors[method] = Seq2SeqPredictor(model, tokenizer, constrained=method == "constrained", max_tokens=args.max_tokens)
+                predictors[method] = Seq2SeqPredictor(model, tokenizer, constrained=method == "constrained", max_tokens=args.max_tokens, allow_background_axioms=allow_background)
         except Exception as exc:
             unavailable = {method: f"{type(exc).__name__}: {exc}" for method in requested_models}
     reports, review_queue = {}, []
@@ -100,7 +105,8 @@ def main(argv=None) -> int:
         if method in unavailable:
             reports[method] = {"status": "unavailable", "reason": unavailable[method], "metrics": None}
             continue
-        results = evaluate_method(records, predictors[method], overlaps=overlaps)
+        results = evaluate_method(records, predictors[method], overlaps=overlaps,
+                                  grounder=DoctrineGrounder(allow_background_axioms=allow_background))
         write_jsonl(output / f"{method}.jsonl", results)
         status = "completed_with_errors" if any(r["route"] == "error" for r in results) else "completed"
         reports[method] = {

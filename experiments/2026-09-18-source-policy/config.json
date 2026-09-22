@@ -1,0 +1,9 @@
+{
+  "purpose": "CPU diagnostic of source-only versus legacy ontology-assisted extraction; not a held-out research result",
+  "working_directory": "repository root",
+  "commands": [
+    {"argv": ["scripts/research_preflight.py", "--benchmark", "data/benchmarks/fm2-0/seed_positive.jsonl", "--benchmark", "data/benchmarks/fm2-0/seed_abstain.jsonl", "--training-data", "data/training_pairs/doctrine_real_train.jsonl", "--output", "experiments/2026-09-18-source-policy/results.json"], "expected_exit": 2},
+    {"argv": ["scripts/compare_formalizers.py", "--methods", "rules", "--background-policy", "source-only", "--training-data", "data/training_pairs/doctrine_real_train.jsonl", "--output-dir", "experiments/2026-09-18-source-policy/source-only"], "expected_exit": 0},
+    {"argv": ["scripts/compare_formalizers.py", "--methods", "rules", "--background-policy", "ontology-assisted", "--training-data", "data/training_pairs/doctrine_real_train.jsonl", "--output-dir", "experiments/2026-09-18-source-policy/ontology-assisted"], "expected_exit": 0}
+  ]
+}
