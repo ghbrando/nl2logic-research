@@ -50,8 +50,9 @@ NVIDIA DALI's packaging <=25 requirement. The base digest and added packages
 are pinned. Record the image ID and `/opt/nl2logic-packages.txt` for each build.
 
 On 2026-09-22, `spark-87dc` built image
-`sha256:c97390c632923357e32935ab77fe70494322268881876c62928df72c6567a1f8`
-(about 9.5 GB) from repository revision `cd48202`. `pip check` passed;
+`sha256:c38a21a71c9689c31ea96d2f5afa4f549b75c50b0ce5c34d751910637f550053`
+(about 9.5 GB) from the pinned build inputs in repository revision `5d311cb`.
+`pip check` passed;
 PyTorch `2.10.0a0+b558c986e8.nv25.11` with CUDA 13.0 returned 32.0 from a
 small GB10 tensor. Eleven training-module tests passed with scratch files in
 `/tmp`. The read-only source mount, writable output mount, 12 GiB memory limit,
