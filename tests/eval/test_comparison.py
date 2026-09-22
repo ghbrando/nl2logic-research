@@ -205,6 +205,9 @@ def test_review_export_requires_explicit_review_and_preserves_source():
     result = finalize([row(status="draft")], [annotation()])[0]
     assert result["kif"] == "(subclass Weapon Artifact)"
     assert result["reviewed_by"] == "test-reviewer"
+    assert result["reviewer_type"] == "unspecified"
+    ai_result = finalize([row(status="draft")], [annotation(reviewer_type="ai")])[0]
+    assert ai_result["reviewer_type"] == "ai"
 
 
 @pytest.mark.parametrize("changes", [{"reviewed_by": ""}, {"formalizable": ""}, {"nl": "changed"}, {"review_seconds": "nan"}, {"cnl": "not valid syntax"}])

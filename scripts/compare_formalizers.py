@@ -68,6 +68,8 @@ def main(argv=None) -> int:
         "benchmark_files": [fingerprint(p) for p in paths],
         "training_files": [fingerprint(p) for p in training_paths],
         "training_text_overlap": overlaps,
+        "reviewer_type_counts": {kind: sum(r.get("reviewer_type", "unspecified") == kind for r in records)
+                                 for kind in sorted({r.get("reviewer_type", "unspecified") for r in records})},
         "leakage_check": "normalized_exact_text_only" if training_paths else "not_checked_training_files_not_supplied",
         "code": [fingerprint(p) for p in code_paths], "knowledge": [fingerprint(p) for p in knowledge_paths],
         "python": platform.python_version(), "packages": packages,
@@ -78,7 +80,7 @@ def main(argv=None) -> int:
                        "do_sample": False, "early_stopping": True, "renormalize_logits": True},
         "protocol": "Original passage -> shared unsupported-input gate -> predictor -> shared compiler -> shared grounding. No normalization/decomposition.",
         "background_policy": args.background_policy,
-        "interpretation": "Diagnostic benchmark, not a blind held-out test. Source-only disables implied ontology parents; lexical grounding is not entailment verification. Drafts never contribute to scored metrics.",
+        "interpretation": "Diagnostic benchmark, not a blind held-out test. Source-only disables implied ontology parents; lexical grounding is not entailment verification. Drafts never contribute to scored metrics. AI-reviewed labels remain exploratory until independently validated by a human.",
     }
     if args.model_path and args.model_path.is_dir():
         manifest["checkpoint_files"] = [fingerprint(p) for p in sorted(args.model_path.rglob("*")) if p.is_file()]

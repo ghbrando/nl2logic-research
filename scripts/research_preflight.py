@@ -24,6 +24,7 @@ def assess(paths: list[Path], training_paths: list[Path]) -> dict:
     reviewed = [r for r in records if r["status"] in {"reviewed", "accepted"}
                 and r.get("split") != "train"]
     eligible = [r for r in reviewed if r["record_id"] not in overlap]
+    ai_reviewed = [r for r in eligible if r.get("reviewer_type") == "ai"]
     positive = [r for r in eligible if r["formalizable"]]
     novel = [r for r in positive if not restates_ontology(r["kif"])]
     scope_errors = {}
@@ -38,6 +39,8 @@ def assess(paths: list[Path], training_paths: list[Path]) -> dict:
         blockers.append("Actual training files must be supplied for overlap checking.")
     if overlap:
         blockers.append("Resolve training/benchmark exact-text overlap before freezing the study.")
+    if ai_reviewed:
+        blockers.append("AI-reviewed labels require independent human validation for a confirmatory study.")
     if not novel:
         blockers.append("No eligible reviewed positive targets beyond direct ontology restatements.")
     if not any(not r["formalizable"] for r in eligible):
@@ -49,7 +52,8 @@ def assess(paths: list[Path], training_paths: list[Path]) -> dict:
         "background_policy": "source-only", "blockers": blockers,
         "counts": {"records": len(records), "reviewed_test": len(reviewed),
                    "eligible": len(eligible), "positive": len(positive),
-                   "beyond_direct_restatements": len(novel)},
+                   "beyond_direct_restatements": len(novel),
+                   "ai_reviewed": len(ai_reviewed)},
         "training_text_overlap": overlap, "scope_errors": scope_errors,
         "benchmark_files": [fingerprint(p) for p in paths],
         "training_files": [fingerprint(p) for p in training_paths],

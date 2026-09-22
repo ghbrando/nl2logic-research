@@ -34,6 +34,9 @@ def finalize(candidates: list[dict], annotations: list[dict], compiler=None) -> 
             raise ValueError(f"{rid}: source text changed; revise/version the candidate before annotation")
         if not (annotation.get("reviewed_by") or "").strip():
             raise ValueError(f"{rid}: reviewed_by is required")
+        reviewer_type = (annotation.get("reviewer_type") or "unspecified").strip().lower()
+        if reviewer_type not in {"human", "ai", "unspecified"}:
+            raise ValueError(f"{rid}: reviewer_type must be human, ai, or unspecified")
         label = (annotation.get("formalizable") or "").strip().lower()
         if label not in {"true", "false"}:
             raise ValueError(f"{rid}: formalizable must be true or false")
@@ -57,7 +60,8 @@ def finalize(candidates: list[dict], annotations: list[dict], compiler=None) -> 
         gold.append({**source, "formalizable": label == "true", "cnl": cnl, "kif": kif,
                      "terms": extract_cnl_terms(cnl)[2] if cnl else [],
                      "pattern": pattern, "status": "reviewed", "split": "eval",
-                     "reviewed_by": annotation["reviewed_by"].strip(), "review_seconds": seconds,
+                     "reviewed_by": annotation["reviewed_by"].strip(),
+                     "reviewer_type": reviewer_type, "review_seconds": seconds,
                      "notes": annotation.get("notes", "")})
     return gold
 

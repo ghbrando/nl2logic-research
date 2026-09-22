@@ -71,3 +71,23 @@ def test_preflight_pass_and_training_overlap(tmp_path):
     assert report["status"] == "blocked"
     assert "positive" in report["training_text_overlap"]
     assert report["counts"]["beyond_direct_restatements"] == 0
+
+
+def test_ai_review_remains_exploratory_in_preflight(tmp_path):
+    benchmark = tmp_path / "benchmark.jsonl"
+    training = tmp_path / "training.jsonl"
+    records = [
+        {"record_id": "positive", "doc_id": "reserved", "status": "reviewed",
+         "nl": "Counterintelligence capabilities consist of CI teams.",
+         "formalizable": True, "cnl": "CITeam subclass-of CICapability",
+         "kif": "(subclass CITeam CICapability)", "reviewer_type": "ai"},
+        {"record_id": "negative", "doc_id": "reserved", "status": "reviewed",
+         "nl": "An unsupported passage.", "formalizable": False,
+         "cnl": None, "kif": None, "reviewer_type": "ai"},
+    ]
+    benchmark.write_text("\n".join(json.dumps(r) for r in records))
+    training.write_text(json.dumps({"nl": "Unrelated training source."}))
+    report = assess([benchmark], [training])
+    assert report["status"] == "blocked"
+    assert report["counts"]["ai_reviewed"] == 2
+    assert any("AI-reviewed labels" in reason for reason in report["blockers"])
