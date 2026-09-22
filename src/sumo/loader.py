@@ -3,7 +3,7 @@ extract_sumo.py — Unified SUMO term extractor for NL2Logic pipeline.
 
 Single-pass extraction over all .kif files, producing:
   - sumo_classes.jsonl    : {"term": "Process", "doc": "..."}
-  - sumo_relations.jsonl  : {"term": "agent", "arity": 2, "signature": {"1": "Process", "2": "Agent"}, "doc": "..."}
+  - sumo_relations.jsonl  : {"term": "agent", "arity": 2, "signature": {"1": "Process", "2": "Agent"}, "signature_kinds": {"1": "instance", "2": "instance"}, "doc": "..."}
 
 Usage:
     python extract_sumo.py --kif-dir data/sumo --output-dir data/sumo
@@ -64,14 +64,14 @@ RE_INSTANCE_REL = re.compile(
 )
 
 # Relations via domainSubclass: (domainSubclass relName argNum ClassName)
-# Same arity/signature logic as domain; the subclass constraint is recorded in the signature.
+# Same arity logic as domain; signature_kinds retains the class/instance distinction.
 RE_DOMAIN_SUBCLASS = re.compile(
     r'^\s*\(\s*domainSubclass\s+([a-z][A-Za-z0-9_-]*)\s+(\d+)\s+([A-Z][A-Za-z0-9_-]*)\s*\)',
     re.MULTILINE,
 )
 
 # Relations via rangeSubclass: (rangeSubclass relName ClassName)
-# Same logic as range; the subclass constraint is recorded in the signature.
+# Same logic as range; signature_kinds retains the class/instance distinction.
 RE_RANGE_SUBCLASS = re.compile(
     r'^\s*\(\s*rangeSubclass\s+([a-z][A-Za-z0-9_-]*)\s+([A-Z][A-Za-z0-9_-]*)\s*\)',
     re.MULTILINE,
@@ -101,7 +101,7 @@ RE_DOC_GREEDY = re.compile(
 def _ensure_relation(relations: dict, rel_name: str) -> dict:
     """Return the relation record, creating it if absent."""
     if rel_name not in relations:
-        relations[rel_name] = {"term": rel_name, "signature": {}}
+        relations[rel_name] = {"term": rel_name, "signature": {}, "signature_kinds": {}}
     return relations[rel_name]
 
 
@@ -151,6 +151,7 @@ def extract_from_file(
         arg_type = m.group(3)
         rec = _ensure_relation(relations, rel_name)
         rec["signature"][arg_num] = arg_type
+        rec["signature_kinds"][arg_num] = "instance"
         _update_arity(rec, arg_num)
 
     # --- Relations from domainSubclass statements (same arity logic as domain) ---
@@ -162,6 +163,7 @@ def extract_from_file(
         # Only fill signature slot if not already set by a domain statement
         if arg_num not in rec["signature"]:
             rec["signature"][arg_num] = arg_type
+            rec["signature_kinds"][arg_num] = "subclass"
         _update_arity(rec, arg_num)
 
     # --- Relations from range statements ---
@@ -170,6 +172,7 @@ def extract_from_file(
         arg_type = m.group(2)
         rec = _ensure_relation(relations, rel_name)
         rec["signature"]["range"] = arg_type
+        rec["signature_kinds"]["range"] = "instance"
 
     # --- Relations from rangeSubclass statements (same logic as range) ---
     for m in RE_RANGE_SUBCLASS.finditer(text):
@@ -178,6 +181,7 @@ def extract_from_file(
         rec = _ensure_relation(relations, rel_name)
         if "range" not in rec["signature"]:
             rec["signature"]["range"] = arg_type
+            rec["signature_kinds"]["range"] = "subclass"
 
     # --- Relations from subrelation statements ---
     # Register child as a relation now; arity is resolved in the post-pass.
@@ -250,6 +254,9 @@ def write_relations(relations: dict, docs: dict, output_path: str) -> int:
             # Normalize signature keys to strings for JSON
             record["signature"] = {
                 str(k): v for k, v in record["signature"].items()
+            }
+            record["signature_kinds"] = {
+                str(k): v for k, v in record["signature_kinds"].items()
             }
             if term in docs:
                 record["doc"] = docs[term]
