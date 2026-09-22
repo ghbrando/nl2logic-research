@@ -1,0 +1,5 @@
+# NVIDIA CDI works with the per-user rootless Docker daemon on DGX Spark.
+services:
+  research:
+    devices:
+      - nvidia.com/gpu=0

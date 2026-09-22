@@ -24,16 +24,19 @@ processes. Arrange capacity before GPU work; these files do not stop services.
 ## Host prerequisites
 
 Docker Engine with Compose and NVIDIA Container Toolkit on an ARM64 Spark.
-Use `ssh shared-dev` as `save-water` for controller access. Worker operations
-require an authorized `save-water` login; do not use shared accounts or
-credentials from cluster documentation. If worker login is unavailable, defer
-worker builds and tests until that access is provisioned.
+Use `ssh shared-dev` as `save-water` for controller access and a separate
+`save-water` login for research work on the workers. The `kip` account is only
+for administrator provisioning of that account, as authorized by the user.
 The controller's `save-water` account currently cannot access the Docker socket.
 Prefer administrator-managed launches or an administrator-reviewed rootless GPU
 setup. Docker group membership provides root-level host privileges; running the
 container as a non-root UID does not remove that privilege from Docker clients.
 Do not change shared daemon/runtime settings as part of a project launch.
 With rootless Docker, add `-f containers/rootless.yaml` to every Compose command.
+For GPU runs, also add `-f containers/gpu-rootless.yaml` in place of
+`containers/gpu.yaml`; the former uses NVIDIA CDI. Generate the CDI spec in
+`~/.config/cdi/nvidia.yaml` using `nvidia-ctk cdi generate`, and validate a
+small container with `--device nvidia.com/gpu=0` before a research image build.
 Container UID 0 maps to `save-water` on the host, so it can write to the project
 state directories without granting host root access. Keep the other isolation
 settings from the base file. Rootless GPU support and cgroup limits require
@@ -69,13 +72,13 @@ docker compose -f containers/compose.yaml -f containers/download.yaml run --rm r
 After capacity is available, verify CUDA and a small allocation:
 
 ```bash
-docker compose -f containers/compose.yaml -f containers/gpu.yaml run --rm research python -c "import torch; print(torch.__version__, torch.version.cuda); assert torch.cuda.is_available(); print(torch.cuda.get_device_name(0)); print(torch.ones(32, device='cuda').sum().item())"
+docker compose -f containers/compose.yaml -f containers/rootless.yaml -f containers/gpu-rootless.yaml run --rm research python -c "import torch; print(torch.__version__, torch.version.cuda); assert torch.cuda.is_available(); print(torch.cuda.get_device_name(0)); print(torch.ones(32, device='cuda').sum().item())"
 ```
 
 Run a small training job with an explicitly chosen input and unique output path:
 
 ```bash
-docker compose -f containers/compose.yaml -f containers/gpu.yaml run --rm -e HF_HUB_OFFLINE=1 research python src/training/train.py --train-file /workspace/data/training_pairs/doctrine_real_train.jsonl --output-dir /outputs/smoke-001 --epochs 1 --batch-size 1 --limit 32
+docker compose -f containers/compose.yaml -f containers/rootless.yaml -f containers/gpu-rootless.yaml run --rm -e HF_HUB_OFFLINE=1 research python src/training/train.py --train-file /workspace/data/training_pairs/doctrine_real_train.jsonl --output-dir /outputs/smoke-001 --epochs 1 --batch-size 1 --limit 32
 ```
 
 This checks infrastructure, not research validity. Freeze reviewed evaluation
