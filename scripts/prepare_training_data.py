@@ -31,7 +31,7 @@ from src.data.generate_pairs import (
     load_relations,
 )
 from src.eval.evaluate import DEFAULT_GOLD_PATH
-from src.ontology.vocab import load_doctrine_class_terms
+from src.ontology.vocab import load_doctrine_class_terms, load_relation_signature_kinds
 from src.training.train import PATTERN_COVERAGE_SENTENCES
 
 DEFAULT_LIMIT = 50_000
@@ -87,13 +87,16 @@ class PreparationResult:
 
 
 class _ClosedTargetCompiler:
-    """Make generator-level validation reject free variables before paraphrasing."""
+    """Reject free variables and, when requested, invalid relation argument kinds."""
 
-    def __init__(self, compiler: CNLCompiler):
+    def __init__(self, compiler: CNLCompiler, *, require_argument_kinds: bool = False):
         self._compiler = compiler
+        self._require_argument_kinds = require_argument_kinds
 
     def compile(self, cnl: str) -> str:
-        return self._compiler.compile(cnl, require_closed=True)
+        return self._compiler.compile(
+            cnl, require_closed=True, require_argument_kinds=self._require_argument_kinds
+        )
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -137,6 +140,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Legacy diagnostic only: permit CNL targets with free variables or mismatched KIF.",
     )
+    parser.add_argument(
+        "--allow-untyped-targets",
+        action="store_true",
+        help="Legacy diagnostic only: skip SUMO relation argument-kind validation.",
+    )
     return parser.parse_args(argv)
 
 
@@ -144,10 +152,13 @@ def build_generator_batches(
     classes: list[dict],
     relations: list[dict],
     compiler: CNLCompiler,
+    *,
+    include_arbitrary_subclasses: bool = True,
 ) -> list[tuple[str, list[dict]]]:
     return [
         ("instance", gen_instance_pairs(classes, compiler, include_doc_templates=False)),
-        ("subclass", gen_subclass_pairs(classes, compiler, include_doc_templates=False)),
+        ("subclass", gen_subclass_pairs(classes, compiler, include_doc_templates=False)
+         if include_arbitrary_subclasses else []),
         ("subclass", gen_doctrine_subclass_pairs(_DOCTRINE_KIF_PATH, compiler)),
         ("binary", gen_binary_pairs(relations, compiler, include_doc_templates=False)),
         ("nary", gen_nary_pairs(relations, compiler, include_doc_templates=False)),
@@ -358,8 +369,12 @@ def exclude_eval_overlaps(
     return filtered, excluded_counts
 
 
-def filter_closed_targets(pairs: list[dict], compiler: CNLCompiler) -> tuple[list[dict], dict[str, int]]:
-    """Keep only closed CNL whose compiled KIF matches the stored target."""
+def filter_closed_targets(
+    pairs: list[dict], compiler: CNLCompiler, *, require_argument_kinds: bool = False
+) -> tuple[list[dict], dict[str, int]]:
+    """Keep only closed, optionally kind-valid CNL with matching stored KIF."""
+    if require_argument_kinds:
+        load_relation_signature_kinds()
     compiled: dict[str, str | None] = {}
     kept: list[dict] = []
     rejected = {"invalid_or_open_target": 0, "kif_mismatch": 0}
@@ -367,7 +382,9 @@ def filter_closed_targets(pairs: list[dict], compiler: CNLCompiler) -> tuple[lis
         cnl = pair["cnl"]
         if cnl not in compiled:
             try:
-                compiled[cnl] = compiler.compile(cnl, require_closed=True)
+                compiled[cnl] = compiler.compile(
+                    cnl, require_closed=True, require_argument_kinds=require_argument_kinds
+                )
             except Exception:
                 compiled[cnl] = None
         actual_kif = compiled[cnl]
@@ -393,14 +410,21 @@ def prepare_training_data(
     exclude_benchmark_overlap: bool = True,
     pinned_pairs: list[dict] | None = None,
     require_closed_targets: bool = True,
+    require_argument_kinds: bool = True,
 ) -> PreparationResult:
+    if require_argument_kinds and not require_closed_targets:
+        raise ValueError("Argument-kind validation requires closed targets")
+    if require_argument_kinds:
+        load_relation_signature_kinds()
     if generator_batches is None:
         classes = load_classes(_CLASSES_PATH)
         relations = load_relations(_RELATIONS_PATH)
         compiler = CNLCompiler()
         generator_batches = build_generator_batches(
             classes, relations,
-            _ClosedTargetCompiler(compiler) if require_closed_targets else compiler,
+            _ClosedTargetCompiler(compiler, require_argument_kinds=require_argument_kinds)
+            if require_closed_targets else compiler,
+            include_arbitrary_subclasses=not require_argument_kinds,
         )
 
     all_pairs: list[dict] = []
@@ -422,7 +446,9 @@ def prepare_training_data(
         exclude_gold_cnl_overlap=exclude_gold_cnl_overlap,
     )
     if require_closed_targets:
-        all_pairs, rejected = filter_closed_targets(all_pairs, CNLCompiler())
+        all_pairs, rejected = filter_closed_targets(
+            all_pairs, CNLCompiler(), require_argument_kinds=require_argument_kinds
+        )
         excluded_counts.update(rejected)
 
     # Resolve pinned pairs first so their count can be reserved from the budget.
@@ -437,7 +463,9 @@ def prepare_training_data(
             and p.get("nl") not in probe_nls
         ]
         if require_closed_targets:
-            surviving_pinned, rejected = filter_closed_targets(surviving_pinned, CNLCompiler())
+            surviving_pinned, rejected = filter_closed_targets(
+                surviving_pinned, CNLCompiler(), require_argument_kinds=require_argument_kinds
+            )
             for key, count in rejected.items():
                 excluded_counts[key] += count
         pinned_count = len(surviving_pinned)
@@ -486,7 +514,7 @@ def print_preparation_report(result: PreparationResult) -> None:
     print(f"  Excluded gold NL:     {result.excluded_counts['gold_nl']:,}")
     print(f"  Excluded gold CNL:    {result.excluded_counts['gold_cnl']:,}")
     print(f"  Excluded probe NL:    {result.excluded_counts['probe_nl']:,}")
-    print(f"  Excluded open/invalid targets: {result.excluded_counts.get('invalid_or_open_target', 0):,}")
+    print(f"  Excluded open/invalid/kind targets: {result.excluded_counts.get('invalid_or_open_target', 0):,}")
     print(f"  Excluded KIF mismatches:       {result.excluded_counts.get('kif_mismatch', 0):,}")
     print("  Per-pattern counts:")
     for pattern in result.generated_counts:
@@ -520,6 +548,7 @@ def main(argv: list[str] | None = None) -> None:
         exclude_benchmark_overlap=True,
         pinned_pairs=pinned_pairs,
         require_closed_targets=not args.allow_open_targets,
+        require_argument_kinds=not (args.allow_open_targets or args.allow_untyped_targets),
     )
     print_preparation_report(result)
 

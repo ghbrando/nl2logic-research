@@ -8,6 +8,7 @@ from uuid import uuid4
 from scripts.prepare_training_data import (
     MILITARY_FOCUS_CLASSES,
     _REAL_DOCTRINE_TRAIN_PATH,
+    filter_closed_targets,
     is_military_focus_pair,
     load_benchmark_overlap_sets,
     load_real_doctrine_pairs,
@@ -22,6 +23,7 @@ def prepare_training_data(**kwargs):
     # Most selection tests use intentionally non-CNL placeholder records.
     # Pass strict validation explicitly in tests of the real preparation gate.
     kwargs.setdefault("require_closed_targets", False)
+    kwargs.setdefault("require_argument_kinds", False)
     return _prepare_training_data(**kwargs)
 
 
@@ -38,6 +40,22 @@ def _make_scratch_dir() -> Path:
     path = Path(".pytest_tmp_scripts") / uuid4().hex
     path.mkdir(parents=True, exist_ok=False)
     return path
+
+
+def test_strict_preparation_rejects_instance_relations_with_class_constants():
+    rows = [
+        {"nl": "Class-level relation.", "cnl": "partTypes Object Object",
+         "kif": "(partTypes Object Object)", "pattern": "binary"},
+        {"nl": "Invalid instance relation.", "cnl": "agent Process AutonomousAgent",
+         "kif": "(agent Process AutonomousAgent)", "pattern": "binary"},
+        {"nl": "Existential claim.", "cnl": "some ?x is-a Process",
+         "kif": "(exists (?x) (instance ?x Process))", "pattern": "existential"},
+    ]
+    kept, rejected = filter_closed_targets(
+        rows, CNLCompiler(), require_argument_kinds=True
+    )
+    assert [row["nl"] for row in kept] == ["Class-level relation.", "Existential claim."]
+    assert rejected == {"invalid_or_open_target": 1, "kif_mismatch": 0}
 
 
 class TestPrepareTrainingData:

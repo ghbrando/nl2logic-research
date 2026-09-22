@@ -31,7 +31,7 @@ def assess(paths: list[Path], training_paths: list[Path]) -> dict:
     compiler = CNLCompiler()
     for row in positive:
         try:
-            compiler.compile(row["cnl"], require_closed=True)
+            compiler.compile(row["cnl"], require_closed=True, require_argument_kinds=True)
         except ValueError as exc:
             scope_errors[row["record_id"]] = str(exc)
     blockers = []
@@ -46,7 +46,7 @@ def assess(paths: list[Path], training_paths: list[Path]) -> dict:
     if not any(not r["formalizable"] for r in eligible):
         blockers.append("No eligible reviewed abstention targets.")
     if scope_errors:
-        blockers.append("Gold formulas contain unbound variables.")
+        blockers.append("Gold formulas have unbound variables or invalid relation argument kinds.")
     return {
         "status": "blocked" if blockers else "data_checks_passed",
         "background_policy": "source-only", "blockers": blockers,

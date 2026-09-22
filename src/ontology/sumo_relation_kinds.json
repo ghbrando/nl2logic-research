@@ -1,0 +1,6385 @@
+{
+  "kinds": {
+    "abbreviatedDisplayTitle": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "abbreviation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "absoluteHeight": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "absorbedDose": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "abstractCounterpart": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "abstractPart": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "abstractionLevel": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "accessibleFromMenu": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "accessibleFromMenuItem": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "accommodationProvider": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "accountAt": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "accountAtSite": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "accountHolder": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "accountInformation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "accountNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "accountPhoneNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "accountStatus": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "accountUsed": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "accruedInterest": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "achievement": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "acquaintance": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "acronym": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "actedIn": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "actionTendency": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "activityCapability": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "adjacentOrientation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "administrativeCenter": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "administrator": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "advertisedOn": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "affiliatedOrganization": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "afterTaxIncome": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "age": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "ageOfMajorityForProcess": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "agent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "agentName": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "agentOperatesInArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "agreementAdoptionDate": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "agreementClause": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "agreementEffectiveDate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "agreementEffectiveDuring": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "agreementExpirationDate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "agreementPeriod": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "agreementRevisionDate": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "agriculturalProductType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "agriculturalProductTypeByRank": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "aimOfOrganization": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "airQualityIndex": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "airTemperature": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "albumArtist": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "albumCoverImage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "albumLength": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "albumRelease": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "albumTrack": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "albumType": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "alias": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "allRoomsPhysicalAmenity": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "allRoomsPolicy": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "allRoomsServiceAmenity": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "allegiance": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "allergic": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "allied": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "allowableValue": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "almaMater": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "alternativeTitle": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "altitude": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "amount": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance"
+    },
+    "amountCharged": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "amountDue": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "amountOfBid": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "amplifierEfficiency": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "ancestor": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "ancestorOrganization": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "angleOfFigure": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "angleOfFire": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "angularMeasure": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "anniversary": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "annualElectricityConsumption": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "annualElectricityExport": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "annualElectricityImport": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "annualElectricityProduction": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "annualEnergyConsumption": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "annualExpendituresOfArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "annualExpendituresOfAreaInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "annualExportTotal": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "annualImportTotal": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "annualRevenuesOfArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "annualRevenuesOfAreaInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "antagonistMuscles": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "anthem": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "applicableRelation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "appointedPosition": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "appraisedValue": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "approves": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "approximateDiameter": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "approximateValue": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "arableLandArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "arcLength": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "arcWeight": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "areaOfOperation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "areaOfResponsibility": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "arrested": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "arrestingOfficer": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "askPrice": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "associateInOrganization": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "associateWithStatus": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "associatedFunctionality": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "atTheMoney": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "atomicNumber": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "attends": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "attitudeForFormula": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "attitudeForObject": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "attorney": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "attribute": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "audioPlaybackPowerConsumption": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "audioRecordingPowerConsumption": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "aunt": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "authors": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "automatedNotification": {},
+    "availableBalance": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "availableCash": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "average": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "averageChargerEnergyRatio": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "averagePrecipitationForPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "averageRainfallForPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "averageSSTForPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "averageTemperatureForPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "bandwidth": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "bankAccount": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "baptizeddate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "baptizedplace": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "barometricPressure": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "batchInterArrival": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "batchLatency": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "before": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "beforeOnPath": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "beforeOrEqual": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "beforeTaxIncome": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "beliefGroupPercentInRegion": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "believes": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "benchmark": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "benchmarkPerformance": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "benefits": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "between": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "betweenOnPath": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "bidPrice": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "biochemicalAgentAntidote": {
+      "1": "subclass",
+      "2": "subclass",
+      "3": "subclass"
+    },
+    "biochemicalAgentDelivery": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "biochemicalAgentSyndrome": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "bioindicatorForHabitat": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "biologicalAgentCarrier": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "birthdate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "birthday": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "birthplace": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "bloodVolume": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "bodyAngle": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "boilingPoint": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "bondRating": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "borrower": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "bottom": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "brandIcon": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "breathingRate": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "broker": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "brother": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "browserID": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "burialplace": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "burnInPeriod": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "businessHours": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "businessUnit": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "buyingPowerAmount": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "buys": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "caliber": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "callDate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "canRunOn": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "candidateForPosition": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "canonicalPlaceName": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "capability": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance"
+    },
+    "capabilityDuring": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance",
+      "4": "subclass"
+    },
+    "capableAtLocation": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "capacity": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "capacityByArrangement": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "capitalCity": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "capitalExpendituresOfArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "capitalExpendituresOfAreaInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "carCode": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "cardAccount": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "cardCode": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "cardinality": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "cargo": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "cargoType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "carrierFrequency": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "carries": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "catalogItem": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "catalyst": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "categoryID": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "categoryOf": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "causes": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "causesProposition": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "causesSubclass": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "cellShape": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "centerOfMass": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "chamberOfLegislature": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "chanceryAddressInArea": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "chanceryFAXNumberInArea": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "chanceryMailingAddressInArea": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "chanceryTelephoneNumberInArea": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "changesLocation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "checkAccount": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "checkInTime": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "checkNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "checkOutTime": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "chiefOfDiplomaticMission": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "chiefOfState": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "chiefOfStateType": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "chromosomeNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "chromosomeSetCount": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "circumference": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "citizen": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "claimedTerritory": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "classmate": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "climateTypeInArea": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "closedOn": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "closingPrice": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "clothesWasherModifiedEnergyFactor": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "clothesWasherWaterFactor": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "cloudCoverFraction": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "coaches": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "codeMapping": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "coding": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "cohabitant": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "coilCount": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "coldSeasonInArea": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "colleague": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "collectRate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "colocatedAgent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "color": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "commandLineArguments": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "commandRankOfEchelon": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "commemoratesDate": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "comment": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "commentator": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "communicationSatelliteForArea": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "comparativeArea": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "compensationPackage": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "completelyFills": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "complexity": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "component": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "componentDataID": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance",
+      "4": "instance",
+      "5": "instance"
+    },
+    "composer": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "compoundInterest": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "compressionRatio": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "computerResponseTo": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "computerRunning": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "concentration": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance",
+      "4": "instance"
+    },
+    "conclusion": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "conditionalProbability": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "confersNorm": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "confersObligation": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "confersRight": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "confidenceInterval": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "confirmationNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "confirmedRegisteredUser": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "conforms": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "conjugate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "connected": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "connectedBodyPart": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "connectedBodyPartTypes": {
+      "1": "subclass",
+      "2": "subclass",
+      "3": "subclass"
+    },
+    "connectedDownstream": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "connectedEngineeringComponents": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "connectedInSocialNetwork": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "connectedPeripheral": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "connectedRegions": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "connects": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "connectsEngineeringComponents": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "considers": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "consistent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "constructionPeriod": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "contains": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "containsFormula": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "containsInformation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "contestEntry": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "contestObject": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "contestOrganizer": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "contestParticipant": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "contestParticipantRepresentation": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "contractedRentalPrice": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance"
+    },
+    "contractor": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "contraryAttribute": {
+      "1": "instance"
+    },
+    "contraryAttributeWRT": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "contrastRatio": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "controlGroup": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "controlled": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "conventionalLongName": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "conventionalShortName": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "conversionEvent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "conveyance": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "cooccur": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "coolSeasonInArea": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "coordinates": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "copy": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "coreBodyTemp": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "corkageFee": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "counselInCase": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "couponInterest": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "courseWRTCompassNorth": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "courseWRTMagneticNorth": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "courseWRTTrueNorth": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "cousin": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "covers": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "coworker": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "creator": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "creditLimit": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "creditRanking": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "creditsPerPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "criticalityLevel": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "crossFunctionalTeamFocus": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "crosses": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "currencyCode": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "currencyExchangePerUSDollar": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "currencyExchangeRate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "currencyExchangeRateInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "currencyType": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "currencyValue": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "currentAccountBalance": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "currentInterestRate": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "customer": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "customerRepresentative": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "customerValue": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "cylinderBore": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "dailyLimit": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "dampingRatio": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "dataID": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "dataProcessed": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "dataStored": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "dataStreamSlack": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "date": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "dateDissolved": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "dateEstablished": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "dateOfStatement": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "dateOpenedForSignature": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "dateUsed": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "daughter": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "dayPhone": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "daylightHoursInterval": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "daylightHoursTotal": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "deathdate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "deathplace": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "deceptiveIdentifier": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "decreasesLikelihood": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "defaultMaxValue": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "defaultMaximumHeight": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "defaultMaximumLength": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "defaultMaximumMeasure": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "defaultMaximumSphereRadius": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "defaultMaximumWidth": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "defaultMeasure": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "defaultMinValue": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "defaultMinimumHeight": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "defaultMinimumLength": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "defaultMinimumMeasure": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "defaultMinimumSphereRadius": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "defaultMinimumWidth": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "defaultNetwork": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "defaultValue": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "defendant": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "defenseLawyer": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "deliveryRegion": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "dependencyDelay": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "dependencyType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "dependentAreaOfType": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "dependentGeopoliticalArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "deprivesNorm": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "depth": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "describes": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "designPattern": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "desires": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "destination": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "detainedAtTimeInPlace": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "detainee": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "developmentalForm": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "deviceAccount": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "deviceDownTime": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "deviceFailTime": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "deviceOS": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "devicePlannedDownTime": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "deviceState": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "deviceTelecomNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "deviceUpTime": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "diameter": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "diastolicBloodPressure": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "diplomaticOrganizationType": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "diplomaticRelations": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "diplomaticRepresentationType": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "diplomaticRepresentativeInRole": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "directed": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "direction": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "directoryOf": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "disapproves": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "discography": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "disconnected": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "discovers": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "diseaseCandidate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "diseaseIncubation": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "diseaseMedicine": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "subclass"
+    },
+    "diseaseMortality": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "diseaseSymptom": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "diseaseTreatment": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "disjoint": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "disjointDecomposition": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "disjointRelation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "diskTypeForDrive": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "dislikes": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "displayTitle": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "displayedUpon": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "disputedPossession": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "distance": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "distanceOfParallelLinesInSpace": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "distanceOnPath": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "distributes": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "distrusts": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "documentation": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "domain": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "domainSubclass": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "domesticPartner": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "doubts": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "downPayment": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "dressCode": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "drugShipmentDestination": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "drySeasonInArea": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "duration": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "during": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "eCommerceSite": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "earlier": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "earthAltitude": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "economicAidDonated": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "economicAidDonatedInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "economicAidReceivedNet": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "economicAidReceivedNetInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "economyType": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "editor": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "effectiveDose": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "effectiveRange": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "electionDatePlannedForPosition": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "electionForOrganization": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "electionForPosition": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "electionWinner": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "electricityConsumptionInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "electricityExportInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "electricityFractionFromSource": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "electricityFractionFromSourceInPeriod": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance",
+      "4": "subclass"
+    },
+    "electricityImportInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "electricityProductionInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "electronNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "element": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "elevation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "emailAddress": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "emotionTendency": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "employeeContribution": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "employs": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "endPointsOfLine": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "endPointsOfLineInSpace": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "enemy": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "energyConsumptionPerWashingCycle": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "engineCylinders": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "engineDisplacement": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "engineIdleSpeed": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "engineeringSubcomponent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "engineers": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "enjoys": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "ennervates": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "entails": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "entrance": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "environmentAttributes": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "environmentalProblemTypeInArea": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "equalRegions": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "equilibriumPriceFn": {
+      "1": "instance",
+      "2": "instance",
+      "range": "instance"
+    },
+    "equipmentCount": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "equipmentType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "equivalenceRelationOn": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "equivalentContentClass": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "equivalentContentInstance": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "ethnicityPercentInRegion": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "eveningPhone": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "eventLocated": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "eventPartlyLocated": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "evidence": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "exactCardinality": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "exactlyLocated": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "exclusiveEvent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "executiveBranch": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "exhaustiveAttribute": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "exhaustiveDecomposition": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "expects": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "experiencer": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "experimentID": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "experimentUpdate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "experimentalControl": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "experimentalControlProcess": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "experimentalSubject": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "experimentalTreatmentCollection": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "experimentalVariableProcess": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "experimenter": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "exploits": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "exportCommodityType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "exportCommodityTypeByRank": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "exportPartner": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "exportPartnerByFraction": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "exportPartnerByFractionInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "subclass"
+    },
+    "exportPartnerByRank": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "exportPartnerByRankInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "subclass"
+    },
+    "exportPartnerInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "exportTotalInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "expressedInLanguage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "externalDebt": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "externalDebtInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "externalImage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "externallyConnected": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fOCShipsByOrigin": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "faceOfFigure": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "faceValue": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "facebookFriend": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "faces": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "facility": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "familyName": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "familyRelation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "father": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fathersBrothersDaughter": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fathersBrothersSon": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fathersBrothersWife": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fathersSistersDaughter": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fathersSistersHusband": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fathersSistersSon": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "faxNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fears": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "filename": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fills": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "finalExperimentReport": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "finalPrice": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "financialAccount": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "financialAsset": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "financialResponseTo": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "finishes": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "finishesDuring": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "firstInstanceCreated": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "firstTimeBuyers": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "firstTimeSellers": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "fiscalYearPeriod": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "fitForMilitaryService": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "fixedInterestRate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "flagDescription": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "flagImage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "flagState": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fleetDeadWeightTonnage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fleetGrossRegisteredTonnage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fleetSize": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "floorCode": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "floorLoan": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "flowCurrent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "flows": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "follows": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "formOfAdaptation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "format": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "formerName": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "freeFunctionRoomAmenity": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "freePropertyAmenity": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "freeRoomAmenity": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "frequency": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "freshFoodCompartmentVolume": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "friend": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "frozenFoodCompartmentVolume": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fulcrum": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fulfillingEntity": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fullName": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "fullNameIndexOrder": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "functionRoomAmenity": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "gainsControl": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "gearRatio": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "gearToothCount": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "geneticSubstrateOfVirus": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "geographicSubregion": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "geometricDistance": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "geometricPart": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "geopoliticalSubdivision": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "givenName": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "government": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "governmentType": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "governorSpeed": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "grainSize": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "grammaticalRelation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "grandfather": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "grandmother": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "grandparent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "granularity": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "graphMeasure": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "graphPart": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "grasps": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "greaterThan": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "greaterThanByQuality": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "greaterThanOrEqualTo": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "grossMerchandiseBoughtInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "grossMerchandiseSoldInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "groundSubsurfaceType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "groundSurfaceType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "groupMember": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "groupingTitle": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "guest": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "guiElementCovered": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "guiElementCoveredBy": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "guiElementPartiallyCovered": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "guiElementPartiallyCoveredBy": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "guiElementUncovered": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "habitatOfOrganism": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "half": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "haploidNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hardwareType": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hasAccount": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hasAward": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hasDependency": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hasExpertise": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "hasGUEState": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hasMolecularStructuralAttribute": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hasOccupation": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "hasPurpose": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hasPurposeForAgent": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "hasSkill": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "hasSkillInRole": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance"
+    },
+    "hasUniform": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "hazardous": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "headOfGovernment": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "headingWRTCompassNorth": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "headingWRTMagneticNorth": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "headingWRTTrueNorth": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "headquartersOfOrganization": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hearingAcuity": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "heartRate": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "height": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "highAltitudeWindSpeed": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "highAltitudeWindVelocity": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "highTide": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "highestDecileShareOfHouseholdIncome": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "highestDecileShareOfHouseholdIncomeInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "highestTemperatureForPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "hinders": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "hindersSubclass": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "holdsDuring": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "holdsObligation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "holdsRight": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hole": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "holidayTimeInArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "home": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "homeAddress": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "homePage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "homePhoneNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "homologousChromosome": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "homologousChromosomePair": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hopes": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hostJitter": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hostOf": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hostStatus": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hostedOn": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hostileForces": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "hotSeasonInArea": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "humanCapacity": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "humanName": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "husband": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "identicalListItems": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "identityElement": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "ideologicalAffiliationOfOrganization": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "idleStatePowerConsumption": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "illicitDrugConsumer": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "illicitDrugProducer": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "illicitDrugShipmentDestination": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "illicitDrugTransshipmentPoint": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "imageResolution": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "immediateInstance": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "immediateSubclass": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "implementsProtocol": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "importCommodityType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "importCommodityTypeByRank": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "importPartner": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "importPartnerByFraction": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "importPartnerByFractionInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "subclass"
+    },
+    "importPartnerByRank": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "importPartnerByRankInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "subclass"
+    },
+    "importPartnerInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "importTotalInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "inList": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "inScopeOfInterest": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "inString": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "inTheMoney": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "includedMeal": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "income": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "incomeDistributionByGiniIndex": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "incomeDistributionByGiniIndexInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "incomeEarned": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "increasesLikelihood": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "independenceDate": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "independentProbability": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "industrialProductionGrowthRate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "industrialProductionGrowthRateInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "industryOfArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "industryProductType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "industryRankByOutput": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "industryServiceType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "infantMortality": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "inflationRateInCountry": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "inflationRateOfConsumerPrices": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "inflationRateOfConsumerPricesInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "ingredient": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "ingredientAmount": {
+      "1": "subclass",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "inhabits": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "inhibits": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "initialList": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "initialPart": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "initiallyContainsPart": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "instance": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "instrument": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "insured": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "intelligenceQuotient": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "interestEarned": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "interestRatePerPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "interestedIn": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "interiorPart": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "internationalDispute": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "internetCountryCode": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "invadingVirus": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "inventory": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "inverse": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "involvedInEvent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "ipAddressOf": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "ipOfDomain": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "irrigatedLandArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "issuedBy": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "jailer": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "judge": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "judicialBranch": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "keyName": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "knows": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "laborForceFractionByOccupation": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "laborForceFractionByOccupationInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "subclass"
+    },
+    "laborForceTotal": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "laborForceTotalInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "lacks": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "ladenDraft": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "landAreaOnly": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "landlord": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "language": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "languagePercentInRegion": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "larger": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lastRenovation": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "lastStatement": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lastStatementBalance": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "latitude": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "laundryApplianceMaximumClothesVolume": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "leader": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "leaderPosition": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "legalGuardian": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "legalRelation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "legalSystemType": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "legislativeBranch": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lender": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "length": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lengthOfBroadGaugeRailway": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lengthOfCrudeOilPipeline": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lengthOfDualGaugeRailway": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lengthOfElectrifiedRailway": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lengthOfExpresswaySystem": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lengthOfMultipleTrackRailway": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lengthOfNarrowGaugeRailway": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lengthOfNaturalGasPipeline": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lengthOfPavedHighway": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lengthOfPetroleumProductPipeline": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lengthOfStandardGaugeRailway": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lengthOfUnclassifiedGaugeRailway": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lengthOfUnpavedHighway": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lessThan": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lessThanOrEqualTo": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lethalDose": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "lever": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lexicon": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "lifeStageAchieved": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "limitPrice": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lineMeasure": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "linearExtent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "links": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "liquidity": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "listedOn": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "listingBidder": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "listingBuyer": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "listingSeller": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "load": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "loanFeeAmount": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "loanForPurchase": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "loanInterest": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "localLongName": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "localShortName": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "located": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "locatedAtTime": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "locationMeasuringList": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "loggedInDuring": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "longitude": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "longitudinalAxis": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "losesControl": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "loss": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "loudness": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lowAltitudeWindSpeed": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lowAltitudeWindVelocity": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "lowTide": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "lowestDecileShareOfHouseholdIncome": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "lowestDecileShareOfHouseholdIncomeInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "lowestTemperatureForPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "lyricist": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "maApproxPoint": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "maBoundary": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "maPoint": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "maleficiary": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "managedBy": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "manner": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "manufacturer": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "mapOfArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "marginBalanceAmount": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "marineInventory": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "maritimeClaimType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "maritimeHazard": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "marketValueAmount": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "material": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "maternalAunt": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "maternalUncle": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "maturityDate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "maxCardinality": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "maxCylinderVolume": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "maxDeviceOperatingTemp": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "maxDeviceStorageTemp": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "maxRoomCapacity": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "maxValue": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "maximumPayloadCapacity": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "maximumPayloadHeightWidth": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "maximumReplications": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "maximumSpinSpeed": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "mealPlanInclusion": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "meanSeaLevel": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "measure": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "measurementReading": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "measuringListDuration": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "measuringListInterval": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "measuringResult": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "meatOfAnimal": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "meceCollection": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "medicalPatient": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "medicine": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "mediumAltitudeWindSpeed": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "mediumAltitudeWindVelocity": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "meetsSpatially": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "meetsTemporally": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "meltingPoint": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "member": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "memberAtTime": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "memberCount": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "memberMeasure": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "memberType": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "memberTypeCount": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "memorySize": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "middleName": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "militaryAge": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "militaryExpendituresFractionOfGDP": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "militaryExpendituresFractionOfGDPInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "militaryExpendituresInUSDollars": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "militaryExpendituresInUSDollarsInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "militaryOfArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "mimeSubType": {},
+    "mimeType": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "minCardinality": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "minCylinderVolume": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "minDeviceOperatingTemp": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "minDeviceStorageTemp": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "minValue": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "minimumBalance": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "minimumPayment": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "minimumReplications": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "misspelledTitle": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "mixturePartType": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "mixtureRatio": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance",
+      "5": "instance"
+    },
+    "mobilePhoneNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "modalAttribute": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "models": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "molecularRatio": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "monetaryValue": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "monetaryWage": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "monitorApplicationData": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "monitorComponentData": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "monitorConnectivityData": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "monoploidNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "monthlyIncome": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "most": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "mother": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "mothersBrothersDaughter": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "mothersBrothersSon": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "mothersBrothersWife": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "mothersSistersDaughter": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "mothersSistersHusband": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "mothersSistersSon": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "moves": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "multiplicativeFactor": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "muscleInsertion": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "muscleOrigin": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "musicChartBy": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "musicChartPeriod": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "musicGenre": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "musicInterpretation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "musicVideo": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "musician": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "mutualAcquaintance": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "mutualStranger": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "nameAfterKeyName": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "nameBeforeKeyName": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "nameIndexOrder": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "names": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "nationalCelebration": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "nationalHoliday": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "naturalHazardTypeInArea": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "naturalResourceTypeInArea": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "navigableForDraft": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "navigableForShippingTonnage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "nearOrientation": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "needs": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "negotiatedPrice": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance"
+    },
+    "neighbor": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "nephew": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "netAmount": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "netWorth": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "newRegisteredUsers": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "niece": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "nonTangentialProperPart": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "nounGender": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "numberAdultOccupant": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "numberChildOccupant": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "numberOccupant": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "numberOfAprons": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "numberOfCPUs": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "numberOfCustomers": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "numberOfFloors": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "numberOfRunways": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "numberOfTaxiways": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "numberSeniorOccupant": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "objectAttached": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "objectDetached": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "objectEnds": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "objectGeographicCoordinates": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "objectOfBid": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "objectTransferred": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "observedAtTimeInPlace": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "observesHoliday": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "occupation": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "occupiesPosition": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "offers": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "offersAtTime": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "older": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "onOrientation": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "onboard": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "operator": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "oppositeDirection": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "optimalGrindSizeForMakingCoffee": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "optionHolder": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "optionSeller": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "orbits": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "orderFor": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "orgStaff": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "organizationName": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "organizationProductType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "organizationServiceType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "organizationalObjective": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "orientation": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "origin": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "originalBalance": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "originalExpressedInLanguage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "originalTitle": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "orthogonalTests": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "otherLandUseArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "outOfTheMoney": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "overcastDaysInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "overdraft": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "overlapsPartially": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "overlapsSpatially": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "overlapsTemporally": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "oxygenSaturation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "pValue": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "paidFunctionRoomAmenity": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "paidPropertyAmenity": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "paidRoomAmenity": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "parallel": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "parallelLinesInSpace": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "parasite": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "parasitic": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "parent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "parents": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "part": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "partTypes": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "partialOrderingOn": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "partiallyFills": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "partiallyOverlapping": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "partition": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "partlyLocated": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "partyToAgreement": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "passenger": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "passengerCapacityMaxNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "password": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "pastTense": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "paternalAunt": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "paternalUncle": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "path": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "pathInSystem": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "pathLength": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "pathologicSideEffect": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "pathologicSymptom": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "pathologyCandidate": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "pathologyTreatment": {
+      "1": "subclass",
+      "2": "subclass",
+      "3": "subclass"
+    },
+    "patient": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "patientMedical": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "paymentsPerPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "penetrates": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "perCapitaGDP": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "perCapitaGDPInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "performanceResult": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "periodicPayment": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "permanentCropLandArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "permits": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "perpetrator": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "personTransportCapability": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "personalPhoneNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "phMeasure": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "phoneNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "physicalAmplitude": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "physicalDomain": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "physicalEnd": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "physicalInclusion": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "piece": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "pin": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "pistonStroke": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "pitch": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "plaintiff": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "planeAngleMeasure": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "plantInArea": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "platePlacesCount": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "plays": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "playsRoleInEvent": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "playsRoleInEventOfType": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass",
+      "4": "instance",
+      "5": "instance"
+    },
+    "pointOfFigure": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "pointOfIntersection": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "policyInclusion": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "policyLocationCoverage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "policyOwner": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "politicalPartyOfCountry": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "populationAtTime": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "populationDensity": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "populationFractionBelowPovertyLine": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "populationFractionBelowPovertyLineInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "populationGrowth": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "portNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "possesses": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "postAddressText": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "postCity": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "postContactSite": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "postCountry": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "postDistrict": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "postNeighborhood": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "postPostOfficeBox": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "postPostcodeArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "postStreet": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "postStreetNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "potentialCustomer": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "potentialLoss": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "potentialOfHydrogen": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "powerComponent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "precedesInString": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "precipitationAmount": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "precipitationRate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "precipitationState": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "precondition": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "prefers": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "premise": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "premium": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "prevents": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "preventsSubclass": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "previousMonthYear": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "subclass",
+      "4": "instance"
+    },
+    "price": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "pricePolicy": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "priceRange": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "primaryGeopoliticalSubdivision": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "primaryGeopoliticalSubdivisionType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "primeInterestRate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "principalAmount": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "priority": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "processAborted": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "processID": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "processInclusion": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "processList": {},
+    "produced": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "producedOn": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "productBrand": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "productModel": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "productPrice": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance"
+    },
+    "profit": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "programCopy": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "programRunning": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "prohibitedItem": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "prohibitedRole": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "prohibits": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "properPart": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "properlyFills": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "property": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "propertyAmenity": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "propertyPolicy": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "propositionOwner": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "prosecutor": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "protocolForConnector": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "protonNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "providesDestination": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "publishedPrice": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "publishes": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "punishes": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "purchasesPerPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "qoSSlack": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "qualifiedExperiment": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "qualifiedPageView": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "qualifiedTreatment": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "quarter": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "rMProgramOf": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "radius": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "radiusOfMaximumWind": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "rainfallIntensity": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "rainySeasonInArea": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "range": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "rangeSubclass": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "rateDetail": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "ratingsAgent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "reactant": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "reagent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "realGrowthRateOfGDP": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "realGrowthRateOfGDPInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "realization": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "record": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "recordForAgreement": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "recordingCompany": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "recordingLength": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "recoveryKey": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "referee": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "referenceTitle": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "refers": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "reflexiveOn": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "regionalIssue": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "registeredItem": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "registeredUser": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "relatedEvent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "relatedExternalConcept": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "relatedInternalConcept": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "relative": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "relativeAngle": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "relativeBearing": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "relativeHumidity": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "releaseForConsumption": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance"
+    },
+    "releaseForSale": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance"
+    },
+    "religiousAffiliationOfOrganization": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "rentalPrice": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "rents": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "representativeAgentToAgent": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "represents": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "representsForAgent": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "representsInLanguage": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "requestRate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "requiredRole": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "reservationChannel": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "reservationEnd": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "reservationStart": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "reservePrice": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "reservedPackage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "reservedRoom": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "reservingEntity": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "resonantFrequency": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "resource": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "resourceConsumption": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "resourceExhausted": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "resourceUsed": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "responseRate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "responseTime": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "restingBreathingRate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "restingHeartRate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "result": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "resultType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "rewards": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "riskLevel": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "riskTolerance": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "roastedToTemperature": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "roleAppointsRole": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "roleApprovesRole": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "roleNominatesRole": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "roll": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "roomAmenity": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "roomAttribute": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "roomPolicy": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "roomStay": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "roomTempState": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "rotationalAxis": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "routeBetween": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "routeEnd": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "routeInSystem": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "routeStart": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "runningOn": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "runsOn": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "says": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "screenOfGUIE": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "seaSurfaceTemperature": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "searchQueryRewrite": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "searchResult": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "seatsHeldInOrganization": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "seatsInOrganizationCount": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "seatsWonInElection": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "secretesSubstance": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "secretesToxin": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "sectorCompositionOfGDP": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "sectorCompositionOfGDPInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "subclass"
+    },
+    "sectorValueOfGDP": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "sectorValueOfGDPInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "subclass"
+    },
+    "securedBy": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "securityQA": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "sendRate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "sententialObject": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "sententialSubject": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "serviceFee": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "serviceProvider": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "serviceRecipient": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "servingPiecesCount": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "settlingTime": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "shape": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "shareHolder": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "shareOf": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "sharedBorderLength": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "sheddingBodyPart": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "sheddingLeaves": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "shortBalanceAmount": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "shortage": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance",
+      "4": "instance",
+      "5": "instance"
+    },
+    "shutdownOf": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "sibling": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "side": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "sideEffect": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "sideOfFigure": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "sideOfIntersection": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "signedBy": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "significantWaveHeight": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "simpleDeadline": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "simpleInterest": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "sister": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "siteCatalog": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "siteForContact": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "sliceOfFigure": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "slidingWindowSize": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "slopeGradient": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "slopeGradientTowardsOrientation": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "smaller": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "snowfallIntensity": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "softwareHeartBeatRate": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "softwarePath": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "softwareVersion": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "someRoomsAttribute": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "someRoomsPhysicalAmenity": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "someRoomsPolicy": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "someRoomsServiceAmenity": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "son": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "songArtist": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "sortingTitle": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "soundFrequency": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "speaksLanguage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "speedOfSound": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "speedScaleAttributeMinMax": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "spellingInLanguage": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "sphereRadius": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "spinDryingPerformanceClass": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "splitFor": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "spouse": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "standardErrorDevice": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "standardInputDevice": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "standardOutputDevice": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "standardRetailHours": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "starts": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "startsDuring": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "startupOf": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "startupTimeDelay": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "stateOfProcess": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "statementAccount": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "statementInterest": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "statementPeriod": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "states": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "statisticalPopulation": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "status": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "stays": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "stepfather": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "stepmother": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "stockHolder": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "stockSymbol": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "stranger": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "streamOutfall": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "strictness": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "strikePrice": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "stringConcatenation": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "stringLength": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "student": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subAttribute": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subBrand": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subCollection": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subEchelon": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "subField": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "subGraph": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subLanguage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subList": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subOrganization": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subPlan": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subProcess": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subProposition": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subString": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subSystem": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subclass": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subjectiveAttribute": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "subordinateInOrganization": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "subordinatePosition": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "subrelation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subset": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "substanceElement": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "subsumedExternalConcept": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "subsumesContentClass": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "subsumesContentInstance": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "subsumingExternalConcept": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "subtitle": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "successEvent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "successorAttribute": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "successorAttributeClosure": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "successorClass": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "successorOrganization": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "suffers": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "suffrageAgeMaximum": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "suffrageAgeMinimum": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "superficialPart": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "suppliesBlood": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "surface": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "surfaceWindDirection": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "surfaceWindSpeed": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "surfaceWindVelocity": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "synonymousExternalConcept": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "systemBehavior": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "systemMeasured": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "systemPart": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "systolicBloodPressure": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "tTest": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "tags": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "tangent": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "tangentialProperPart": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "target": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "targetInAttack": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "task": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "taskRelation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "taxDeferredIncome": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "teacher": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "telecomAreaCode": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "telecomCode2": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "telecomContactDevice": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "telecomCoreNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "telecomCountryCode": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "telecomExtension": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "telephoneNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "temporalPart": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "temporallyBetween": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "temporallyBetweenOrEqual": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "tenant": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "termFormat": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "termLength": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "terrainInArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "third": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "thirdPartyProduct": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "thresholdOf": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "time": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "titleInLanguage": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "titles": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "tonicity": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "top": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "topSpeed": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "total": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "totalArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "totalBalance": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "totalBiomass": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "totalCoastline": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "totalCottonCapicity": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "totalFacilityTypeInArea": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "totalGDP": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "totalGDPInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "totalLandBoundary": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "totalLengthOfHighwaySystem": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "totalLengthOfRailwaySystem": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "totalLengthOfWaterways": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "totalOrderingOn": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "totalPipelineInArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "totalPrecipitationForPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "trackWidth": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "trafficableForTrafficType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "transactionAmount": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "transformerCapacity": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "transitwayThroughputCapacity": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "translatedTitle": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "transported": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "transverseAxis": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "traverses": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "treatedPage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "treatedPageDefinition": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "treatedUser": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "treatmentGroup": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "tributary": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "trichotomizingOn": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "trustedDevice": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "trusts": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "truth": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "typicalAction": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "typicalBloodVolume": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "typicalPart": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "typicalTemporalPart": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "typicallyContainsPart": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "typicallyContainsTemporalPart": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "udaCanSignify": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "unable": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance"
+    },
+    "uncle": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "underageUser": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "underlier": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "unemploymentRateOfArea": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "unemploymentRateOfAreaInPeriod": {
+      "1": "instance",
+      "2": "instance",
+      "3": "subclass"
+    },
+    "uniqueIdWithRespectTo": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "uniqueIdentifier": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "unitMeasuringPerformance": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "unitNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "unitPrice": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "unpaidItem": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "unratifiedSignatoryToAgreement": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "urlString": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "userDatabase": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "userFeedbackScore": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "userIDString": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "userName": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "uses": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "utterance": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "vaccine": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "valence": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "validFor": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "validPaymentType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "validityPeriod": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "vegetationType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "vegetationTypePattern": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "version": {
+      "1": "subclass",
+      "2": "subclass"
+    },
+    "verticalAxis": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "vesselDeadWeightTonnage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "vesselDisplacement": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "vesselGrossRegisteredTonnage": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "victim": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "videoPlaybackPowerConsumption": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "videoRecordingPowerConsumption": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "viewType": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "viewedItemList": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "viewedListing": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "visibilityInMeteorology": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "visitorParameter": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "visualAcuity": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "voltageMeasure": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "voltageRatingPrimary": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "voltageRatingSecondary": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "voteFractionReceived": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "wants": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "warmSeasonInArea": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "washPerformanceClass": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "watchingListings": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "waterAreaOnly": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "waterConsumptionPerWashingCycle": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "waterDepth": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "waterUsePerDishwasherCycle": {
+      "1": "subclass",
+      "2": "instance"
+    },
+    "waveHeight": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "wavelength": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "weaponCarryingCapability": {
+      "1": "instance",
+      "2": "subclass",
+      "3": "instance"
+    },
+    "wears": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "weatherThreat": {
+      "1": "subclass",
+      "2": "instance",
+      "3": "instance",
+      "4": "instance"
+    },
+    "webPageURL": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "webPurchases": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "webSales": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "webSeller": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "webStoreAdvertisement": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "webVisitor": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "webcart": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "weddingAnniversary": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "weddingdate": {
+      "1": "instance",
+      "2": "instance",
+      "3": "instance"
+    },
+    "weight": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "width": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "wife": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "windDrivenMotion": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "windRelativePosition": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "witness": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "workAddress": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "workLocation": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "workPhoneNumber": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "yaw": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "yearBuilt": {
+      "1": "instance",
+      "2": "subclass"
+    },
+    "yearOfFounding": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "yield": {
+      "1": "instance",
+      "2": "instance"
+    },
+    "yieldLevel": {
+      "1": "instance",
+      "2": "instance"
+    }
+  },
+  "relation_count": 1504,
+  "relation_vocab_sha256": "d1a7bb3aec5ad0027305e4a17a5d2ed9423272a38d625fa5f80c19bed979c1f2",
+  "source": "https://github.com/ontologyportal/sumo",
+  "source_commit": "909a1ecd30949b864405206e18579ffc37318242"
+}

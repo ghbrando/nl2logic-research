@@ -95,7 +95,9 @@ def read_benchmark(paths: list[Path], compiler=None) -> list[dict]:
                     if not all(isinstance(row.get(key), str) and row[key].strip() for key in ("cnl", "kif")):
                         raise ValueError(f"{rid}: reviewed positives need CNL and KIF")
                     try:
-                        compiled = compiler.compile(row["cnl"], require_closed=True)
+                        compiled = compiler.compile(
+                            row["cnl"], require_closed=True, require_argument_kinds=True
+                        )
                     except Exception as exc:
                         raise ValueError(f"{rid}: invalid gold CNL: {exc}") from exc
                     if compiled.strip() != row["kif"].strip():
@@ -161,7 +163,9 @@ def evaluate_method(records: list[dict], predictor: Callable[[str], str | None],
                 result["cnl"] = predictor(row["nl"])
                 if result["cnl"]:
                     try:
-                        result["kif"] = compiler.compile(result["cnl"], require_closed=True)
+                        result["kif"] = compiler.compile(
+                            result["cnl"], require_closed=True, require_argument_kinds=True
+                        )
                     except Exception as exc:
                         result.update(route="compile_error", error=str(exc))
                     else:

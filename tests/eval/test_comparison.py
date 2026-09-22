@@ -79,6 +79,16 @@ def test_unbound_prediction_cannot_be_accepted():
     assert result["kif"] is None
 
 
+def test_class_terms_in_instance_relation_cannot_be_accepted():
+    result = evaluate_method(
+        [row(formalizable=False)], lambda text: "agent Process AutonomousAgent",
+        grounder=AcceptingGrounder(),
+    )[0]
+    assert result["route"] == "compile_error"
+    assert "expects an instance" in result["error"]
+    assert result["kif"] is None
+
+
 def test_training_overlap_is_unscored(tmp_path):
     path = tmp_path / "training.jsonl"
     write_rows(path, [{"nl": "  A WEAPON  is an artifact. "}])

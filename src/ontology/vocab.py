@@ -15,6 +15,7 @@ automatically propagate to the compiler, FSM, grounder, and entity linker.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -23,6 +24,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DEFAULT_SUMO_CLASSES = _REPO_ROOT / "data" / "training_pairs" / "sumo_classes.jsonl"
 _DEFAULT_SUMO_RELATIONS = _REPO_ROOT / "data" / "training_pairs" / "sumo_relations.jsonl"
 _DEFAULT_DOCTRINE_KIF = _REPO_ROOT / "data" / "ontology" / "doctrine_domain.kif"
+_DEFAULT_RELATION_KINDS = Path(__file__).with_name("sumo_relation_kinds.json")
 
 # Matches the left-hand (child) term in a KIF subclass assertion.
 # Ignores documentation lines, comments (;;), and blank lines.
@@ -124,3 +126,29 @@ def load_closed_relation_terms(
                 r = json.loads(line)
                 relations[r["term"]] = r.get("arity")
     return relations
+
+
+def load_relation_signature_kinds(
+    manifest_path: Path = _DEFAULT_RELATION_KINDS,
+    relations_path: Path = _DEFAULT_SUMO_RELATIONS,
+) -> dict[str, dict[str, str]]:
+    """Load pinned SUMO argument kinds, rejecting a mismatched relation vocabulary."""
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    relation_bytes = relations_path.read_bytes()
+    actual_sha = hashlib.sha256(relation_bytes).hexdigest()
+    if actual_sha != manifest["relation_vocab_sha256"]:
+        raise ValueError(
+            "SUMO relation vocabulary differs from the pinned argument-kind manifest; "
+            "regenerate and review the manifest before strict validation"
+        )
+    kinds = manifest["kinds"]
+    names = {
+        json.loads(line)["term"]
+        for line in relation_bytes.decode("utf-8").splitlines()
+        if line.strip()
+    }
+    if len(kinds) != manifest["relation_count"] or set(kinds) != names:
+        raise ValueError("SUMO relation argument-kind manifest does not cover the relation vocabulary")
+    if any(kind not in {"instance", "subclass"} for slots in kinds.values() for kind in slots.values()):
+        raise ValueError("SUMO relation argument-kind manifest has an unknown argument kind")
+    return kinds

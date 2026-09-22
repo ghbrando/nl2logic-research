@@ -11,7 +11,21 @@ from src.ontology.vocab import (
     extract_kif_class_terms,
     load_closed_class_terms,
     load_closed_relation_terms,
+    load_relation_signature_kinds,
 )
+
+
+def test_relation_kind_manifest_rejects_vocabulary_drift(tmp_path: Path):
+    relations = tmp_path / "relations.jsonl"
+    relations.write_text('{"term":"agent"}\n', encoding="utf-8")
+    manifest = tmp_path / "kinds.json"
+    manifest.write_text(
+        json.dumps({"relation_vocab_sha256": "wrong", "relation_count": 1,
+                    "kinds": {"agent": {"1": "instance"}}}),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="differs from the pinned"):
+        load_relation_signature_kinds(manifest, relations)
 
 
 def _write_jsonl(path: Path, records: list[dict]) -> None:

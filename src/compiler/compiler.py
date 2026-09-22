@@ -1,7 +1,11 @@
 from pathlib import Path
 from lark import Lark, Transformer, v_args, Token, Tree
 
-from src.ontology.vocab import load_closed_class_terms, load_closed_relation_terms
+from src.ontology.vocab import (
+    load_closed_class_terms,
+    load_closed_relation_terms,
+    load_relation_signature_kinds,
+)
 
 GRAMMAR_PATH = Path(__file__).parent / "cnl.lark"
 
@@ -104,10 +108,13 @@ class CNLCompiler:
         self._parser  = Lark(grammar, parser="earley", ambiguity="resolve")
         self._tx      = CNLToKIF()
         self._classes, self._relations = self._load_vocab()
+        self._relation_kinds = None
 
-    def compile(self, cnl: str, *, require_closed: bool = False) -> str:
+    def compile(
+        self, cnl: str, *, require_closed: bool = False, require_argument_kinds: bool = False
+    ) -> str:
         tree = self._parser.parse(cnl.strip())
-        self._validate(tree)
+        self._validate(tree, require_argument_kinds=require_argument_kinds)
         if require_closed:
             free = self._free_variables(tree)
             if free:
@@ -132,7 +139,9 @@ class CNLCompiler:
     def _load_vocab(self) -> tuple[set, dict]:
         return load_closed_class_terms(), load_closed_relation_terms()
 
-    def _validate(self, tree) -> None:
+    def _validate(self, tree, *, require_argument_kinds: bool = False) -> None:
+        if require_argument_kinds and self._relation_kinds is None:
+            self._relation_kinds = load_relation_signature_kinds()
         for token in tree.scan_values(lambda _: True):
             if isinstance(token, Token):
                 if token.type == "CLASS_TERM" and str(token) not in self._classes:
@@ -149,3 +158,23 @@ class CNLCompiler:
                 raise ValueError(
                     f"Relation '{relation}' expects {expected} arguments, got {actual}"
                 )
+            if not require_argument_kinds:
+                continue
+            kinds = self._relation_kinds.get(relation, {})
+            for position, argument in enumerate(node.children[1:], start=1):
+                kind = kinds.get(str(position))
+                if kind is None:
+                    raise ValueError(
+                        f"Relation '{relation}' lacks argument-kind metadata for position {position}"
+                    )
+                token = argument.children[0]
+                if token.type == "CLASS_TERM" and kind == "instance":
+                    raise ValueError(
+                        f"Relation '{relation}' argument {position} expects an instance, "
+                        f"got class '{token}'"
+                    )
+                if token.type == "VAR" and kind == "subclass":
+                    raise ValueError(
+                        f"Relation '{relation}' argument {position} expects a class, "
+                        f"got individual variable '{token}'"
+                    )
