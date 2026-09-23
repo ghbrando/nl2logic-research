@@ -331,6 +331,27 @@ class TestCNLSamplerSample:
         assert model.calls[0]["renormalize_logits"] is True
         assert model.calls[0]["input_ids"].moved_to == "cpu"
 
+    def test_memory_encoder_text_does_not_change_source_gate_or_grammar(self, constrained_grammar_str):
+        model = MagicMock()
+        model.device = "cpu"
+        model.generate.return_value = [[1, 2]]
+        tokenizer = MagicMock()
+        tokenizer.return_value = {"input_ids": [1]}
+        tokenizer.batch_decode.return_value = ["?x is-a Process"]
+        sampler = CNLSampler(model, tokenizer, grammar_str=constrained_grammar_str)
+        grammar_inputs = []
+        sampler._get_prefix_constraint = lambda prompt: grammar_inputs.append(prompt) or object()
+        source_prompt = "translate to CNL: Biometrics is the process"
+        memory_prompt = source_prompt + "\nPrior logic: (subclass IntelligenceProcess MilitaryProcess)."
+
+        sampler.sample(source_prompt, model_prompt=memory_prompt)
+
+        assert tokenizer.call_args.args[0] == [memory_prompt]
+        assert grammar_inputs == [source_prompt]
+        with pytest.raises(UnsupportedInputError):
+            sampler.sample("translate to CNL: It is a process", model_prompt=memory_prompt)
+        assert grammar_inputs == [source_prompt]
+
 class FakeTensorBatch:
     def __init__(self, values):
         self.values = values

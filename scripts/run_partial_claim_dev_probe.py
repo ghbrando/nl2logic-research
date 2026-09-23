@@ -18,6 +18,7 @@ from scripts.run_frozen_claim_predictions import text_sha256
 from src.eval.model_predictor import load_model_and_tokenizer
 from src.fsm.cnl_fsm import CNLSampler, UnsupportedInputError
 from src.preprocessing.partial_claims import extract_paragraph_candidate
+from src.reasoning.claim_memory import load_ontology_memory, render_memory_prompt, retrieve_memory
 from src.training.train import format_prompt
 
 
@@ -34,9 +35,11 @@ def load_sources(source_path: Path, manifest_path: Path) -> list[dict]:
 
 
 def predict(source_path: Path, source_manifest_path: Path, model_path: Path,
-            output_dir: Path, *, max_new_tokens: int = 64) -> None:
+            output_dir: Path, *, max_new_tokens: int = 64, memory_mode: str = "none") -> None:
     if max_new_tokens <= 0:
         raise ValueError("max_new_tokens must be positive")
+    if memory_mode not in {"none", "retrieved"}:
+        raise ValueError("Unknown memory mode")
     rows = load_sources(source_path, source_manifest_path)
     extracted = [(row, *extract_paragraph_candidate(row["source_excerpt"], row["source_sentence"])) for row in rows]
     eligible = [(row, candidate) for row, candidate, _ in extracted if candidate.status == "candidate" and not candidate.gate_reasons]
@@ -51,16 +54,20 @@ def predict(source_path: Path, source_manifest_path: Path, model_path: Path,
     if model is not None:
         model.eval()
     sampler = CNLSampler(model, tokenizer, allow_background_axioms=False) if eligible else None
+    memory_statements = load_ontology_memory() if memory_mode == "retrieved" else []
     output_dir.mkdir(parents=True, exist_ok=False)
     manifest = {
         "status": "running",
-        "protocol": "Unlabeled chapter 1 development paragraph -> source-preserving sentence scan -> first conservative definition head -> production gate -> constrained decoder. No labels loaded; no claim accepted by this script.",
+        "protocol": "Unlabeled chapter 1 development paragraph -> source-preserving sentence scan -> first conservative definition head -> production gate and source-only grammar -> constrained decoder. Optional retrieved ontology context is encoder-only, not source evidence. No labels loaded; no claim accepted by this script.",
         "source_manifest_sha256": text_sha256(source_manifest_path),
         "sources_sha256": text_sha256(source_path),
         "adapter_sha256": hashlib.sha256((model_path / "adapter_model.safetensors").read_bytes()).hexdigest(),
         "max_new_tokens": max_new_tokens,
         "device": "cpu",
         "generation": {"decoder": "CNLSampler", "num_beams": 4},
+        "memory_mode": memory_mode,
+        "memory_limit": 1 if memory_mode == "retrieved" else 0,
+        "memory_source_sha256": memory_statements[0].source_sha256 if memory_statements else None,
         "python": platform.python_version(),
         "torch": torch.__version__,
         "source_count": len(rows),
@@ -72,9 +79,12 @@ def predict(source_path: Path, source_manifest_path: Path, model_path: Path,
     with prediction_path.open("x", encoding="utf-8") as handle:
         for row, candidate, screened in extracted:
             cnl, error, decoder_abstention = None, None, None
+            memory = retrieve_memory(candidate.candidate_text, memory_statements, limit=1) if candidate.status == "candidate" else []
+            source_prompt = format_prompt(candidate.candidate_text) if candidate.status == "candidate" else None
+            model_prompt = render_memory_prompt(source_prompt, memory) if source_prompt is not None else None
             if candidate.status == "candidate" and not candidate.gate_reasons:
                 try:
-                    cnl = sampler.sample(format_prompt(candidate.candidate_text), max_tokens=max_new_tokens)
+                    cnl = sampler.sample(source_prompt, max_tokens=max_new_tokens, model_prompt=model_prompt)
                 except UnsupportedInputError as exc:
                     decoder_abstention = str(exc)
                 except Exception as exc:
@@ -86,13 +96,16 @@ def predict(source_path: Path, source_manifest_path: Path, model_path: Path,
                 "source_sentence_sha256": hashlib.sha256(row["source_sentence"].encode("utf-8")).hexdigest(),
                 "extraction": asdict(candidate),
                 "screened_sentences": screened,
+                "memory": [asdict(statement) for statement in memory],
+                "source_prompt_sha256": hashlib.sha256(source_prompt.encode("utf-8")).hexdigest() if source_prompt else None,
+                "model_prompt_sha256": hashlib.sha256(model_prompt.encode("utf-8")).hexdigest() if model_prompt else None,
                 "constrained_cnl": cnl,
                 "decoder_abstention": decoder_abstention,
                 "error": error,
             }
             handle.write(json.dumps(result, ensure_ascii=False) + "\n")
             handle.flush()
-            print(f"{row['paragraph']} {candidate.status} {candidate.reason or candidate.candidate_text!r} cnl={cnl!r} abstention={decoder_abstention!r} error={error!r}", flush=True)
+            print(f"{row['paragraph']} {candidate.status} {candidate.reason or candidate.candidate_text!r} memory={[item.statement_id for item in memory]} cnl={cnl!r} abstention={decoder_abstention!r} error={error!r}", flush=True)
     manifest["prediction_count"] = len(rows)
     manifest["predictions_sha256"] = text_sha256(prediction_path)
     manifest["status"] = "completed"
@@ -106,9 +119,10 @@ def main() -> None:
     parser.add_argument("--model-path", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--max-new-tokens", type=int, default=64)
+    parser.add_argument("--memory-mode", choices=("none", "retrieved"), default="none")
     args = parser.parse_args()
     predict(args.sources, args.source_manifest, args.model_path, args.output_dir,
-            max_new_tokens=args.max_new_tokens)
+            max_new_tokens=args.max_new_tokens, memory_mode=args.memory_mode)
 
 
 if __name__ == "__main__":

@@ -1407,16 +1407,20 @@ class CNLSampler:
         probabilities = [cls._top1_probability(score_step) for score_step in scores]
         return sum(probabilities) / len(probabilities)
 
-    def sample(self, prompt: str, max_tokens: int = 200) -> str:
+    def sample(self, prompt: str, max_tokens: int = 200, *, model_prompt: str | None = None) -> str:
         """
         Run constrained generation and return a canonical CNL string.
 
         Parameters
         ----------
         prompt : str
-            Natural-language input prompt for the T5 model.
+            Natural-language source prompt used for the input gate and grammar.
         max_tokens : int
             Maximum number of tokens to generate.
+        model_prompt : str, optional
+            Encoder text when providing contextual memory. The gate and output
+            grammar still use ``prompt`` alone, so memory cannot supply a new
+            output term or make an unsupported source pass the input gate.
 
         Returns
         -------
@@ -1435,7 +1439,7 @@ class CNLSampler:
             _LOGGER.warning("Abstaining from CNL generation for unsupported input: %s", message)
             raise UnsupportedInputError(message)
 
-        encoded = self._tokenize_prompt(prompt)
+        encoded = self._tokenize_prompt(model_prompt if model_prompt is not None else prompt)
         prefix_constraint = self._get_prefix_constraint(prompt)
         if self._has_no_supported_constraint_start(prefix_constraint):
             message = "no lexically supported constrained continuation"
