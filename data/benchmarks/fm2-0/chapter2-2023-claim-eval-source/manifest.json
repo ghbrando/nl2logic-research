@@ -19,12 +19,12 @@
   "status": "source_selected_unreviewed",
   "training_use": false,
   "frozen_artifact_sha256": {
-    "selected_passages_sha256": "80a4d07b9b4b6838f7831aabcc669a25ef9ca264146fa8a876e59c09d71e987e",
-    "source_pages_sha256": "b5e9affc494bfd8bfc131002de1368ba379a6a73d8503768a2b477808592c5c7",
-    "doctrine_domain_sha256": "bc8ce888735bd82f9b30998910ef247a39a722d0bdcecc0aa5ae006398680d89",
-    "sumo_classes_sha256": "f82124772ec842d902f626530feb891e8991336a3bc37753c8df2eea5cd88bed",
-    "sumo_relations_sha256": "d1a7bb3aec5ad0027305e4a17a5d2ed9423272a38d625fa5f80c19bed979c1f2",
-    "relation_kinds_sha256": "a2081e387289159656f05b0f18340632957cbff0bd945e2efae5003c97bd41fc",
+    "selected_passages_sha256": "1669ceddddeb30cc4e03c50a7316d914a2a581702023e4af087d18b64f80aa0a",
+    "source_pages_sha256": "7c42957b96d7b321840d16cdf949d17e4302c6620082fbf7e1bff5e9e445f235",
+    "doctrine_domain_sha256": "bcbe64de82cec3ea5bb60d3211ae38e82ed175bc8ba858898bf726451ca74f92",
+    "sumo_classes_sha256": "20f6220b4829bd5d356b72b2ccc019012349b99dcfd47404f9c19bb8a4fe6956",
+    "sumo_relations_sha256": "d8f43f839f91e4df5472f907ab9d359262d40a7939972a0ddb2e142c428110fb",
+    "relation_kinds_sha256": "d248f25c342b0daa063c26206b5d18e8cb806d5a614c9b84a4a93ee92435f6b6",
     "claim_contract_sha256": "91f1da42edcd5fb838011feaf24c325291d0c1284570e861f7d75cec8c108163"
   },
   "target_nl2logic_model_queries_after_selection": 0

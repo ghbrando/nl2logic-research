@@ -9,6 +9,10 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "data/benchmarks/fm2-0/chapter2-2023-claim-eval-source"
 
 
+def text_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
 def test_source_selection_and_ontology_are_fingerprinted():
     manifest = json.loads((SOURCE / "manifest.json").read_text(encoding="utf-8"))
     files = {
@@ -21,7 +25,7 @@ def test_source_selection_and_ontology_are_fingerprinted():
         "claim_contract_sha256": ROOT / "docs/CLAIM_CONTRACT.md",
     }
     for name, path in files.items():
-        assert hashlib.sha256(path.read_bytes()).hexdigest() == manifest["frozen_artifact_sha256"][name]
+        assert text_sha256(path) == manifest["frozen_artifact_sha256"][name]
 
 
 def test_selected_passages_have_provenance_but_no_labels():
@@ -34,3 +38,13 @@ def test_selected_passages_have_provenance_but_no_labels():
         assert row["status"] == "source_selected_unreviewed"
         assert row["decision"] is None
         assert " ".join(row["source_excerpt"].split()) in pages[row["pdf_page"]]
+
+
+def test_ai_review_is_frozen_before_target_model_query():
+    review = json.loads((SOURCE / "review_manifest.json").read_text(encoding="utf-8"))
+    labels = SOURCE / review["label_packet"]
+    assert text_sha256(labels) == review["label_packet_sha256"]
+    assert text_sha256(SOURCE / "manifest.json") == review["source_selection_manifest_sha256"]
+    assert review["status"] == "ai_reviewed_frozen_pre_target_query"
+    assert review["target_nl2logic_model_queries"] == 0
+    assert review["training_jobs"] == 0

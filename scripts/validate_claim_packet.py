@@ -22,12 +22,19 @@ from src.ontology.vocab import load_closed_class_terms
 _DECLARATION = re.compile(r"\(instance ([A-Z][A-Za-z0-9]*) Class\)\Z")
 _ABSTENTION_REASONS = {
     "preloaded_axiom", "scope_or_qualifier", "cardinality", "disjunction",
-    "relation_semantics", "comparison", "representation_gap",
+    "relation_semantics", "comparison", "representation_gap", "causality",
+    "temporal_context", "named_entity", "incomplete_source", "nonassertive_reference",
+    "modality_or_quantifier",
 }
 
 
 def _squash(value: str) -> str:
     return " ".join(value.split())
+
+
+def _text_sha256(path: Path) -> str:
+    """Hash the Git-canonical LF form on Windows and Linux alike."""
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
 
 def validate(packet: dict) -> None:
@@ -39,6 +46,33 @@ def validate(packet: dict) -> None:
     pages = {r["pdf_page"]: r["text"] for r in map(json.loads, pages_path.read_text(encoding="utf-8").splitlines())}
     candidates_path = ROOT / source["candidates_path"]
     candidates = {r["record_id"]: r for r in map(json.loads, candidates_path.read_text(encoding="utf-8").splitlines())}
+    split = packet.get("split", "development")
+    if split not in {"development", "eval"}:
+        raise ValueError("Unknown packet split")
+    if split == "eval":
+        if packet.get("label_status") != "ai_reviewed_frozen_pre_target_query":
+            raise ValueError("Evaluation labels must be frozen before target-model query")
+        manifest_path = ROOT / source["selection_manifest_path"]
+        if _text_sha256(manifest_path) != source["selection_manifest_sha256"]:
+            raise ValueError("Selection manifest hash mismatch")
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if manifest["pdf_sha256"] != source["pdf_sha256"] or manifest["selected_count"] != len(candidates):
+            raise ValueError("Selection manifest does not match source packet")
+        if candidates_path.resolve() != (manifest_path.parent / "selected_passages.jsonl").resolve() or pages_path.resolve() != (manifest_path.parent / "source_pages.jsonl").resolve():
+            raise ValueError("Evaluation source paths differ from frozen selection")
+        frozen = manifest["frozen_artifact_sha256"]
+        frozen_paths = {
+            "selected_passages_sha256": candidates_path,
+            "source_pages_sha256": pages_path,
+            "doctrine_domain_sha256": ROOT / "data/ontology/doctrine_domain.kif",
+            "sumo_classes_sha256": ROOT / "data/training_pairs/sumo_classes.jsonl",
+            "sumo_relations_sha256": ROOT / "data/training_pairs/sumo_relations.jsonl",
+            "relation_kinds_sha256": ROOT / "src/ontology/sumo_relation_kinds.json",
+            "claim_contract_sha256": ROOT / "docs/CLAIM_CONTRACT.md",
+        }
+        for name, path in frozen_paths.items():
+            if _text_sha256(path) != frozen[name]:
+                raise ValueError(f"Frozen evaluation input changed: {name}")
     doctrine_axioms = set((ROOT / "data/ontology/doctrine_domain.kif").read_text(encoding="utf-8").splitlines())
     base_classes = load_closed_class_terms()
     seen = set()
@@ -48,7 +82,7 @@ def validate(packet: dict) -> None:
             raise ValueError(f"duplicate or unknown record ID: {rid}")
         seen.add(rid)
         candidate = candidates[rid]
-        if row["doc_id"] != candidate["doc_id"] or row["pdf_page"] != candidate["pdf_page"] or row["paragraph"] != candidate["paragraph"] or row["page"] != candidate["page"]:
+        if row["doc_id"] != candidate["doc_id"] or row["pdf_page"] != candidate["pdf_page"] or row["paragraph"] != candidate["paragraph"] or row["page"] != candidate["page"] or (candidate.get("edition") and row["edition"] != candidate["edition"]):
             raise ValueError(f"{rid}: source reference mismatch")
         span = row["source_span"]
         if not span or span not in candidate["source_excerpt"]:
@@ -57,8 +91,10 @@ def validate(packet: dict) -> None:
             raise ValueError(f"{rid}: source span absent from PDF page extraction")
         if row["status"] != "reviewed" or row["reviewer_type"] not in {"ai", "human"} or not row["reviewed_by"]:
             raise ValueError(f"{rid}: reviewer attribution missing")
-        if row["split"] != "development":
-            raise ValueError(f"{rid}: packet rows must be development only")
+        if row["split"] != split:
+            raise ValueError(f"{rid}: row split differs from packet split")
+        if split == "eval" and row["reviewer_type"] != "ai":
+            raise ValueError(f"{rid}: this frozen evaluation packet is AI-reviewed only")
         decision = row["decision"]
         if decision == "abstain":
             if row.get("abstention_reason") not in _ABSTENTION_REASONS or not row.get("abstention_rationale"):
@@ -87,6 +123,8 @@ def validate(packet: dict) -> None:
         _, _, terms = extract_cnl_terms(row["cnl"])
         if set(terms) != set(row["terms"]):
             raise ValueError(f"{rid}: term list mismatch")
+    if split == "eval" and seen != set(candidates):
+        raise ValueError("Evaluation labels must cover every selected source passage")
 
 
 def main() -> None:
@@ -99,7 +137,7 @@ def main() -> None:
     except (KeyError, OSError, ValueError) as exc:
         parser.exit(2, f"Claim packet invalid: {exc}\n")
     positives = sum(row["decision"] == "positive" for row in packet["claims"])
-    print(f"Validated {positives} positive and {len(packet['claims']) - positives} abstention development rows; entailment still requires review")
+    print(f"Validated {positives} positive and {len(packet['claims']) - positives} abstention {packet.get('split', 'development')} rows; entailment is AI-reviewed, not mechanically proved")
 
 
 if __name__ == "__main__":

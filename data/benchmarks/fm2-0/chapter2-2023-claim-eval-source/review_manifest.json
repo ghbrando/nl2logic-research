@@ -1,0 +1,14 @@
+{
+  "status": "ai_reviewed_frozen_pre_target_query",
+  "review_date": "2026-09-23",
+  "reviewer_type": "ai",
+  "selected_count": 29,
+  "positive_count": 1,
+  "abstention_count": 28,
+  "label_packet": "ai_reviewed_claims_20260923.json",
+  "label_packet_sha256": "94da9c94bbfb98516b610cfb59f68a37c81e6f8500698ff31151207962496cad",
+  "source_selection_manifest_sha256": "86dcd1bd4e8afd66ba357ad85ce8442f35ec88d993e7daf94a20dec3330b138b",
+  "target_nl2logic_model_queries": 0,
+  "training_jobs": 0,
+  "limitation": "AI-only provisional labels; one positive cannot support a stable positive-recall estimate."
+}
