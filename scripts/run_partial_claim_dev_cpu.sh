@@ -3,7 +3,7 @@ set -euo pipefail
 
 repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 state_dir="/home/save-water/nl2logic-state"
-run_name="partial-claim-dev-cpu-20260923-01"
+run_name="partial-claim-dev-cpu-20260923-02"
 run_dir="$state_dir/outputs/$run_name"
 
 if [[ "$(id -un)" != "save-water" ]]; then

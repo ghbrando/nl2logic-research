@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from scripts.run_partial_claim_dev_probe import load_sources
-from src.preprocessing.partial_claims import extract_definition_head
+from src.preprocessing.partial_claims import extract_definition_head, extract_paragraph_candidate
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -16,10 +16,19 @@ def test_source_only_projection_and_exact_span_offsets():
     assert all("decision" not in row and "cnl" not in row for row in rows)
     by_paragraph = {row["paragraph"]: row for row in rows}
     row = by_paragraph["1-93"]
-    result = extract_definition_head(row["source_excerpt"], row["source_sentence"])
+    result, screened = extract_paragraph_candidate(row["source_excerpt"], row["source_sentence"])
     assert result.candidate_text == "Biometrics is the process"
     assert row["source_excerpt"][result.start:result.end] == result.source_span
     assert result.gate_reasons == ()
+    assert len(screened) == 1
+
+
+def test_paragraph_scan_can_find_later_source_sentence():
+    paragraph = "The report summarizes the findings. Biometrics is the process of recognition."
+    result, screened = extract_paragraph_candidate(paragraph, "The report summarizes the findings.")
+    assert len(screened) == 2
+    assert result.candidate_text == "Biometrics is the process"
+    assert paragraph[result.start:result.end] == result.source_span
 
 
 @pytest.mark.parametrize("sentence", [

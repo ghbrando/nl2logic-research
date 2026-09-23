@@ -6,7 +6,7 @@ ontology relation or chooses a sense for an ambiguous source term.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from src.fsm.cnl_fsm import CNLSampler
 
@@ -21,6 +21,7 @@ _NON_KIND_HEADS = frozenset({
     "application", "division", "part", "subset", "one", "type", "kind", "form",
     "processing", "combination", "group", "set", "component", "aspect",
 })
+_SENTENCE_BOUNDARY = re.compile(r"(?<=[.!?])\s+(?=[A-Z])")
 
 
 @dataclass(frozen=True)
@@ -64,3 +65,42 @@ def extract_definition_head(source_excerpt: str, source_sentence: str) -> Partia
     return PartialClaimCandidate(
         "candidate", None, raw_span, start, end, candidate_text, reasons
     )
+
+
+def extract_paragraph_candidate(source_excerpt: str, first_sentence: str) -> tuple[PartialClaimCandidate, list[dict]]:
+    """Scan exact paragraph sentences and return the first conservative head.
+
+    The existing PDF first-sentence extraction anchors the first boundary.
+    Later boundaries are split on punctuation followed by a capitalized word;
+    false splits are possible and remain a prototype limitation.
+    """
+    if not first_sentence or not source_excerpt.startswith(first_sentence):
+        raise ValueError("First sentence must be the exact paragraph prefix")
+    spans = [(0, len(first_sentence))]
+    tail_start = len(first_sentence)
+    while tail_start < len(source_excerpt) and source_excerpt[tail_start].isspace():
+        tail_start += 1
+    if tail_start < len(source_excerpt):
+        tail = source_excerpt[tail_start:]
+        boundaries = [0]
+        for match in _SENTENCE_BOUNDARY.finditer(tail):
+            preceding = tail[:match.start()]
+            if preceding.endswith(("U.S.", "U.K.", "e.g.", "i.e.")):
+                continue
+            boundaries.append(match.end())
+        boundaries.append(len(tail))
+        for start, end in zip(boundaries, boundaries[1:]):
+            raw_start = tail_start + start
+            raw_end = tail_start + end
+            while raw_end > raw_start and source_excerpt[raw_end - 1].isspace():
+                raw_end -= 1
+            if raw_start < raw_end:
+                spans.append((raw_start, raw_end))
+    screened: list[dict] = []
+    for start, end in spans:
+        sentence = source_excerpt[start:end]
+        result = extract_definition_head(sentence, sentence)
+        screened.append({"start": start, "end": end, "status": result.status, "reason": result.reason})
+        if result.status == "candidate":
+            return replace(result, start=start + result.start, end=start + result.end), screened
+    return PartialClaimCandidate("abstain", "no_supported_definition_head", None, None, None, None, ()), screened

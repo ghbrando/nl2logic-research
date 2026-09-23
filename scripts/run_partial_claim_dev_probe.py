@@ -17,7 +17,7 @@ if str(ROOT) not in sys.path:
 from scripts.run_frozen_claim_predictions import text_sha256
 from src.eval.model_predictor import load_model_and_tokenizer
 from src.fsm.cnl_fsm import CNLSampler, UnsupportedInputError
-from src.preprocessing.partial_claims import extract_definition_head
+from src.preprocessing.partial_claims import extract_paragraph_candidate
 from src.training.train import format_prompt
 
 
@@ -38,8 +38,8 @@ def predict(source_path: Path, source_manifest_path: Path, model_path: Path,
     if max_new_tokens <= 0:
         raise ValueError("max_new_tokens must be positive")
     rows = load_sources(source_path, source_manifest_path)
-    extracted = [(row, extract_definition_head(row["source_excerpt"], row["source_sentence"])) for row in rows]
-    eligible = [(row, candidate) for row, candidate in extracted if candidate.status == "candidate" and not candidate.gate_reasons]
+    extracted = [(row, *extract_paragraph_candidate(row["source_excerpt"], row["source_sentence"])) for row in rows]
+    eligible = [(row, candidate) for row, candidate, _ in extracted if candidate.status == "candidate" and not candidate.gate_reasons]
     import torch
 
     if torch.cuda.is_available():
@@ -54,7 +54,7 @@ def predict(source_path: Path, source_manifest_path: Path, model_path: Path,
     output_dir.mkdir(parents=True, exist_ok=False)
     manifest = {
         "status": "running",
-        "protocol": "Unlabeled chapter 1 development paragraph -> exact first sentence -> conservative definition head -> production gate -> constrained decoder. No labels loaded; no claim accepted by this script.",
+        "protocol": "Unlabeled chapter 1 development paragraph -> source-preserving sentence scan -> first conservative definition head -> production gate -> constrained decoder. No labels loaded; no claim accepted by this script.",
         "source_manifest_sha256": text_sha256(source_manifest_path),
         "sources_sha256": text_sha256(source_path),
         "adapter_sha256": hashlib.sha256((model_path / "adapter_model.safetensors").read_bytes()).hexdigest(),
@@ -70,7 +70,7 @@ def predict(source_path: Path, source_manifest_path: Path, model_path: Path,
     (output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     prediction_path = output_dir / "predictions.jsonl"
     with prediction_path.open("x", encoding="utf-8") as handle:
-        for row, candidate in extracted:
+        for row, candidate, screened in extracted:
             cnl, error, decoder_abstention = None, None, None
             if candidate.status == "candidate" and not candidate.gate_reasons:
                 try:
@@ -85,6 +85,7 @@ def predict(source_path: Path, source_manifest_path: Path, model_path: Path,
                 "source_sha256": hashlib.sha256(row["source_excerpt"].encode("utf-8")).hexdigest(),
                 "source_sentence_sha256": hashlib.sha256(row["source_sentence"].encode("utf-8")).hexdigest(),
                 "extraction": asdict(candidate),
+                "screened_sentences": screened,
                 "constrained_cnl": cnl,
                 "decoder_abstention": decoder_abstention,
                 "error": error,
