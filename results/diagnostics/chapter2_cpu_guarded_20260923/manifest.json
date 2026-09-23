@@ -1,0 +1,19 @@
+{
+  "status": "completed",
+  "protocol": "Full source paragraph -> production unsupported-input gate -> constrained decoder only for eligible passages. No labels loaded.",
+  "selected_sha256": "1669ceddddeb30cc4e03c50a7316d914a2a581702023e4af087d18b64f80aa0a",
+  "source_selection_manifest_sha256": "86dcd1bd4e8afd66ba357ad85ce8442f35ec88d993e7daf94a20dec3330b138b",
+  "adapter_sha256": "65fa954c72074f675dc0cdaced4b8d839fd720dad451954fc9e958af1010f927",
+  "max_new_tokens": 64,
+  "device": "cpu",
+  "generation": {
+    "decoder": "CNLSampler",
+    "num_beams": 4
+  },
+  "python": "3.12.3",
+  "torch": "2.10.0a0+b558c986e8.nv25.11",
+  "eligible_count": 1,
+  "git_head": "cf11d66dae441d411e7e49c4f8744e22aef0d541",
+  "prediction_count": 29,
+  "predictions_sha256": "a74b5f53dfb32de22151e069cd0cfe4ecc276323502f9556d0747ae785a326c8"
+}

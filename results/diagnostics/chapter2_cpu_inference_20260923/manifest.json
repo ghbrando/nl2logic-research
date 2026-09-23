@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "protocol": "Full source paragraph to rules and raw greedy seq2seq; raw bypasses the unsupported-input gate. Gate reasons are recorded without generating a constrained prediction. No labels loaded.",
+  "selected_path": "/workspace/data/benchmarks/fm2-0/chapter2-2023-claim-eval-source/selected_passages.jsonl",
+  "selected_sha256": "1669ceddddeb30cc4e03c50a7316d914a2a581702023e4af087d18b64f80aa0a",
+  "source_selection_manifest_sha256": "86dcd1bd4e8afd66ba357ad85ce8442f35ec88d993e7daf94a20dec3330b138b",
+  "model_path": "/outputs/diagnostic-closed-7k-20260922-01",
+  "adapter_sha256": "65fa954c72074f675dc0cdaced4b8d839fd720dad451954fc9e958af1010f927",
+  "max_new_tokens": 64,
+  "device": "cpu",
+  "generation": {
+    "do_sample": false,
+    "num_beams": 1
+  },
+  "python": "3.12.3",
+  "torch": "2.10.0a0+b558c986e8.nv25.11",
+  "git_head": "2ad5f1ca36c2b54d7fb25b272ce9bd4e58d966f2",
+  "prediction_count": 29,
+  "predictions_sha256": "6eef70185ba04b2088a6a4b3e927db7244600c27df1da0197bcc7135a9d6704c"
+}

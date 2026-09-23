@@ -1,0 +1,17 @@
+{
+  "label_status": "ai_reviewed_frozen_pre_target_query",
+  "source_selection_manifest_sha256": "86dcd1bd4e8afd66ba357ad85ce8442f35ec88d993e7daf94a20dec3330b138b",
+  "label_packet_sha256": "94da9c94bbfb98516b610cfb59f68a37c81e6f8500698ff31151207962496cad",
+  "predictions_sha256": "a74b5f53dfb32de22151e069cd0cfe4ecc276323502f9556d0747ae785a326c8",
+  "adapter_sha256": "65fa954c72074f675dc0cdaced4b8d839fd720dad451954fc9e958af1010f927",
+  "source_passages": 29,
+  "ai_positives": 1,
+  "ai_abstentions": 28,
+  "routes": {
+    "input_gate_abstain": 28,
+    "lexical_abstain": 1
+  },
+  "false_accepts_on_ai_abstentions": 0,
+  "one_positive_exact_kif": false,
+  "interpretation": "Exploratory diagnostic with AI-reviewed labels. Abstentions do not establish safe or accurate formalization; one positive cannot support a stable recall estimate."
+}

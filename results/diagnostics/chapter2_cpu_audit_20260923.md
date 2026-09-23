@@ -1,0 +1,17 @@
+# FM 2-0 chapter 2: frozen partial-claim CPU audit
+
+The current full-paragraph pipeline produced **no formal claims** from the 29 frozen chapter 2 passages. The production unsupported-input gate abstained on 28 passages, including the sole AI-labeled partial positive (paragraph 2-26). Paragraph 2-10 passed that gate, but the constrained decoder abstained because it found no lexically supported continuation. A separate ungated raw-generation diagnostic emitted text for all 29 passages; none compiled as a closed, argument-kind-valid claim. This is a coverage failure, not evidence that the system can safely or accurately formalize these passages.
+
+The [source selection](../../data/benchmarks/fm2-0/chapter2-2023-claim-eval-source/selected_passages.jsonl) and [AI review](../../data/benchmarks/fm2-0/chapter2-2023-claim-eval-source/ai_reviewed_claims_20260923.json) were frozen before the model query. The review has one narrow partial positive and 28 abstentions. Its labels are provisional AI judgments, with no independent subject-matter adjudication. One positive cannot support a stable recall estimate.
+
+| Route | Input-gate abstain | Lexical abstain | Accepted | Other result |
+| --- | ---: | ---: | ---: | --- |
+| Rules | — | — | 0 | 29 abstentions |
+| Raw greedy, gate bypassed | — | — | 0 | 29 compile errors |
+| Production gate + constrained decoder | 28 | 1 | 0 | 0 |
+
+The [raw prediction artifact](chapter2_cpu_inference_20260923/predictions.jsonl) and [scoring](chapter2_cpu_inference_20260923/scoring/summary.json) distinguish raw model output from an accepted claim. The [guarded prediction artifact](chapter2_cpu_guarded_20260923/guarded_predictions.jsonl) and [scoring](chapter2_cpu_guarded_20260923/scoring/summary.json) record the one decoder-level abstention. In particular, paragraph 2-10 is a reference to Table 2-1, not a source-grounded ontology assertion. The raw decoder's string for it did not compile, and the guarded route did not accept it.
+
+Both inference passes ran in the project-owned, rootless, network-disabled CPU audit container on worker `192.168.94.13` as `save-water`, with no GPU device and no training. The raw pass used greedy generation, 64 new tokens, and bypassed the production input gate solely to inspect model behavior. The guarded pass used the production input gate and `CNLSampler` with four beams, at most 64 new tokens, and background axioms disabled. Labels were read only by the local scorers after prediction files were saved. The raw and guarded manifests pin the source, adapter, prediction hashes, runtime parameters, and code commits. Exact normalized overlap of full paragraphs and first sentences with `train_closed_7k.jsonl` was zero; this only rules out exact-text overlap, not semantic leakage.
+
+The practical next step is a **source-to-subclaim extraction prototype** on separate development material: isolate a short, source-entailed assertion from each longer paragraph, preserve its exact span and paragraph provenance, and abstain when no defensible assertion can be isolated. Feed only those extracted spans to the existing gate and constrained decoder, then check compiled output against the source and ontology. Keep this frozen chapter 2 packet for a later evaluation after the extraction procedure is fixed. Do not use the 29 held-out outcomes to tune extraction rules or train a model. No training is proposed or authorized here.

@@ -1,0 +1,30 @@
+{
+  "label_status": "ai_reviewed_frozen_pre_target_query",
+  "source_selection_manifest_sha256": "86dcd1bd4e8afd66ba357ad85ce8442f35ec88d993e7daf94a20dec3330b138b",
+  "label_packet_sha256": "94da9c94bbfb98516b610cfb59f68a37c81e6f8500698ff31151207962496cad",
+  "predictions_sha256": "6eef70185ba04b2088a6a4b3e927db7244600c27df1da0197bcc7135a9d6704c",
+  "adapter_sha256": "65fa954c72074f675dc0cdaced4b8d839fd720dad451954fc9e958af1010f927",
+  "source_passages": 29,
+  "ai_positives": 1,
+  "ai_abstentions": 28,
+  "guarded_input_gate_abstentions": 28,
+  "methods": {
+    "rules": {
+      "routes": {
+        "abstain": 29
+      },
+      "false_accepts_on_28_ai_abstentions": 0,
+      "accepted_ontology_restatements": 0,
+      "one_positive_exact_kif": false
+    },
+    "raw": {
+      "routes": {
+        "compile_error": 29
+      },
+      "false_accepts_on_28_ai_abstentions": 0,
+      "accepted_ontology_restatements": 0,
+      "one_positive_exact_kif": false
+    }
+  },
+  "interpretation": "Exploratory AI-label diagnostic. Raw greedily generates from full paragraphs despite the production unsupported-input gate. One positive cannot support a stable recall estimate. Accepted routes require manual semantic review."
+}

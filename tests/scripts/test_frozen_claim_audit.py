@@ -6,6 +6,7 @@ import pytest
 
 from scripts.run_frozen_claim_predictions import load_sources, text_sha256
 from scripts.score_frozen_claim_predictions import score
+from scripts.score_frozen_guarded_predictions import score as score_guarded
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -66,3 +67,18 @@ def test_score_rejects_prediction_from_another_source(tmp_path):
     with pytest.raises(ValueError, match="prediction source hash differs"):
         score(SOURCE / "selected_passages.jsonl", SOURCE / "ai_reviewed_claims_20260923.json",
               SOURCE / "review_manifest.json", predictions, manifest)
+
+
+def test_guarded_audit_records_decoder_abstention_after_input_gate():
+    run = ROOT / "results/diagnostics/chapter2_cpu_guarded_20260923"
+    scored, summary = score_guarded(
+        SOURCE / "selected_passages.jsonl",
+        SOURCE / "ai_reviewed_claims_20260923.json",
+        SOURCE / "review_manifest.json",
+        run / "guarded_predictions.jsonl",
+        run / "manifest.json",
+    )
+    assert summary["routes"] == {"input_gate_abstain": 28, "lexical_abstain": 1}
+    assert summary["false_accepts_on_ai_abstentions"] == 0
+    assert not summary["one_positive_exact_kif"]
+    assert [row["paragraph"] for row in scored if row["route"] == "lexical_abstain"] == ["2-10"]
