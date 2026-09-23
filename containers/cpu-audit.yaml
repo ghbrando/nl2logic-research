@@ -1,0 +1,7 @@
+# CPU-only inference audit. No GPU device override is included.
+services:
+  research:
+    cpus: "2.0"
+    mem_limit: 4g
+    memswap_limit: 4g
+    pids_limit: 128

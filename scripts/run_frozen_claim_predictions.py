@@ -53,6 +53,8 @@ def predict(
     rows = load_sources(selected_path, selection_manifest_path)
     import torch
 
+    if torch.cuda.is_available():
+        raise RuntimeError("CPU-only audit container unexpectedly has CUDA access")
     torch.set_num_threads(2)
     model, tokenizer = load_model_and_tokenizer(model_path)
     if any(parameter.device.type != "cpu" for parameter in model.parameters()):
