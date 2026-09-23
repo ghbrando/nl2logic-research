@@ -1,0 +1,22 @@
+{
+  "status": "completed",
+  "protocol": "Development-only oracle class declarations, no subclass assertions; full current evidence sentence plus source head in encoder; source-head gate and isolated-declaration grammar; paired no-memory and ontology-memory decoding. Labels read only after predictions are saved.",
+  "sources_sha256": "9b97ee2bf777269b6f49172ec481ac92e7e0daf594dc8cfffeb7269409de155c",
+  "source_manifest_sha256": "a1025edfce092d5aa1b038ce0dee2d0c683f5dc658e2116a40e2edc21bbe190a",
+  "registry_sha256": "aa01a51e9aeebf92499facf64f41b691c6cddd0aaf963395d695ba9225068e50",
+  "memory_source_sha256": "bcbe64de82cec3ea5bb60d3211ae38e82ed175bc8ba858898bf726451ca74f92",
+  "adapter_sha256": "65fa954c72074f675dc0cdaced4b8d839fd720dad451954fc9e958af1010f927",
+  "device": "cpu",
+  "generation": {
+    "decoder": "CNLSampler",
+    "num_beams": 4,
+    "max_new_tokens": 64
+  },
+  "source_count": 14,
+  "eligible_count": 3,
+  "git_head": "a7d00b3dce53824683bec063da12ba9b48e0a5f0",
+  "python": "3.12.3",
+  "torch": "2.10.0a0+b558c986e8.nv25.11",
+  "prediction_count": 14,
+  "predictions_sha256": "07af557d53bf5357f7267fdd79b7bd8b005497eee57b29a05c93e01e7e9a22ef"
+}
