@@ -217,6 +217,23 @@ class TestCNLSamplerConstruction:
         s = CNLSampler(MagicMock(), MagicMock())
         assert s is not None
 
+    def test_isolated_declaration_does_not_assert_a_parent(self):
+        s = CNLSampler(
+            MagicMock(), MagicMock(),
+            declared_class_terms={"BiometricsProcess", "Process", "IntelligenceProduct"},
+            allow_definition_subclass=True,
+        )
+        assert "BiometricsProcess" in s._get_class_terms()
+        assert s._compiler.compile(
+            "BiometricsProcess subclass-of Process",
+            require_closed=True, require_argument_kinds=True,
+        ) == "(subclass BiometricsProcess Process)"
+        assert s._get_doctrine_subclass_pairs().get("BiometricsProcess") is None
+
+    def test_definition_subclass_requires_declaration(self):
+        with pytest.raises(ValueError, match="requires isolated declarations"):
+            CNLSampler(MagicMock(), MagicMock(), allow_definition_subclass=True)
+
     def test_validate_output_available_without_backend(self, sampler):
         # validate_output must work even though constrained decoding is not exercised here
         result = sampler.validate_output("?x is-a Process")

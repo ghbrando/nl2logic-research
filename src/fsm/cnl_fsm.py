@@ -480,12 +480,20 @@ class CNLSampler:
         grammar_str: str | None = None,
         confidence_threshold: float = 0.7,
         allow_background_axioms: bool = False,
+        declared_class_terms: Iterable[str] = (),
+        allow_definition_subclass: bool = False,
     ):
+        self._declared_class_terms = frozenset(declared_class_terms)
+        if allow_definition_subclass and not self._declared_class_terms:
+            raise ValueError("Definition-subclass decoding requires isolated declarations")
+        if any(re.fullmatch(r"[A-Z][A-Za-z0-9]*", term) is None for term in self._declared_class_terms):
+            raise ValueError("Invalid declared class symbol")
+        self._allow_definition_subclass = allow_definition_subclass
         self._allow_background_axioms = allow_background_axioms
         self._hf_model = hf_model
         self._tokenizer = tokenizer
         self._grammar = grammar_str if grammar_str is not None else build_xgrammar_grammar()
-        self._compiler = CNLCompiler()
+        self._compiler = CNLCompiler(extra_classes=set(self._declared_class_terms))
         self._prefix_constraint = None
         self._prompt_prefix_constraints: dict[str, _PrefixConstraint] = {}
         self._class_terms: list[str] | None = None
@@ -596,7 +604,10 @@ class CNLSampler:
             base = _load_terms(_SUMO_CLASSES)
             doctrine = list(extract_kif_class_terms(_DOCTRINE_KIF))
             seen = set(base)
-            self._class_terms = base + [t for t in doctrine if t not in seen]
+            combined = base + [t for t in doctrine if t not in seen]
+            seen.update(doctrine)
+            combined.extend(t for t in sorted(self._declared_class_terms) if t not in seen)
+            self._class_terms = combined
         return self._class_terms
 
     def _get_relation_terms(self) -> list[str]:
@@ -1037,7 +1048,9 @@ class CNLSampler:
         return bool(_NARY_PROMPT_RE.search(self._normalise_prompt(prompt)))
 
     def _build_prompt_fallback_constraint(self, builder: _ConstraintBuilder, prompt: str) -> bool:
-        class_terms = tuple(self._class_candidates_for_text(prompt))
+        class_terms = tuple(_sorted_terms(
+            self._class_candidates_for_text(prompt) + list(self._declared_class_terms)
+        ))
         relation_terms = tuple(self._relation_candidates_for_text(prompt))
 
         class_start = self._slot_sequences(class_terms, leading_space=False)
@@ -1052,7 +1065,8 @@ class CNLSampler:
             builder.add_template([self._fixed_segment("?x is-a"), class_space])
             added_template = True
 
-        if self._supports_subclass_prompt(prompt) and len(class_terms) >= 2:
+        if (self._supports_subclass_prompt(prompt)
+                or (self._allow_definition_subclass and _COPULAR_DEFINITION_RE.fullmatch(self._normalise_prompt(prompt)))) and len(class_terms) >= 2:
             builder.add_template([class_start, self._fixed_segment(" subclass-of"), class_space])
             added_template = True
 

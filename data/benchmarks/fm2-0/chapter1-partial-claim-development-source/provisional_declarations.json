@@ -1,0 +1,31 @@
+{
+  "status": "ai_reviewed_development_oracle_not_evaluation",
+  "source_packet_sha256": "cfb978a5c2e2764fd53b292caf723a1588930a89b1e128bc2166e7a8c2081c69",
+  "reviewer_type": "ai",
+  "reviewed_by": "Codex",
+  "existing_parent_pool": ["Process", "IntelligenceProduct"],
+  "declarations": [
+    {
+      "alias": "Open-source intelligence",
+      "evidence_cue": "is intelligence that is produced",
+      "symbol": "OpenSourceIntelligenceProduct",
+      "declaration": "(instance OpenSourceIntelligenceProduct Class)",
+      "sense": "produced intelligence, distinct from the intelligence discipline"
+    },
+    {
+      "alias": "Technical intelligence",
+      "evidence_cue": "is intelligence derived from",
+      "symbol": "TechnicalIntelligenceProduct",
+      "declaration": "(instance TechnicalIntelligenceProduct Class)",
+      "sense": "derived intelligence product, distinct from the intelligence discipline"
+    },
+    {
+      "alias": "Biometrics",
+      "evidence_cue": "is the process of",
+      "symbol": "BiometricsProcess",
+      "declaration": "(instance BiometricsProcess Class)",
+      "sense": "the recognition process, distinct from biometric characteristics"
+    }
+  ],
+  "limitation": "Development-only oracle classes and cues were informed by provisional AI labels. The file declares symbols but contains no subclass assertion or gold KIF."
+}

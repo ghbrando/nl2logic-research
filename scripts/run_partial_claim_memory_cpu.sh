@@ -22,8 +22,13 @@ elif [[ "$run_mode" == "control" ]]; then
     echo "Output directory already exists: $state_dir/outputs/$prefix-control" >&2
     exit 2
   fi
+elif [[ "$run_mode" == "declarations" ]]; then
+  if [[ -e "$state_dir/outputs/$prefix-declarations" ]]; then
+    echo "Output directory already exists: $state_dir/outputs/$prefix-declarations" >&2
+    exit 2
+  fi
 else
-  echo "Expected paired or control" >&2
+  echo "Expected paired, control, or declarations" >&2
   exit 2
 fi
 for input in sumo_classes.jsonl sumo_relations.jsonl; do
@@ -58,6 +63,21 @@ if [[ "$run_mode" == "control" ]]; then
     research python scripts/run_claim_memory_control.py \
       --model-path /outputs/diagnostic-closed-7k-20260922-01 \
       --output-dir "/outputs/$prefix-control"
+  exit 0
+fi
+if [[ "$run_mode" == "declarations" ]]; then
+  docker --context rootless compose \
+    -f containers/compose.yaml -f containers/rootless.yaml \
+    -f containers/inputs.yaml -f containers/cpu-audit.yaml \
+    run --rm --no-deps \
+    -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 -e OMP_NUM_THREADS=2 \
+    research python scripts/run_partial_claim_declaration_probe.py \
+      --sources /workspace/data/benchmarks/fm2-0/chapter1-partial-claim-development-source/sources.jsonl \
+      --source-manifest /workspace/data/benchmarks/fm2-0/chapter1-partial-claim-development-source/manifest.json \
+      --registry /workspace/data/benchmarks/fm2-0/chapter1-partial-claim-development-source/provisional_declarations.json \
+      --model-path /outputs/diagnostic-closed-7k-20260922-01 \
+      --output-dir "/outputs/$prefix-declarations" \
+      --max-new-tokens 64
   exit 0
 fi
 for mode in baseline retrieved; do
