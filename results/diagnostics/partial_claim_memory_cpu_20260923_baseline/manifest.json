@@ -1,0 +1,23 @@
+{
+  "status": "completed",
+  "protocol": "Unlabeled chapter 1 development paragraph -> source-preserving sentence scan -> first conservative definition head -> production gate and source-only grammar -> constrained decoder. Optional retrieved ontology context is encoder-only, not source evidence. No labels loaded; no claim accepted by this script.",
+  "source_manifest_sha256": "a1025edfce092d5aa1b038ce0dee2d0c683f5dc658e2116a40e2edc21bbe190a",
+  "sources_sha256": "9b97ee2bf777269b6f49172ec481ac92e7e0daf594dc8cfffeb7269409de155c",
+  "adapter_sha256": "65fa954c72074f675dc0cdaced4b8d839fd720dad451954fc9e958af1010f927",
+  "max_new_tokens": 64,
+  "device": "cpu",
+  "generation": {
+    "decoder": "CNLSampler",
+    "num_beams": 4
+  },
+  "memory_mode": "none",
+  "memory_limit": 0,
+  "memory_source_sha256": null,
+  "python": "3.12.3",
+  "torch": "2.10.0a0+b558c986e8.nv25.11",
+  "source_count": 14,
+  "eligible_count": 3,
+  "git_head": "b84ca8c02a4d8e78619d6336b6155b36da82ac38",
+  "prediction_count": 14,
+  "predictions_sha256": "ae89e8f349fcb36cb6f065c9bdb0c693c8f716ac80f44238ed7b83282e2273f8"
+}

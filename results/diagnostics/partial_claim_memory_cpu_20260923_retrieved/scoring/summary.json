@@ -1,0 +1,20 @@
+{
+  "label_status": "ai_reviewed_development_not_gold",
+  "source_manifest_sha256": "a1025edfce092d5aa1b038ce0dee2d0c683f5dc658e2116a40e2edc21bbe190a",
+  "predictions_sha256": "35dcf15d2e6e3d98614e37d73424c2e887aed3eefec51a3cc4c8f49c160710aa",
+  "adapter_sha256": "65fa954c72074f675dc0cdaced4b8d839fd720dad451954fc9e958af1010f927",
+  "source_passages": 14,
+  "ai_positives": 3,
+  "ai_abstentions": 11,
+  "extracted_candidates": 3,
+  "candidates_on_ai_positives": 3,
+  "candidates_on_ai_abstentions": 0,
+  "routes": {
+    "extraction_abstain": 11,
+    "decoder_abstain": 2,
+    "compile_error": 1
+  },
+  "accepted_on_ai_abstentions": 0,
+  "exact_gold_kif": 0,
+  "interpretation": "Development-set diagnostic only. Candidate selection is not semantic entailment; AI-only labels and a deliberately selected set do not support generalization."
+}

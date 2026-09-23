@@ -1,0 +1,29 @@
+{
+  "purpose": "Engineering smoke control only: source restates a preloaded ontology axiom and is not independent claim evidence.",
+  "source": "OpenSourceIntelligence is a type of IntelligenceDiscipline.",
+  "background_axiom": "(subclass OpenSourceIntelligence IntelligenceDiscipline)",
+  "source_prompt_sha256": "3509987a866958b7b0008f5f8d49247127722ca12535d99b282cea461b627578",
+  "adapter_sha256": "65fa954c72074f675dc0cdaced4b8d839fd720dad451954fc9e958af1010f927",
+  "device": "cpu",
+  "git_head": "9cc0cb1f3e184adb992fb30c1ff2fca4652e468a",
+  "arms": [
+    {
+      "mode": "none",
+      "memory_statement_ids": [],
+      "model_prompt_sha256": "3509987a866958b7b0008f5f8d49247127722ca12535d99b282cea461b627578",
+      "cnl": "?x is-a OpenSourceIntelligence",
+      "compiled_kif": null,
+      "error": "ValueError: Unbound variables: ?x"
+    },
+    {
+      "mode": "retrieved",
+      "memory_statement_ids": [
+        "doctrine-domain:195"
+      ],
+      "model_prompt_sha256": "d9323c3f244ee8122f33433a02fbefb077d6c759f409aecb7f7b3bd94a39db61",
+      "cnl": "?x is-a OpenSourceIntelligence",
+      "compiled_kif": null,
+      "error": "ValueError: Unbound variables: ?x"
+    }
+  ]
+}

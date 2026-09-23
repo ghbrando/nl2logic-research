@@ -1,0 +1,27 @@
+{
+  "source_passages": 14,
+  "adapter_sha256": "65fa954c72074f675dc0cdaced4b8d839fd720dad451954fc9e958af1010f927",
+  "git_head": "b84ca8c02a4d8e78619d6336b6155b36da82ac38",
+  "baseline_predictions_sha256": "ae89e8f349fcb36cb6f065c9bdb0c693c8f716ac80f44238ed7b83282e2273f8",
+  "retrieved_predictions_sha256": "35dcf15d2e6e3d98614e37d73424c2e887aed3eefec51a3cc4c8f49c160710aa",
+  "rows_with_retrieved_memory": 2,
+  "memory_blocked_before_generation": 2,
+  "memory_entered_generation": 0,
+  "changed_output_count": 0,
+  "changed_output_ids": [],
+  "memory_refs": [
+    {
+      "record_id": "fm2-0-2023-p35-1-79",
+      "statements": [
+        "doctrine-domain:195"
+      ]
+    },
+    {
+      "record_id": "fm2-0-2023-p36-1-88",
+      "statements": [
+        "doctrine-domain:202"
+      ]
+    }
+  ],
+  "interpretation": "This run cannot estimate an attention benefit: every memory-augmented candidate was blocked by the unchanged source-only grammar before generation."
+}
