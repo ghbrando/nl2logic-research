@@ -4,17 +4,28 @@ set -euo pipefail
 repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 state_dir="/home/save-water/nl2logic-state"
 prefix="partial-claim-memory-cpu-20260923"
+run_mode="${1:-paired}"
 
 if [[ "$(id -un)" != "save-water" ]]; then
   echo "Run this memory probe as save-water" >&2
   exit 2
 fi
-for mode in baseline retrieved; do
-  if [[ -e "$state_dir/outputs/$prefix-$mode" ]]; then
-    echo "Output directory already exists: $state_dir/outputs/$prefix-$mode" >&2
+if [[ "$run_mode" == "paired" ]]; then
+  for mode in baseline retrieved; do
+    if [[ -e "$state_dir/outputs/$prefix-$mode" ]]; then
+      echo "Output directory already exists: $state_dir/outputs/$prefix-$mode" >&2
+      exit 2
+    fi
+  done
+elif [[ "$run_mode" == "control" ]]; then
+  if [[ -e "$state_dir/outputs/$prefix-control" ]]; then
+    echo "Output directory already exists: $state_dir/outputs/$prefix-control" >&2
     exit 2
   fi
-done
+else
+  echo "Expected paired or control" >&2
+  exit 2
+fi
 for input in sumo_classes.jsonl sumo_relations.jsonl; do
   if [[ ! -f "$state_dir/inputs/$input" ]]; then
     echo "Missing project-owned vocabulary input: $input" >&2
@@ -38,6 +49,17 @@ docker --context rootless compose \
   -f containers/compose.yaml -f containers/rootless.yaml \
   -f containers/inputs.yaml -f containers/cpu-audit.yaml \
   config --quiet
+if [[ "$run_mode" == "control" ]]; then
+  docker --context rootless compose \
+    -f containers/compose.yaml -f containers/rootless.yaml \
+    -f containers/inputs.yaml -f containers/cpu-audit.yaml \
+    run --rm --no-deps \
+    -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 -e OMP_NUM_THREADS=2 \
+    research python scripts/run_claim_memory_control.py \
+      --model-path /outputs/diagnostic-closed-7k-20260922-01 \
+      --output-dir "/outputs/$prefix-control"
+  exit 0
+fi
 for mode in baseline retrieved; do
   memory_mode="none"
   if [[ "$mode" == "retrieved" ]]; then
