@@ -1,0 +1,31 @@
+{
+  "source_pdf": "src/data/ARMY FM_2-0.pdf",
+  "pdf_sha256": "1fa30a47ed8db31185ac0add9e13582f33ebbd092faddbd52c6eb408d7ccd52f",
+  "doc_id": "fm2-0-2023",
+  "edition": "01 October 2023",
+  "chapter": 2,
+  "pdf_pages": [
+    45,
+    52
+  ],
+  "selected_count": 29,
+  "selection_rule": "All chapter-2 numbered paragraphs on PDF pages 45-52 for which page_candidates extracts a first sentence of at least six words ending in sentence punctuation; no manual selection or label-based filtering.",
+  "extraction": "pdfplumber extract_text via scripts.prepare_benchmark_review.page_candidates",
+  "checked_first_sentence_overlap_with": [
+    "data/benchmarks/fm2-0/chapter1-2023-review/candidates.jsonl",
+    "data/benchmarks/fm2-0/seed_*.jsonl"
+  ],
+  "first_sentence_overlap_count": 0,
+  "status": "source_selected_unreviewed",
+  "training_use": false,
+  "frozen_artifact_sha256": {
+    "selected_passages_sha256": "80a4d07b9b4b6838f7831aabcc669a25ef9ca264146fa8a876e59c09d71e987e",
+    "source_pages_sha256": "b5e9affc494bfd8bfc131002de1368ba379a6a73d8503768a2b477808592c5c7",
+    "doctrine_domain_sha256": "bc8ce888735bd82f9b30998910ef247a39a722d0bdcecc0aa5ae006398680d89",
+    "sumo_classes_sha256": "f82124772ec842d902f626530feb891e8991336a3bc37753c8df2eea5cd88bed",
+    "sumo_relations_sha256": "d1a7bb3aec5ad0027305e4a17a5d2ed9423272a38d625fa5f80c19bed979c1f2",
+    "relation_kinds_sha256": "a2081e387289159656f05b0f18340632957cbff0bd945e2efae5003c97bd41fc",
+    "claim_contract_sha256": "91f1da42edcd5fb838011feaf24c325291d0c1284570e861f7d75cec8c108163"
+  },
+  "target_nl2logic_model_queries_after_selection": 0
+}

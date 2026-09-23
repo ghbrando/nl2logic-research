@@ -42,7 +42,11 @@ def page_candidates(text: str, *, pdf_page: int, chapter: int, doc_id: str,
                     publication: str = "FM 2-0") -> list[dict]:
     lines = text.splitlines()
     footer = next((line for line in reversed(lines) if publication in line), "")
-    printed = re.search(rf"\b{chapter}-\d+\b", footer)
+    # Chapter 2 footers contain both "FM 2-0" and the printed page. Footer
+    # order alternates by page, so remove the publication marker first.
+    page_footer = footer.replace(publication, "")
+    printed_match = re.search(rf"\b{chapter}-\d+\b", page_footer)
+    printed = printed_match.group() if printed_match else None
     records, paragraph, buffer = [], None, []
 
     def flush():
@@ -53,7 +57,7 @@ def page_candidates(text: str, *, pdf_page: int, chapter: int, doc_id: str,
         if sentence:
             records.append({
                 "record_id": f"{doc_id}-p{pdf_page}-{paragraph}", "doc_id": doc_id,
-                "page": printed.group() if printed else None, "pdf_page": pdf_page,
+                "page": printed, "pdf_page": pdf_page,
                 "section": f"Chapter {chapter}", "paragraph": paragraph,
                 "nl": sentence, "source_excerpt": excerpt, "phenomena": phenomena(sentence),
                 "formalizable": None, "pattern": None, "cnl": None, "kif": None,

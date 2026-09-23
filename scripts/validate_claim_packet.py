@@ -20,6 +20,10 @@ from src.ingest.grounding import extract_cnl_terms
 from src.ontology.vocab import load_closed_class_terms
 
 _DECLARATION = re.compile(r"\(instance ([A-Z][A-Za-z0-9]*) Class\)\Z")
+_ABSTENTION_REASONS = {
+    "preloaded_axiom", "scope_or_qualifier", "cardinality", "disjunction",
+    "relation_semantics", "comparison", "representation_gap",
+}
 
 
 def _squash(value: str) -> str:
@@ -51,11 +55,22 @@ def validate(packet: dict) -> None:
             raise ValueError(f"{rid}: source span absent from paragraph excerpt")
         if _squash(span) not in _squash(pages[row["pdf_page"]]):
             raise ValueError(f"{rid}: source span absent from PDF page extraction")
-        if row["coverage"] not in {"full", "partial"}:
-            raise ValueError(f"{rid}: invalid coverage")
         if row["status"] != "reviewed" or row["reviewer_type"] not in {"ai", "human"} or not row["reviewed_by"]:
             raise ValueError(f"{rid}: reviewer attribution missing")
-        if row["split"] != "development" or not row["claim_text"] or not row["entailment_rationale"] or not isinstance(row["omitted_qualifiers"], list):
+        if row["split"] != "development":
+            raise ValueError(f"{rid}: packet rows must be development only")
+        decision = row["decision"]
+        if decision == "abstain":
+            if row.get("abstention_reason") not in _ABSTENTION_REASONS or not row.get("abstention_rationale"):
+                raise ValueError(f"{rid}: abstention reason missing")
+            if any(row.get(key) for key in ("claim_text", "cnl", "kif", "terms", "declarations", "coverage")):
+                raise ValueError(f"{rid}: abstention cannot contain a proposed assertion")
+            continue
+        if decision != "positive":
+            raise ValueError(f"{rid}: unknown decision")
+        if row["coverage"] not in {"full", "partial"}:
+            raise ValueError(f"{rid}: invalid coverage")
+        if not row["claim_text"] or not row["entailment_rationale"] or not isinstance(row["omitted_qualifiers"], list):
             raise ValueError(f"{rid}: incomplete development claim")
         extra_classes = set()
         for declaration in row["declarations"]:
@@ -83,7 +98,8 @@ def main() -> None:
         validate(packet)
     except (KeyError, OSError, ValueError) as exc:
         parser.exit(2, f"Claim packet invalid: {exc}\n")
-    print(f"Validated {len(packet['claims'])} development claim(s); entailment still requires review")
+    positives = sum(row["decision"] == "positive" for row in packet["claims"])
+    print(f"Validated {positives} positive and {len(packet['claims']) - positives} abstention development rows; entailment still requires review")
 
 
 if __name__ == "__main__":

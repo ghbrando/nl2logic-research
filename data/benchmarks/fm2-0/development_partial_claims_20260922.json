@@ -15,6 +15,7 @@
       "pdf_page": 37,
       "paragraph": "1-93",
       "source_span": "Biometrics is the process of recognizing an individual based on measurable anatomical, physiological, and behavioral characteristics (JP 2-0).",
+      "decision": "positive",
       "coverage": "partial",
       "claim_text": "Biometrics, in its process sense, is a process.",
       "declarations": ["(instance BiometricsProcess Class)"],
