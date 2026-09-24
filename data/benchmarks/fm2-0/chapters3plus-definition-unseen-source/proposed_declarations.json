@@ -1,0 +1,829 @@
+{
+  "status": "source_only_proposed_not_reviewed",
+  "sources_sha256": "f0eb1896dd3b1b2ecd119bbac38407da82c5d6c6e0ae7c252d5c831c29e5744d",
+  "generator": "scripts/propose_declarations.py",
+  "existing_parent_pool": [
+    "Process",
+    "IntelligenceProduct"
+  ],
+  "declarations": [
+    {
+      "alias": "Command and control",
+      "evidence_cue": "is the exercise",
+      "symbol": "CommandAndControlExercise",
+      "declaration": "(instance CommandAndControlExercise Class)",
+      "sense": "what the source defines as 'Command and control' with head 'exercise'"
+    },
+    {
+      "alias": "staff",
+      "evidence_cue": "is a key",
+      "symbol": "StaffKey",
+      "declaration": "(instance StaffKey Class)",
+      "sense": "what the source defines as 'staff' with head 'key'"
+    },
+    {
+      "alias": "Commanders ensure staff sections",
+      "evidence_cue": "are properly",
+      "symbol": "CommandersEnsureStaffSectionsProperly",
+      "declaration": "(instance CommandersEnsureStaffSectionsProperly Class)",
+      "sense": "what the source defines as 'Commanders ensure staff sections' with head 'properly'"
+    },
+    {
+      "alias": "Certain intelligence tasks",
+      "evidence_cue": "are far",
+      "symbol": "CertainIntelligenceTasksFar",
+      "declaration": "(instance CertainIntelligenceTasksFar Class)",
+      "sense": "what the source defines as 'Certain intelligence tasks' with head 'far'"
+    },
+    {
+      "alias": "Ancillary collection assets",
+      "evidence_cue": "are those",
+      "symbol": "AncillaryCollectionAssetsThose",
+      "declaration": "(instance AncillaryCollectionAssetsThose Class)",
+      "sense": "what the source defines as 'Ancillary collection assets' with head 'those'"
+    },
+    {
+      "alias": "intelligence handover line",
+      "evidence_cue": "is a control",
+      "symbol": "IntelligenceHandoverLineControl",
+      "declaration": "(instance IntelligenceHandoverLineControl Class)",
+      "sense": "what the source defines as 'intelligence handover line' with head 'control'"
+    },
+    {
+      "alias": "Targeting",
+      "evidence_cue": "is the process",
+      "symbol": "TargetingProcess",
+      "declaration": "(instance TargetingProcess Class)",
+      "sense": "what the source defines as 'Targeting' with head 'process'"
+    },
+    {
+      "alias": "Targeting team members",
+      "evidence_cue": "are competent",
+      "symbol": "TargetingTeamMembersCompetent",
+      "declaration": "(instance TargetingTeamMembersCompetent Class)",
+      "sense": "what the source defines as 'Targeting team members' with head 'competent'"
+    },
+    {
+      "alias": "There",
+      "evidence_cue": "are two",
+      "symbol": "ThereTwo",
+      "declaration": "(instance ThereTwo Class)",
+      "sense": "what the source defines as 'There' with head 'two'"
+    },
+    {
+      "alias": "Risk management",
+      "evidence_cue": "is the Army",
+      "symbol": "RiskManagementArmy",
+      "declaration": "(instance RiskManagementArmy Class)",
+      "sense": "what the source defines as 'Risk management' with head 'Army'"
+    },
+    {
+      "alias": "Knowledge management",
+      "evidence_cue": "is the process",
+      "symbol": "KnowledgeManagementProcess",
+      "declaration": "(instance KnowledgeManagementProcess Class)",
+      "sense": "what the source defines as 'Knowledge management' with head 'process'"
+    },
+    {
+      "alias": "battle rhythm",
+      "evidence_cue": "is a deliberate",
+      "symbol": "BattleRhythmDeliberate",
+      "declaration": "(instance BattleRhythmDeliberate Class)",
+      "sense": "what the source defines as 'battle rhythm' with head 'deliberate'"
+    },
+    {
+      "alias": "main command post",
+      "evidence_cue": "is a portion",
+      "symbol": "MainCommandPostPortion",
+      "declaration": "(instance MainCommandPostPortion Class)",
+      "sense": "what the source defines as 'main command post' with head 'portion'"
+    },
+    {
+      "alias": "main CP",
+      "evidence_cue": "is larger",
+      "symbol": "MainCpLarger",
+      "declaration": "(instance MainCpLarger Class)",
+      "sense": "what the source defines as 'main CP' with head 'larger'"
+    },
+    {
+      "alias": "tactical command post",
+      "evidence_cue": "is a portion",
+      "symbol": "TacticalCommandPostPortion",
+      "declaration": "(instance TacticalCommandPostPortion Class)",
+      "sense": "what the source defines as 'tactical command post' with head 'portion'"
+    },
+    {
+      "alias": "structure of a tactical CP",
+      "evidence_cue": "is organic",
+      "symbol": "StructureOfATacticalCpOrganic",
+      "declaration": "(instance StructureOfATacticalCpOrganic Class)",
+      "sense": "what the source defines as 'structure of a tactical CP' with head 'organic'"
+    },
+    {
+      "alias": "mobile command group",
+      "evidence_cue": "is the commander",
+      "symbol": "MobileCommandGroupCommander",
+      "declaration": "(instance MobileCommandGroupCommander Class)",
+      "sense": "what the source defines as 'mobile command group' with head 'commander'"
+    },
+    {
+      "alias": "planning horizon",
+      "evidence_cue": "is a point",
+      "symbol": "PlanningHorizonPoint",
+      "declaration": "(instance PlanningHorizonPoint Class)",
+      "sense": "what the source defines as 'planning horizon' with head 'point'"
+    },
+    {
+      "alias": "functional cells in a CP",
+      "evidence_cue": "are intelligence",
+      "symbol": "FunctionalCellsInACpIntelligence",
+      "declaration": "(instance FunctionalCellsInACpIntelligence Class)",
+      "sense": "what the source defines as 'functional cells in a CP' with head 'intelligence'"
+    },
+    {
+      "alias": "Army intelligence",
+      "evidence_cue": "is an inherent",
+      "symbol": "ArmyIntelligenceInherent",
+      "declaration": "(instance ArmyIntelligenceInherent Class)",
+      "sense": "what the source defines as 'Army intelligence' with head 'inherent'"
+    },
+    {
+      "alias": "Intelligence unity of effort",
+      "evidence_cue": "is critical",
+      "symbol": "IntelligenceUnityOfEffortCritical",
+      "declaration": "(instance IntelligenceUnityOfEffortCritical Class)",
+      "sense": "what the source defines as 'Intelligence unity of effort' with head 'critical'"
+    },
+    {
+      "alias": "While many aspects of the theater",
+      "evidence_cue": "are inherently",
+      "symbol": "WhileManyAspectsOfTheTheaterInherently",
+      "declaration": "(instance WhileManyAspectsOfTheTheaterInherently Class)",
+      "sense": "what the source defines as 'While many aspects of the theater' with head 'inherently'"
+    },
+    {
+      "alias": "Intelligence support",
+      "evidence_cue": "is inherently",
+      "symbol": "IntelligenceSupportInherently",
+      "declaration": "(instance IntelligenceSupportInherently Class)",
+      "sense": "what the source defines as 'Intelligence support' with head 'inherently'"
+    },
+    {
+      "alias": "Preparation for armed conflict",
+      "evidence_cue": "is the primary",
+      "symbol": "PreparationForArmedConflictPrimary",
+      "declaration": "(instance PreparationForArmedConflictPrimary Class)",
+      "sense": "what the source defines as 'Preparation for armed conflict' with head 'primary'"
+    },
+    {
+      "alias": "Competition activities",
+      "evidence_cue": "are continuous",
+      "symbol": "CompetitionActivitiesContinuous",
+      "declaration": "(instance CompetitionActivitiesContinuous Class)",
+      "sense": "what the source defines as 'Competition activities' with head 'continuous'"
+    },
+    {
+      "alias": "Intelligence",
+      "evidence_cue": "is integral",
+      "symbol": "IntelligenceIntegral",
+      "declaration": "(instance IntelligenceIntegral Class)",
+      "sense": "what the source defines as 'Intelligence' with head 'integral'"
+    },
+    {
+      "alias": "This",
+      "evidence_cue": "is particularly",
+      "symbol": "ThisParticularly",
+      "declaration": "(instance ThisParticularly Class)",
+      "sense": "what the source defines as 'This' with head 'particularly'"
+    },
+    {
+      "alias": "This situational understanding",
+      "evidence_cue": "is essential",
+      "symbol": "ThisSituationalUnderstandingEssential",
+      "declaration": "(instance ThisSituationalUnderstandingEssential Class)",
+      "sense": "what the source defines as 'This situational understanding' with head 'essential'"
+    },
+    {
+      "alias": "employment of lethal force",
+      "evidence_cue": "is the defining",
+      "symbol": "EmploymentOfLethalForceDefining",
+      "declaration": "(instance EmploymentOfLethalForceDefining Class)",
+      "sense": "what the source defines as 'employment of lethal force' with head 'defining'"
+    },
+    {
+      "alias": "This transition",
+      "evidence_cue": "is very",
+      "symbol": "ThisTransitionVery",
+      "declaration": "(instance ThisTransitionVery Class)",
+      "sense": "what the source defines as 'This transition' with head 'very'"
+    },
+    {
+      "alias": "intelligence staff",
+      "evidence_cue": "is primarily",
+      "symbol": "IntelligenceStaffPrimarily",
+      "declaration": "(instance IntelligenceStaffPrimarily Class)",
+      "sense": "what the source defines as 'intelligence staff' with head 'primarily'"
+    },
+    {
+      "alias": "Planning the intelligence architecture",
+      "evidence_cue": "is inseparable",
+      "symbol": "PlanningTheIntelligenceArchitectureInseparable",
+      "declaration": "(instance PlanningTheIntelligenceArchitectureInseparable Class)",
+      "sense": "what the source defines as 'Planning the intelligence architecture' with head 'inseparable'"
+    },
+    {
+      "alias": "Both collection management and intelligence analysis",
+      "evidence_cue": "are driven",
+      "symbol": "BothCollectionManagementAndIntelligenceAnalysisDriven",
+      "declaration": "(instance BothCollectionManagementAndIntelligenceAnalysisDriven Class)",
+      "sense": "what the source defines as 'Both collection management and intelligence analysis' with head 'driven'"
+    },
+    {
+      "alias": "This task",
+      "evidence_cue": "is an inherent",
+      "symbol": "ThisTaskInherent",
+      "declaration": "(instance ThisTaskInherent Class)",
+      "sense": "what the source defines as 'This task' with head 'inherent'"
+    },
+    {
+      "alias": "result",
+      "evidence_cue": "is an ever-increasing",
+      "symbol": "ResultEverIncreasing",
+      "declaration": "(instance ResultEverIncreasing Class)",
+      "sense": "what the source defines as 'result' with head 'ever-increasing'"
+    },
+    {
+      "alias": "Understanding these differences",
+      "evidence_cue": "is essential",
+      "symbol": "UnderstandingTheseDifferencesEssential",
+      "declaration": "(instance UnderstandingTheseDifferencesEssential Class)",
+      "sense": "what the source defines as 'Understanding these differences' with head 'essential'"
+    },
+    {
+      "alias": "While there",
+      "evidence_cue": "are other",
+      "symbol": "WhileThereOther",
+      "declaration": "(instance WhileThereOther Class)",
+      "sense": "what the source defines as 'While there' with head 'other'"
+    },
+    {
+      "alias": "targeting process",
+      "evidence_cue": "is continuous",
+      "symbol": "TargetingProcessContinuous",
+      "declaration": "(instance TargetingProcessContinuous Class)",
+      "sense": "what the source defines as 'targeting process' with head 'continuous'"
+    },
+    {
+      "alias": "COIC",
+      "evidence_cue": "is primarily",
+      "symbol": "CoicPrimarily",
+      "declaration": "(instance CoicPrimarily Class)",
+      "sense": "what the source defines as 'COIC' with head 'primarily'"
+    },
+    {
+      "alias": "Assessments",
+      "evidence_cue": "are directly",
+      "symbol": "AssessmentsDirectly",
+      "declaration": "(instance AssessmentsDirectly Class)",
+      "sense": "what the source defines as 'Assessments' with head 'directly'"
+    },
+    {
+      "alias": "Operational assessments",
+      "evidence_cue": "are normally",
+      "symbol": "OperationalAssessmentsNormally",
+      "declaration": "(instance OperationalAssessmentsNormally Class)",
+      "sense": "what the source defines as 'Operational assessments' with head 'normally'"
+    },
+    {
+      "alias": "Situation development products",
+      "evidence_cue": "are more",
+      "symbol": "SituationDevelopmentProductsMore",
+      "declaration": "(instance SituationDevelopmentProductsMore Class)",
+      "sense": "what the source defines as 'Situation development products' with head 'more'"
+    },
+    {
+      "alias": "COP",
+      "evidence_cue": "is the most",
+      "symbol": "CopMost",
+      "declaration": "(instance CopMost Class)",
+      "sense": "what the source defines as 'COP' with head 'most'"
+    },
+    {
+      "alias": "common intelligence picture",
+      "evidence_cue": "is a single",
+      "symbol": "CommonIntelligencePictureSingle",
+      "declaration": "(instance CommonIntelligencePictureSingle Class)",
+      "sense": "what the source defines as 'common intelligence picture' with head 'single'"
+    },
+    {
+      "alias": "common operational picture",
+      "evidence_cue": "is a display",
+      "symbol": "CommonOperationalPictureDisplay",
+      "declaration": "(instance CommonOperationalPictureDisplay Class)",
+      "sense": "what the source defines as 'common operational picture' with head 'display'"
+    },
+    {
+      "alias": "Intelligence operations",
+      "evidence_cue": "are driven",
+      "symbol": "IntelligenceOperationsDriven",
+      "declaration": "(instance IntelligenceOperationsDriven Class)",
+      "sense": "what the source defines as 'Intelligence operations' with head 'driven'"
+    },
+    {
+      "alias": "This effort",
+      "evidence_cue": "is complex",
+      "symbol": "ThisEffortComplex",
+      "declaration": "(instance ThisEffortComplex Class)",
+      "sense": "what the source defines as 'This effort' with head 'complex'"
+    },
+    {
+      "alias": "Security operations",
+      "evidence_cue": "are those",
+      "symbol": "SecurityOperationsThose",
+      "declaration": "(instance SecurityOperationsThose Class)",
+      "sense": "what the source defines as 'Security operations' with head 'those'"
+    },
+    {
+      "alias": "Joint ISR collection assets",
+      "evidence_cue": "are important",
+      "symbol": "JointIsrCollectionAssetsImportant",
+      "declaration": "(instance JointIsrCollectionAssetsImportant Class)",
+      "sense": "what the source defines as 'Joint ISR collection assets' with head 'important'"
+    },
+    {
+      "alias": "MI unit readiness",
+      "evidence_cue": "is a continuous",
+      "symbol": "MiUnitReadinessContinuous",
+      "declaration": "(instance MiUnitReadinessContinuous Class)",
+      "sense": "what the source defines as 'MI unit readiness' with head 'continuous'"
+    },
+    {
+      "alias": "Sensor contact",
+      "evidence_cue": "is critical",
+      "symbol": "SensorContactCritical",
+      "declaration": "(instance SensorContactCritical Class)",
+      "sense": "what the source defines as 'Sensor contact' with head 'critical'"
+    },
+    {
+      "alias": "Timely and complete reporting",
+      "evidence_cue": "is essential",
+      "symbol": "TimelyAndCompleteReportingEssential",
+      "declaration": "(instance TimelyAndCompleteReportingEssential Class)",
+      "sense": "what the source defines as 'Timely and complete reporting' with head 'essential'"
+    },
+    {
+      "alias": "troop leading procedures",
+      "evidence_cue": "are a dynamic",
+      "symbol": "TroopLeadingProceduresDynamic",
+      "declaration": "(instance TroopLeadingProceduresDynamic Class)",
+      "sense": "what the source defines as 'troop leading procedures' with head 'dynamic'"
+    },
+    {
+      "alias": "Preparation",
+      "evidence_cue": "is those",
+      "symbol": "PreparationThose",
+      "declaration": "(instance PreparationThose Class)",
+      "sense": "what the source defines as 'Preparation' with head 'those'"
+    },
+    {
+      "alias": "Technical authorities",
+      "evidence_cue": "are the applicable",
+      "symbol": "TechnicalAuthoritiesApplicable",
+      "declaration": "(instance TechnicalAuthoritiesApplicable Class)",
+      "sense": "what the source defines as 'Technical authorities' with head 'applicable'"
+    },
+    {
+      "alias": "value of the intelligence enterprise",
+      "evidence_cue": "is the ability",
+      "symbol": "ValueOfTheIntelligenceEnterpriseAbility",
+      "declaration": "(instance ValueOfTheIntelligenceEnterpriseAbility Class)",
+      "sense": "what the source defines as 'value of the intelligence enterprise' with head 'ability'"
+    },
+    {
+      "alias": "INSCOM",
+      "evidence_cue": "is an example",
+      "symbol": "InscomExample",
+      "declaration": "(instance InscomExample Class)",
+      "sense": "what the source defines as 'INSCOM' with head 'example'"
+    },
+    {
+      "alias": "Army Service component command",
+      "evidence_cue": "is command",
+      "symbol": "ArmyServiceComponentCommand",
+      "declaration": "(instance ArmyServiceComponentCommand Class)",
+      "sense": "what the source defines as 'Army Service component command' with head 'command'"
+    },
+    {
+      "alias": "Fighting for intelligence at echelon",
+      "evidence_cue": "is difficult",
+      "symbol": "FightingForIntelligenceAtEchelonDifficult",
+      "declaration": "(instance FightingForIntelligenceAtEchelonDifficult Class)",
+      "sense": "what the source defines as 'Fighting for intelligence at echelon' with head 'difficult'"
+    },
+    {
+      "alias": "use of capabilities",
+      "evidence_cue": "is carefully",
+      "symbol": "UseOfCapabilitiesCarefully",
+      "declaration": "(instance UseOfCapabilitiesCarefully Class)",
+      "sense": "what the source defines as 'use of capabilities' with head 'carefully'"
+    },
+    {
+      "alias": "What differs",
+      "evidence_cue": "is the size",
+      "symbol": "WhatDiffersSize",
+      "declaration": "(instance WhatDiffersSize Class)",
+      "sense": "what the source defines as 'What differs' with head 'size'"
+    },
+    {
+      "alias": "E-MIB",
+      "evidence_cue": "is often",
+      "symbol": "EMibOften",
+      "declaration": "(instance EMibOften Class)",
+      "sense": "what the source defines as 'E-MIB' with head 'often'"
+    },
+    {
+      "alias": "Another example of echelon interdependencies",
+      "evidence_cue": "is intelligence",
+      "symbol": "AnotherExampleOfEchelonInterdependenciesIntelligence",
+      "declaration": "(instance AnotherExampleOfEchelonInterdependenciesIntelligence Class)",
+      "sense": "what the source defines as 'Another example of echelon interdependencies' with head 'intelligence'"
+    },
+    {
+      "alias": "Theater army intelligence operations",
+      "evidence_cue": "are continually",
+      "symbol": "TheaterArmyIntelligenceOperationsContinually",
+      "declaration": "(instance TheaterArmyIntelligenceOperationsContinually Class)",
+      "sense": "what the source defines as 'Theater army intelligence operations' with head 'continually'"
+    },
+    {
+      "alias": "theater army intelligence cell",
+      "evidence_cue": "is responsible",
+      "symbol": "TheaterArmyIntelligenceCellResponsible",
+      "declaration": "(instance TheaterArmyIntelligenceCellResponsible Class)",
+      "sense": "what the source defines as 'theater army intelligence cell' with head 'responsible'"
+    },
+    {
+      "alias": "analytical focus",
+      "evidence_cue": "is at",
+      "symbol": "AnalyticalFocusAt",
+      "declaration": "(instance AnalyticalFocusAt Class)",
+      "sense": "what the source defines as 'analytical focus' with head 'at'"
+    },
+    {
+      "alias": "theater army",
+      "evidence_cue": "is the primary",
+      "symbol": "TheaterArmyPrimary",
+      "declaration": "(instance TheaterArmyPrimary Class)",
+      "sense": "what the source defines as 'theater army' with head 'primary'"
+    },
+    {
+      "alias": "US BICES",
+      "evidence_cue": "is an intelligence",
+      "symbol": "UsBicesIntelligence",
+      "declaration": "(instance UsBicesIntelligence Class)",
+      "sense": "what the source defines as 'US BICES' with head 'intelligence'"
+    },
+    {
+      "alias": "CI capabilities",
+      "evidence_cue": "are integral",
+      "symbol": "CiCapabilitiesIntegral",
+      "declaration": "(instance CiCapabilitiesIntegral Class)",
+      "sense": "what the source defines as 'CI capabilities' with head 'integral'"
+    },
+    {
+      "alias": "corps",
+      "evidence_cue": "is the Army",
+      "symbol": "CorpsArmy",
+      "declaration": "(instance CorpsArmy Class)",
+      "sense": "what the source defines as 'corps' with head 'Army'"
+    },
+    {
+      "alias": "field army",
+      "evidence_cue": "is an echelon",
+      "symbol": "FieldArmyEchelon",
+      "declaration": "(instance FieldArmyEchelon Class)",
+      "sense": "what the source defines as 'field army' with head 'echelon'"
+    },
+    {
+      "alias": "E-MIB commanders",
+      "evidence_cue": "are responsible",
+      "symbol": "EMibCommandersResponsible",
+      "declaration": "(instance EMibCommandersResponsible Class)",
+      "sense": "what the source defines as 'E-MIB commanders' with head 'responsible'"
+    },
+    {
+      "alias": "This training",
+      "evidence_cue": "is generally",
+      "symbol": "ThisTrainingGenerally",
+      "declaration": "(instance ThisTrainingGenerally Class)",
+      "sense": "what the source defines as 'This training' with head 'generally'"
+    },
+    {
+      "alias": "division",
+      "evidence_cue": "is a formation",
+      "symbol": "DivisionFormation",
+      "declaration": "(instance DivisionFormation Class)",
+      "sense": "what the source defines as 'division' with head 'formation'"
+    },
+    {
+      "alias": "BCT",
+      "evidence_cue": "is the Army",
+      "symbol": "BctArmy",
+      "declaration": "(instance BctArmy Class)",
+      "sense": "what the source defines as 'BCT' with head 'Army'"
+    },
+    {
+      "alias": "BCT intelligence cell",
+      "evidence_cue": "is the intelligence",
+      "symbol": "BctIntelligenceCellIntelligence",
+      "declaration": "(instance BctIntelligenceCellIntelligence Class)",
+      "sense": "what the source defines as 'BCT intelligence cell' with head 'intelligence'"
+    },
+    {
+      "alias": "organic intelligence collection capability",
+      "evidence_cue": "is the MI",
+      "symbol": "OrganicIntelligenceCollectionCapabilityMi",
+      "declaration": "(instance OrganicIntelligenceCollectionCapabilityMi Class)",
+      "sense": "what the source defines as 'organic intelligence collection capability' with head 'MI'"
+    },
+    {
+      "alias": "other domains",
+      "evidence_cue": "are only",
+      "symbol": "OtherDomainsOnly",
+      "declaration": "(instance OtherDomainsOnly Class)",
+      "sense": "what the source defines as 'other domains' with head 'only'"
+    },
+    {
+      "alias": "battalion intelligence cell",
+      "evidence_cue": "is also",
+      "symbol": "BattalionIntelligenceCellAlso",
+      "declaration": "(instance BattalionIntelligenceCellAlso Class)",
+      "sense": "what the source defines as 'battalion intelligence cell' with head 'also'"
+    },
+    {
+      "alias": "All echelons",
+      "evidence_cue": "are important",
+      "symbol": "AllEchelonsImportant",
+      "declaration": "(instance AllEchelonsImportant Class)",
+      "sense": "what the source defines as 'All echelons' with head 'important'"
+    },
+    {
+      "alias": "Conflicts encompassing large-scale combat operations",
+      "evidence_cue": "are more",
+      "symbol": "ConflictsEncompassingLargeScaleCombatOperationsMore",
+      "declaration": "(instance ConflictsEncompassingLargeScaleCombatOperationsMore Class)",
+      "sense": "what the source defines as 'Conflicts encompassing large-scale combat operations' with head 'more'"
+    },
+    {
+      "alias": "Deep operations",
+      "evidence_cue": "are normally",
+      "symbol": "DeepOperationsNormally",
+      "declaration": "(instance DeepOperationsNormally Class)",
+      "sense": "what the source defines as 'Deep operations' with head 'normally'"
+    },
+    {
+      "alias": "Intelligence support to deep operations",
+      "evidence_cue": "is an inherent",
+      "symbol": "IntelligenceSupportToDeepOperationsInherent",
+      "declaration": "(instance IntelligenceSupportToDeepOperationsInherent Class)",
+      "sense": "what the source defines as 'Intelligence support to deep operations' with head 'inherent'"
+    },
+    {
+      "alias": "Speed and mobility",
+      "evidence_cue": "are essential",
+      "symbol": "SpeedAndMobilityEssential",
+      "declaration": "(instance SpeedAndMobilityEssential Class)",
+      "sense": "what the source defines as 'Speed and mobility' with head 'essential'"
+    },
+    {
+      "alias": "rear area",
+      "evidence_cue": "is that",
+      "symbol": "RearAreaThat",
+      "declaration": "(instance RearAreaThat Class)",
+      "sense": "what the source defines as 'rear area' with head 'that'"
+    },
+    {
+      "alias": "Corps and division rear CPs",
+      "evidence_cue": "are generally",
+      "symbol": "CorpsAndDivisionRearCpsGenerally",
+      "declaration": "(instance CorpsAndDivisionRearCpsGenerally Class)",
+      "sense": "what the source defines as 'Corps and division rear CPs' with head 'generally'"
+    },
+    {
+      "alias": "Reconnaissance and security operations",
+      "evidence_cue": "are the enabling",
+      "symbol": "ReconnaissanceAndSecurityOperationsEnabling",
+      "declaration": "(instance ReconnaissanceAndSecurityOperationsEnabling Class)",
+      "sense": "what the source defines as 'Reconnaissance and security operations' with head 'enabling'"
+    },
+    {
+      "alias": "following",
+      "evidence_cue": "are the five",
+      "symbol": "FollowingFive",
+      "declaration": "(instance FollowingFive Class)",
+      "sense": "what the source defines as 'following' with head 'five'"
+    },
+    {
+      "alias": "three basic friendly defensive operations",
+      "evidence_cue": "are area",
+      "symbol": "ThreeBasicFriendlyDefensiveOperationsArea",
+      "declaration": "(instance ThreeBasicFriendlyDefensiveOperationsArea Class)",
+      "sense": "what the source defines as 'three basic friendly defensive operations' with head 'area'"
+    },
+    {
+      "alias": "Mobile defense",
+      "evidence_cue": "is more",
+      "symbol": "MobileDefenseMore",
+      "declaration": "(instance MobileDefenseMore Class)",
+      "sense": "what the source defines as 'Mobile defense' with head 'more'"
+    },
+    {
+      "alias": "retrograde",
+      "evidence_cue": "is a transitional",
+      "symbol": "RetrogradeTransitional",
+      "declaration": "(instance RetrogradeTransitional Class)",
+      "sense": "what the source defines as 'retrograde' with head 'transitional'"
+    },
+    {
+      "alias": "four basic friendly offensive operations",
+      "evidence_cue": "are movement",
+      "symbol": "FourBasicFriendlyOffensiveOperationsMovement",
+      "declaration": "(instance FourBasicFriendlyOffensiveOperationsMovement Class)",
+      "sense": "what the source defines as 'four basic friendly offensive operations' with head 'movement'"
+    },
+    {
+      "alias": "Friendly forces",
+      "evidence_cue": "are under",
+      "symbol": "FriendlyForcesUnder",
+      "declaration": "(instance FriendlyForcesUnder Class)",
+      "sense": "what the source defines as 'Friendly forces' with head 'under'"
+    },
+    {
+      "alias": "Staff teamwork and collaboration",
+      "evidence_cue": "are critical",
+      "symbol": "StaffTeamworkAndCollaborationCritical",
+      "declaration": "(instance StaffTeamworkAndCollaborationCritical Class)",
+      "sense": "what the source defines as 'Staff teamwork and collaboration' with head 'critical'"
+    },
+    {
+      "alias": "Intelligence and information collection",
+      "evidence_cue": "are driven",
+      "symbol": "IntelligenceAndInformationCollectionDriven",
+      "declaration": "(instance IntelligenceAndInformationCollectionDriven Class)",
+      "sense": "what the source defines as 'Intelligence and information collection' with head 'driven'"
+    },
+    {
+      "alias": "Intelligence analysis and support",
+      "evidence_cue": "are built",
+      "symbol": "IntelligenceAnalysisAndSupportBuilt",
+      "declaration": "(instance IntelligenceAnalysisAndSupportBuilt Class)",
+      "sense": "what the source defines as 'Intelligence analysis and support' with head 'built'"
+    },
+    {
+      "alias": "Intelligence handover lines",
+      "evidence_cue": "are also",
+      "symbol": "IntelligenceHandoverLinesAlso",
+      "declaration": "(instance IntelligenceHandoverLinesAlso Class)",
+      "sense": "what the source defines as 'Intelligence handover lines' with head 'also'"
+    },
+    {
+      "alias": "goal of intelligence analysis",
+      "evidence_cue": "is assisting",
+      "symbol": "GoalOfIntelligenceAnalysisAssisting",
+      "declaration": "(instance GoalOfIntelligenceAnalysisAssisting Class)",
+      "sense": "what the source defines as 'goal of intelligence analysis' with head 'assisting'"
+    },
+    {
+      "alias": "Providing situational understanding of the OE",
+      "evidence_cue": "is the main",
+      "symbol": "ProvidingSituationalUnderstandingOfTheOeMain",
+      "declaration": "(instance ProvidingSituationalUnderstandingOfTheOeMain Class)",
+      "sense": "what the source defines as 'Providing situational understanding of the OE' with head 'main'"
+    },
+    {
+      "alias": "Human and procedural aspects",
+      "evidence_cue": "are considerations",
+      "symbol": "HumanAndProceduralAspectsConsiderations",
+      "declaration": "(instance HumanAndProceduralAspectsConsiderations Class)",
+      "sense": "what the source defines as 'Human and procedural aspects' with head 'considerations'"
+    }
+  ],
+  "skipped": [
+    {
+      "record_id": "fm2-0-2023-p99-3-44",
+      "candidate_text": "Targeting is a complex",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p105-3-74",
+      "candidate_text": "The battle rhythm is a deliberate",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p107-4-1",
+      "candidate_text": "The Army is a globally",
+      "reason": "existing_class_or_unparsed"
+    },
+    {
+      "record_id": "fm2-0-2023-p116-4-42",
+      "candidate_text": "There are several",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p127-5-10",
+      "candidate_text": "The intelligence staff is responsible",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p133-5-31",
+      "candidate_text": "There is far",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p134-5-32",
+      "candidate_text": "This is essential",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p138-5-49",
+      "candidate_text": "This is equally",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p149-5-98",
+      "candidate_text": "A COP is key",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p151-6-4",
+      "candidate_text": "Information collection is the Army",
+      "reason": "existing_class_or_unparsed"
+    },
+    {
+      "record_id": "fm2-0-2023-p156-6-20",
+      "candidate_text": "There are guidelines",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p159-6-33",
+      "candidate_text": "Planning is the art",
+      "reason": "existing_class_or_unparsed"
+    },
+    {
+      "record_id": "fm2-0-2023-p163-6-53",
+      "candidate_text": "Execution is the act",
+      "reason": "existing_class_or_unparsed"
+    },
+    {
+      "record_id": "fm2-0-2023-p172-7-11",
+      "candidate_text": "The intelligence warfighting function is the Army",
+      "reason": "existing_class_or_unparsed"
+    },
+    {
+      "record_id": "fm2-0-2023-p183-7-57",
+      "candidate_text": "The corps is best",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p193-7-107",
+      "candidate_text": "Intelligence operations are normally",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p195-7-115",
+      "candidate_text": "There are several",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p201-8-4",
+      "candidate_text": "There are many",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p204-8-17",
+      "candidate_text": "This is essential",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p209-8-40",
+      "candidate_text": "This is critical",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p212-8-51",
+      "candidate_text": "There are many",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p232-8-124",
+      "candidate_text": "This transition is complex",
+      "reason": "duplicate_alias_or_symbol"
+    },
+    {
+      "record_id": "fm2-0-2023-p233-8-130",
+      "candidate_text": "Feedback is essential",
+      "reason": "existing_class_or_unparsed"
+    }
+  ],
+  "limitation": "Source-only proposal: symbols join the defined phrase and its head noun. They are unreviewed and assert no parent."
+}

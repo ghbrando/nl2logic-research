@@ -1,0 +1,27 @@
+{
+  "source_pdf": "src/data/ARMY FM_2-0.pdf",
+  "pdf_sha256": "1fa30a47ed8db31185ac0add9e13582f33ebbd092faddbd52c6eb408d7ccd52f",
+  "doc_id": "fm2-0-2023",
+  "edition": "01 October 2023",
+  "chapters": ">= 3 (numbered paragraphs only; appendices excluded)",
+  "selected_count": 123,
+  "source_count": 123,
+  "scanned_paragraph_count": 526,
+  "excluded_first_sentence_overlap_count": 0,
+  "selection_rule": "All numbered paragraphs in chapter 3 or later whose page_candidates first sentence has at least six words and for which extract_paragraph_candidate returns a candidate with no input-gate reasons; first-sentence overlaps with earlier sources excluded. No labels, predictions, or manual choice.",
+  "extraction": "pdfplumber extract_text via scripts.prepare_benchmark_review.page_candidates",
+  "status": "source_selected_unreviewed",
+  "training_use": false,
+  "selection_git_head": "9ef2abc8740602a0e322232bec4cd79d4f51a24b",
+  "sources_sha256": "f0eb1896dd3b1b2ecd119bbac38407da82c5d6c6e0ae7c252d5c831c29e5744d",
+  "frozen_artifact_sha256": {
+    "selected_passages_sha256": "463d07970906748c926542025d78ec21cb36180006776192bc340a9e9d5554ee",
+    "source_pages_sha256": "47c395b5356c5592ac5e1095e16043917b1d2a1ef771b74396faba14bc298a54",
+    "doctrine_domain_sha256": "bcbe64de82cec3ea5bb60d3211ae38e82ed175bc8ba858898bf726451ca74f92",
+    "sumo_classes_sha256": "20f6220b4829bd5d356b72b2ccc019012349b99dcfd47404f9c19bb8a4fe6956",
+    "sumo_relations_sha256": "d8f43f839f91e4df5472f907ab9d359262d40a7939972a0ddb2e142c428110fb",
+    "relation_kinds_sha256": "d248f25c342b0daa063c26206b5d18e8cb806d5a614c9b84a4a93ee92435f6b6",
+    "claim_contract_sha256": "91f1da42edcd5fb838011feaf24c325291d0c1284570e861f7d75cec8c108163"
+  },
+  "target_nl2logic_model_queries_after_selection": 0
+}
