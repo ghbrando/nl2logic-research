@@ -52,7 +52,11 @@ def test_source_only_proposal_names_the_stated_sense_and_skips_existing_classes(
     # OpenSourceIntelligence already exists in another sense; do not redeclare it.
     assert propose_declaration("Open-source intelligence is intelligence", known) is None
     assert propose_declaration("The intelligence process is a model", known) is None
-    assert propose_declaration("A fusion cell is a team", known)["alias"] == "fusion cell"
+    team = propose_declaration("A fusion cell is a team", known)
+    assert team["alias"] == "fusion cell"
+    # The proposer drops the article, so matching must accept it on the candidate.
+    registry = {"declarations": [team]}
+    assert match_declaration("A fusion cell is a team", "A fusion cell is a team of analysts.", registry) == team
     assert parent_candidates(entry, ["Process", "IntelligenceProduct"], known) == ["Process", "IntelligenceProduct"]
 
 

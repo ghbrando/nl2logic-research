@@ -63,7 +63,7 @@ def match_declaration(candidate_text: str, evidence_sentence: str, registry: dic
     candidate = _squash(candidate_text)
     evidence = _squash(evidence_sentence)
     matches = [entry for entry in registry["declarations"]
-               if re.match(rf"^{re.escape(_squash(entry['alias']))}(?=\s|$)", candidate)
+               if re.match(rf"^(?:(?:a|an|the)\s+)?{re.escape(_squash(entry['alias']))}(?=\s|$)", candidate)
                and _squash(entry["evidence_cue"]) in evidence]
     if len(matches) > 1:
         raise ValueError("Multiple provisional declarations match one candidate")

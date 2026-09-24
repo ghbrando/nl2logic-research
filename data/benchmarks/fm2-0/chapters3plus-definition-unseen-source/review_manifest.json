@@ -1,0 +1,9 @@
+{
+  "label_packet": "ai_reviewed_claims_20260923.json",
+  "label_packet_sha256": "67f0d60413ad4872f53f8668970dd453724ce362a0bdaeedb57824cc73aeb808",
+  "label_status": "ai_reviewed_frozen_pre_target_query",
+  "reviewer": "Claude (claude-opus-5-5); also author of the grounding gate, so labels are not independent",
+  "claims": 123,
+  "positive": 3,
+  "target_nl2logic_model_queries_before_freeze": 0
+}
