@@ -104,3 +104,18 @@ def test_unseen_run_reports_unsupported_gate_acceptances():
         "StructureOfATacticalCpOrganic subclass-of Organic", "CorpsArmy subclass-of Army",
         "BctArmy subclass-of Army", "ThreeBasicFriendlyDefensiveOperationsArea subclass-of Area",
     }
+
+
+def test_appendix_run_after_head_noun_revision():
+    source = ROOT / "data/benchmarks/fm2-0/appendices-definition-unseen-source"
+    run = ROOT / "results/diagnostics/appendix_definition_cpu_20260923"
+    scored, summary = score(
+        source / "sources.jsonl", source / "manifest.json", source / "proposed_declarations.json",
+        source / "ai_reviewed_claims_20260923.json", run / "predictions.jsonl", run / "manifest.json",
+    )
+    counts = {mode: (values["declared_gate_accepted_ai_label_match"], values["declared_gate_accepted_other_formula"])
+              for mode, values in summary["by_mode"].items()}
+    assert counts == {"rules": (2, 1), "baseline": (2, 0), "retrieved": (2, 0)}
+    assert summary["changed_output_count"] == 0
+    assert [row["predicted_cnl"] for row in scored if row["declared_gate_accepted"] and not row["gold_kif_exact"]] == [
+        "SituationalUnderstandingProduct subclass-of Product"]

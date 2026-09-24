@@ -1,0 +1,68 @@
+{
+  "label_status": "ai_reviewed_frozen_pre_target_query",
+  "registry_status": "source_only_proposed_not_reviewed",
+  "source_passages": 52,
+  "declarations_applied": 25,
+  "memory_retrieved_on_declarations": 9,
+  "by_mode": {
+    "rules": {
+      "routes": {
+        "no_declaration": 27,
+        "rules_abstain": 22,
+        "valid_cnl_other_formula": 1,
+        "ai_label_match": 2
+      },
+      "exact_ai_label_matches": 2,
+      "compiled_other_formulas": 1,
+      "grounder_accepted": 0,
+      "declared_gate_accepted": 3,
+      "declared_gate_accepted_ai_label_match": 2,
+      "declared_gate_accepted_other_formula": 1,
+      "saved_gate_accepted": 3,
+      "saved_gate_accepted_other_formula": 1,
+      "declared_gate_reasons": {
+        "accepted": 3
+      }
+    },
+    "baseline": {
+      "routes": {
+        "no_declaration": 27,
+        "valid_cnl_other_formula": 23,
+        "ai_label_match": 2
+      },
+      "exact_ai_label_matches": 2,
+      "compiled_other_formulas": 23,
+      "grounder_accepted": 0,
+      "declared_gate_accepted": 2,
+      "declared_gate_accepted_ai_label_match": 2,
+      "declared_gate_accepted_other_formula": 0,
+      "saved_gate_accepted": 2,
+      "saved_gate_accepted_other_formula": 0,
+      "declared_gate_reasons": {
+        "unstated_parent": 23,
+        "accepted": 2
+      }
+    },
+    "retrieved": {
+      "routes": {
+        "no_declaration": 27,
+        "valid_cnl_other_formula": 23,
+        "ai_label_match": 2
+      },
+      "exact_ai_label_matches": 2,
+      "compiled_other_formulas": 23,
+      "grounder_accepted": 0,
+      "declared_gate_accepted": 2,
+      "declared_gate_accepted_ai_label_match": 2,
+      "declared_gate_accepted_other_formula": 0,
+      "saved_gate_accepted": 2,
+      "saved_gate_accepted_other_formula": 0,
+      "declared_gate_reasons": {
+        "unstated_parent": 23,
+        "accepted": 2
+      }
+    }
+  },
+  "interpretation": "Unseen-passage run with source-only declarations and provisional AI labels frozen before query. The label reviewer also wrote the gate; exact AI-label match is not independent accuracy or expert agreement.",
+  "changed_output_count": 0
+}
