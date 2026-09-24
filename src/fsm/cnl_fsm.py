@@ -482,10 +482,22 @@ class CNLSampler:
         allow_background_axioms: bool = False,
         declared_class_terms: Iterable[str] = (),
         allow_definition_subclass: bool = False,
+        definition_child: str | None = None,
     ):
         self._declared_class_terms = frozenset(declared_class_terms)
         if allow_definition_subclass and not self._declared_class_terms:
             raise ValueError("Definition-subclass decoding requires isolated declarations")
+        if definition_child is not None and (
+            not allow_definition_subclass
+            or definition_child not in self._declared_class_terms
+            or len(self._declared_class_terms) < 2
+        ):
+            raise ValueError("Definition child must be a declared term with at least one declared parent")
+        # A declared definiendum is always the child of its own definition, and
+        # only the declared parents may fill the parent slot. Prompt n-grams are
+        # not offered, so an incidental word ("source" in "open-source") cannot
+        # become a class argument and the relation cannot be reversed.
+        self._definition_child = definition_child
         if any(re.fullmatch(r"[A-Z][A-Za-z0-9]*", term) is None for term in self._declared_class_terms):
             raise ValueError("Invalid declared class symbol")
         self._allow_definition_subclass = allow_definition_subclass
@@ -1234,9 +1246,20 @@ class CNLSampler:
         if control_literal is not None:
             builder.add_template([self._fixed_segment(control_literal)])
         else:
-            plan = self._infer_prompt_plan(prompt) if prompt is not None else None
+            plan = (
+                self._infer_prompt_plan(prompt)
+                if prompt is not None and self._definition_child is None else None
+            )
 
-            if plan is not None:
+            if self._definition_child is not None:
+                if prompt is not None and _COPULAR_DEFINITION_RE.fullmatch(self._normalise_prompt(prompt)):
+                    parents = sorted(self._declared_class_terms - {self._definition_child})
+                    builder.add_template([
+                        self._slot_sequences((self._definition_child,), leading_space=False),
+                        self._fixed_segment(" subclass-of"),
+                        self._slot_sequences(parents, leading_space=True),
+                    ])
+            elif plan is not None:
                 relation_start = self._slot_sequences(plan.relation_terms, leading_space=False)
                 relation_space = self._slot_sequences(plan.relation_terms, leading_space=True)
                 first_space = self._slot_sequences(plan.first_terms, leading_space=True)

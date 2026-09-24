@@ -594,6 +594,43 @@ class TestPromptAwareConstraints:
         assert tokenizer("HumanIntelligence", add_special_tokens=False)["input_ids"][0] in allowed
         assert tokenizer("?x is-a", add_special_tokens=False)["input_ids"][0] not in allowed
 
+    def _definition_sampler(self, monkeypatch):
+        tokenizer = PrefixConstraintTokenizer()
+        model = MagicMock()
+        model.config.decoder_start_token_id = None
+        monkeypatch.setattr(
+            "src.fsm.cnl_fsm._load_terms",
+            lambda path, key="term": ["Source", "Process"] if str(path).endswith("sumo_classes.jsonl") else [],
+        )
+        sampler = CNLSampler(
+            model, tokenizer,
+            declared_class_terms={"OpenSourceIntelligenceProduct", "Process", "IntelligenceProduct"},
+            allow_definition_subclass=True, definition_child="OpenSourceIntelligenceProduct",
+        )
+        return sampler, tokenizer
+
+    def test_definition_child_blocks_incidental_terms_and_reversal(self, monkeypatch):
+        sampler, tokenizer = self._definition_sampler(monkeypatch)
+        constraint = sampler._build_prefix_constraint("Open-source intelligence is intelligence")
+        ids = lambda text: tokenizer(text, add_special_tokens=False)["input_ids"]
+        assert constraint(0, []) == ids("OpenSourceIntelligenceProduct")
+        after_child = ids("OpenSourceIntelligenceProduct") + ids(" subclass-of")
+        allowed = constraint(0, after_child)
+        assert set(allowed) == {ids(" IntelligenceProduct")[0], ids(" Process")[0]}
+        assert ids(" Source")[0] not in allowed
+        assert ids(" OpenSourceIntelligenceProduct")[0] not in allowed
+
+    def test_definition_child_abstains_without_copular_definition(self, monkeypatch):
+        sampler, _ = self._definition_sampler(monkeypatch)
+        assert sampler._has_no_supported_constraint_start(
+            sampler._build_prefix_constraint("Open-source intelligence supports planning")
+        )
+
+    def test_definition_child_must_be_declared(self):
+        with pytest.raises(ValueError, match="Definition child"):
+            CNLSampler(MagicMock(), MagicMock(), declared_class_terms={"Process", "X"},
+                       allow_definition_subclass=True, definition_child="Other")
+
     def test_excluded_doctrine_parent_does_not_force_subclass_plan(self, monkeypatch):
         sampler = CNLSampler(MagicMock(), MagicMock())
 

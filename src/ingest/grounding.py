@@ -591,3 +591,98 @@ class DoctrineGrounder:
             terms=all_terms,
             ungrounded_terms=[],
         )
+
+
+# ---------------------------------------------------------------------------
+# Declaration-aware definitional subclass review
+# ---------------------------------------------------------------------------
+# A declaration only maps a source phrase to a new class symbol. It is never
+# evidence that the class has a given parent: the current passage must state
+# the genus itself. Retrieved prior statements are not an input here at all.
+_DECLARED_SCOPE_RE = re.compile(
+    r"\b(?:or|either|neither|nor|if|unless|not|no|never|may|might|can|could|must|shall|should|would|only|except|some|often|usually|typically|generally)\b|n['’]t\b",
+    re.IGNORECASE,
+)
+# Genus phrases an existing parent may be stated by, and passage-local cues that
+# must accompany a phrase whose sense is shared with another ontology class.
+# "X is intelligence derived from ..." is how the ontology already defines
+# disciplines (SignalsIntelligence), so bare "intelligence" is not a product
+# sense unless the sentence itself says the intelligence is produced.
+_DECLARED_GENUS_PHRASES: dict[str, tuple[tuple[str, str | None], ...]] = {
+    "Process": (("process", None),),
+    "IntelligenceProduct": (
+        ("intelligence product", None),
+        ("intelligence", r"intelligence\s+(?:that|which)\s+(?:is|are)\s+produced\b"),
+    ),
+}
+
+
+def assess_declared_definition(
+    cnl: str,
+    *,
+    passage: str,
+    evidence_sentence: str,
+    declaration: dict,
+    parent_terms: Iterable[str],
+) -> GroundingAssessment:
+    """Review ``<declared> subclass-of <parent>`` against the current passage only.
+
+    The declaration contributes the symbol, its source phrase (``alias``) and
+    its sense cue; each must be found in the current evidence sentence at the
+    definiendum position. The subclass relation is accepted only when the same
+    sentence states the parent as the genus of that definiendum.
+    """
+    relation_terms, class_terms, all_terms = extract_cnl_terms(cnl)
+
+    def verdict(reason: str | None, detail: str) -> GroundingAssessment:
+        return GroundingAssessment(
+            accepted=reason is None, reason=reason, detail=detail,
+            relation_terms=relation_terms, class_terms=class_terms, terms=all_terms,
+            ungrounded_terms=[] if reason is None else list(class_terms),
+        )
+
+    match = _SUBCLASS_RE.match(cnl)
+    if match is None:
+        return verdict("not_single_subclass", "Declared definitions license one subclass claim only.")
+    child, parent = match.group("left"), match.group("right")
+    symbol = declaration["symbol"]
+    parents = set(parent_terms)
+    if child != symbol:
+        if parent == symbol:
+            return verdict("reversed_direction",
+                           f"Declared term {symbol} must be the child of its definition, not the parent.")
+        return verdict("undeclared_child", f"Child {child} is not the declared definiendum {symbol}.")
+    if parent == symbol or parent not in parents or parent not in load_closed_class_terms():
+        return verdict("parent_not_existing_class",
+                       f"Parent {parent} is not an existing ontology class offered for this definition.")
+    if not evidence_sentence or evidence_sentence not in passage:
+        return verdict("evidence_not_in_passage", "Evidence sentence is not part of the current passage.")
+
+    sentence = _normalise_text(evidence_sentence)
+    alias = _normalise_text(declaration["alias"])
+    subject = re.match(rf"(?:(?:a|an|the)\s+)?{re.escape(alias)}\s+(?:is|are)\s+", sentence)
+    if subject is None:
+        return verdict("declaration_phrase_not_subject",
+                       "Declared source phrase is not the subject of a copular definition in the passage.")
+    cue = _normalise_text(declaration["evidence_cue"])
+    if not re.match(rf"(?:(?:a|an|the)\s+)?{re.escape(alias)}\s+{re.escape(cue)}(?![a-z0-9])", sentence):
+        return verdict("declaration_sense_not_in_passage",
+                       "Declared sense cue does not follow the defined phrase in the passage.")
+    predicate = sentence[subject.end():]
+    predicate = re.sub(r"^(?:a|an|the)\s+(?:(?:type|kind|form)\s+of\s+)?", "", predicate)
+    stated, ambiguous = False, False
+    for phrase, sense_cue in _DECLARED_GENUS_PHRASES.get(parent, ((_naturalize_term(parent), None),)):
+        if re.match(rf"{re.escape(phrase)}(?![a-z0-9])", predicate):
+            if sense_cue is None or re.match(sense_cue, predicate):
+                stated = True
+                break
+            ambiguous = True
+    if not stated:
+        if ambiguous:
+            return verdict("ambiguous_genus_sense",
+                           f"The passage's genus phrase does not fix the sense of {parent}.")
+        return verdict("unstated_parent",
+                       f"The passage does not state {parent} as the genus of the declared term.")
+    if _DECLARED_SCOPE_RE.search(evidence_sentence):
+        return verdict("unverified_scope", "Evidence sentence contains logical scope or modality requiring review.")
+    return verdict(None, "Current evidence sentence defines the declared term with the stated parent as genus.")

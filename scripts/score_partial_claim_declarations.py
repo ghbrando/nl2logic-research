@@ -16,7 +16,7 @@ from scripts.run_frozen_claim_predictions import text_sha256
 from scripts.validate_claim_packet import validate
 from src.compiler.compiler import CNLCompiler
 from src.eval.comparison import restates_ontology
-from src.ingest.grounding import DoctrineGrounder
+from src.ingest.grounding import DoctrineGrounder, assess_declared_definition
 from src.preprocessing.declarations import load_declaration_registry, match_declaration
 
 
@@ -44,6 +44,8 @@ def score(sources_path: Path, source_manifest_path: Path, registry_path: Path,
             or set(labels) != set(sources) or set(sources) != {row["record_id"] for row in predictions}):
         raise ValueError("Prediction, source, and label IDs or counts differ")
     grounder = DoctrineGrounder(allow_background_axioms=False)
+    parents = list(registry["existing_parent_pool"])
+    modes = ("rules", "baseline", "retrieved") if "rules" in run.get("arms", ()) else ("baseline", "retrieved")
     scored = []
     for prediction in predictions:
         rid = prediction["record_id"]
@@ -59,11 +61,11 @@ def score(sources_path: Path, source_manifest_path: Path, registry_path: Path,
                     or evidence not in source
                     or match_declaration(extraction["candidate_text"], evidence, registry) != declaration
                     or set(prediction["approved_class_terms"]) != set(registry["existing_parent_pool"]) | {declaration["symbol"]}
-                    or set(prediction["arms"]) != {"baseline", "retrieved"}):
+                    or set(prediction["arms"]) != set(modes)):
                 raise ValueError(f"{rid}: declaration or source evidence does not match")
         elif prediction["arms"]:
             raise ValueError(f"{rid}: generated without a reviewed declaration")
-        for mode in ("baseline", "retrieved"):
+        for mode in modes:
             arm = prediction["arms"].get(mode)
             result = {
                 "record_id": rid,
@@ -80,6 +82,8 @@ def score(sources_path: Path, source_manifest_path: Path, registry_path: Path,
                 "grounder_accepted": None,
                 "grounder_reason": None,
                 "ontology_restated": None,
+                "declared_gate_accepted": None,
+                "declared_gate_reason": None,
             }
             if arm:
                 if arm["decoder_abstention"]:
@@ -87,7 +91,7 @@ def score(sources_path: Path, source_manifest_path: Path, registry_path: Path,
                 elif arm["error"]:
                     result["route"] = "error"
                 elif not arm["cnl"]:
-                    result["route"] = "empty_output"
+                    result["route"] = "rules_abstain" if mode == "rules" else "empty_output"
                 else:
                     try:
                         kif = CNLCompiler(extra_classes={declaration["symbol"]}).compile(
@@ -110,6 +114,16 @@ def score(sources_path: Path, source_manifest_path: Path, registry_path: Path,
                             result["grounder_reason"] = assessment.reason
                         except Exception as exc:
                             result["grounder_reason"] = f"{type(exc).__name__}: {exc}"
+                        # Passage-only review: the declaration maps a phrase to a
+                        # symbol but never supplies the parent relation.
+                        declared = assess_declared_definition(
+                            arm["cnl"], passage=source, evidence_sentence=evidence,
+                            declaration=declaration, parent_terms=parents,
+                        )
+                        result["declared_gate_accepted"] = declared.accepted
+                        result["declared_gate_reason"] = declared.reason
+                        if "gate" in arm and arm["gate"] != {"accepted": declared.accepted, "reason": declared.reason}:
+                            raise ValueError(f"{rid}/{mode}: saved gate verdict differs from rescoring")
             scored.append(result)
     summary = {
         "label_status": "ai_reviewed_development_oracle_not_evaluation",
@@ -119,13 +133,21 @@ def score(sources_path: Path, source_manifest_path: Path, registry_path: Path,
         "by_mode": {},
         "interpretation": "Development-only upper-bound probe: provisional declarations and parent pool were informed by AI-reviewed examples. Exact AI-label match is not independent accuracy or final acceptance.",
     }
-    for mode in ("baseline", "retrieved"):
+    for mode in modes:
         subset = [row for row in scored if row["mode"] == mode]
         summary["by_mode"][mode] = {
             "routes": dict(Counter(row["route"] for row in subset)),
             "exact_ai_label_matches": sum(row["gold_kif_exact"] for row in subset),
             "compiled_other_formulas": sum(row["route"] == "valid_cnl_other_formula" for row in subset),
             "grounder_accepted": sum(row["grounder_accepted"] is True for row in subset),
+            "declared_gate_accepted": sum(row["declared_gate_accepted"] is True for row in subset),
+            "declared_gate_accepted_ai_label_match": sum(
+                row["declared_gate_accepted"] is True and row["gold_kif_exact"] for row in subset),
+            "declared_gate_accepted_other_formula": sum(
+                row["declared_gate_accepted"] is True and not row["gold_kif_exact"] for row in subset),
+            "declared_gate_reasons": dict(Counter(
+                row["declared_gate_reason"] or "accepted" for row in subset
+                if row["declared_gate_accepted"] is not None)),
         }
     by_mode = {mode: {row["record_id"]: row for row in scored if row["mode"] == mode}
                for mode in ("baseline", "retrieved")}

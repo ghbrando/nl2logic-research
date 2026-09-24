@@ -18,10 +18,29 @@ from scripts.run_frozen_claim_predictions import text_sha256
 from scripts.run_partial_claim_dev_probe import load_sources
 from src.eval.model_predictor import load_model_and_tokenizer
 from src.fsm.cnl_fsm import CNLSampler, UnsupportedInputError
+from src.ingest.grounding import assess_declared_definition
 from src.preprocessing.declarations import load_declaration_registry, match_declaration
 from src.preprocessing.partial_claims import extract_paragraph_candidate
 from src.reasoning.claim_memory import load_ontology_memory, render_memory_prompt, retrieve_memory
 from src.training.train import format_prompt
+
+
+def rules_definition(passage: str, evidence: str, declaration: dict, parents: list[str]) -> str | None:
+    """Rules-only arm: emit the one parent the current passage states as genus."""
+    accepted = [
+        cnl for cnl in (f"{declaration['symbol']} subclass-of {parent}" for parent in parents)
+        if assess_declared_definition(cnl, passage=passage, evidence_sentence=evidence,
+                                      declaration=declaration, parent_terms=parents).accepted
+    ]
+    return accepted[0] if len(accepted) == 1 else None
+
+
+def gate(cnl: str | None, passage: str, evidence: str, declaration: dict, parents: list[str]) -> dict:
+    if not cnl:
+        return {"accepted": False, "reason": "no_output"}
+    result = assess_declared_definition(cnl, passage=passage, evidence_sentence=evidence,
+                                        declaration=declaration, parent_terms=parents)
+    return {"accepted": result.accepted, "reason": result.reason}
 
 
 def predict(source_path: Path, source_manifest_path: Path, registry_path: Path,
@@ -53,7 +72,10 @@ def predict(source_path: Path, source_manifest_path: Path, registry_path: Path,
     output_dir.mkdir(parents=True, exist_ok=False)
     manifest = {
         "status": "running",
-        "protocol": "Development-only oracle class declarations, no subclass assertions; full current evidence sentence plus source head in encoder; source-head gate and isolated-declaration grammar; paired no-memory and ontology-memory decoding. Labels read only after predictions are saved.",
+        "protocol": "Development-only oracle class declarations, no subclass assertions; full current evidence sentence plus source head in encoder; source-head gate; decoder fixes the declared term as child and offers only the existing parent pool; rules-only, no-memory, and ontology-memory arms each reviewed by the passage-only declared-definition gate. Labels read only after predictions are saved.",
+        "decoder_constraint": "definition_child",
+        "gate": "assess_declared_definition",
+        "arms": ["rules", "baseline", "retrieved"],
         "sources_sha256": text_sha256(source_path),
         "source_manifest_sha256": text_sha256(source_manifest_path),
         "registry_sha256": text_sha256(registry_path),
@@ -76,7 +98,13 @@ def predict(source_path: Path, source_manifest_path: Path, registry_path: Path,
             if declaration is not None and not candidate.gate_reasons:
                 allowed = set(registry["existing_parent_pool"]) | {declaration["symbol"]}
                 sampler = CNLSampler(model, tokenizer, allow_background_axioms=False,
-                                     declared_class_terms=allowed, allow_definition_subclass=True)
+                                     declared_class_terms=allowed, allow_definition_subclass=True,
+                                     definition_child=declaration["symbol"])
+                parents = list(registry["existing_parent_pool"])
+                source = row["source_excerpt"]
+                rules_cnl = rules_definition(source, evidence, declaration, parents)
+                arms["rules"] = {"cnl": rules_cnl, "decoder_abstention": None, "error": None,
+                                 "gate": gate(rules_cnl, source, evidence, declaration, parents)}
                 source_prompt = format_prompt(candidate.candidate_text)
                 base_model_prompt = (
                     f"{source_prompt}\nCurrent source evidence: {evidence}\n"
@@ -99,6 +127,7 @@ def predict(source_path: Path, source_manifest_path: Path, registry_path: Path,
                         "cnl": cnl,
                         "decoder_abstention": abstention,
                         "error": error,
+                        "gate": gate(cnl, source, evidence, declaration, parents),
                     }
             result = {
                 "record_id": row["record_id"],
@@ -114,7 +143,7 @@ def predict(source_path: Path, source_manifest_path: Path, registry_path: Path,
             }
             handle.write(json.dumps(result, ensure_ascii=False) + "\n")
             handle.flush()
-            print(f"{row['paragraph']} declaration={declaration['symbol'] if declaration else None} baseline={arms.get('baseline')} retrieved={arms.get('retrieved')}", flush=True)
+            print(f"{row['paragraph']} declaration={declaration['symbol'] if declaration else None} " + " ".join(f"{mode}={arms[mode]['cnl']}:{arms[mode]['gate']}" for mode in arms), flush=True)
     manifest["prediction_count"] = len(rows)
     manifest["predictions_sha256"] = text_sha256(prediction_path)
     manifest["status"] = "completed"
