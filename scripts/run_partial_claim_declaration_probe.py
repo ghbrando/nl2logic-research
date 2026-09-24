@@ -19,9 +19,14 @@ from scripts.run_partial_claim_dev_probe import load_sources
 from src.eval.model_predictor import load_model_and_tokenizer
 from src.fsm.cnl_fsm import CNLSampler, UnsupportedInputError
 from src.ingest.grounding import assess_declared_definition
-from src.preprocessing.declarations import load_declaration_registry, match_declaration
+from src.ontology.vocab import load_closed_class_terms
+from src.preprocessing.declarations import (
+    PROPOSED_STATUS, load_declaration_registry, match_declaration, parent_candidates,
+)
 from src.preprocessing.partial_claims import extract_paragraph_candidate
-from src.reasoning.claim_memory import load_ontology_memory, render_memory_prompt, retrieve_memory
+from src.reasoning.claim_memory import (
+    load_ontology_memory, load_prior_claim_memory, render_memory_prompt, retrieve_memory,
+)
 from src.training.train import format_prompt
 
 
@@ -43,13 +48,22 @@ def gate(cnl: str | None, passage: str, evidence: str, declaration: dict, parent
     return {"accepted": result.accepted, "reason": result.reason}
 
 
+def declaration_parents(registry: dict, declaration: dict) -> list[str]:
+    pool = list(registry["existing_parent_pool"])
+    if registry["status"] != PROPOSED_STATUS:
+        return pool
+    return parent_candidates(declaration, pool, load_closed_class_terms())
+
+
 def predict(source_path: Path, source_manifest_path: Path, registry_path: Path,
-            model_path: Path, output_dir: Path, *, max_new_tokens: int = 64) -> None:
+            model_path: Path, output_dir: Path, *, max_new_tokens: int = 64,
+            prior_claims_path: Path | None = None) -> None:
     if max_new_tokens <= 0:
         raise ValueError("max_new_tokens must be positive")
     source_manifest = json.loads(source_manifest_path.read_text(encoding="utf-8"))
     rows = load_sources(source_path, source_manifest_path)
-    registry = load_declaration_registry(registry_path, source_packet_sha256=source_manifest["packet_sha256"])
+    registry = load_declaration_registry(registry_path, source_packet_sha256=source_manifest.get("packet_sha256"),
+                                         sources_sha256=source_manifest["sources_sha256"])
     prepared = []
     for row in rows:
         candidate, screened = extract_paragraph_candidate(row["source_excerpt"], row["source_sentence"])
@@ -69,6 +83,7 @@ def predict(source_path: Path, source_manifest_path: Path, registry_path: Path,
     if model is not None:
         model.eval()
     memory_statements = load_ontology_memory()
+    prior_claims = load_prior_claim_memory(prior_claims_path) if prior_claims_path else []
     output_dir.mkdir(parents=True, exist_ok=False)
     manifest = {
         "status": "running",
@@ -80,6 +95,9 @@ def predict(source_path: Path, source_manifest_path: Path, registry_path: Path,
         "source_manifest_sha256": text_sha256(source_manifest_path),
         "registry_sha256": text_sha256(registry_path),
         "memory_source_sha256": memory_statements[0].source_sha256,
+        "prior_claims_path": prior_claims_path.as_posix() if prior_claims_path else None,
+        "prior_claims_sha256": prior_claims[0].source_sha256 if prior_claims else None,
+        "prior_claim_count": len(prior_claims),
         "adapter_sha256": hashlib.sha256((model_path / "adapter_model.safetensors").read_bytes()).hexdigest(),
         "device": "cpu",
         "generation": {"decoder": "CNLSampler", "num_beams": 4, "max_new_tokens": max_new_tokens},
@@ -94,13 +112,14 @@ def predict(source_path: Path, source_manifest_path: Path, registry_path: Path,
     with prediction_path.open("x", encoding="utf-8") as handle:
         for row, candidate, screened, evidence, declaration in prepared:
             arms = {}
-            memory = retrieve_memory(candidate.candidate_text, memory_statements, limit=1) if declaration else []
+            memory = (retrieve_memory(candidate.candidate_text, memory_statements, limit=1)
+                      + retrieve_memory(candidate.candidate_text, prior_claims, limit=1)) if declaration else []
+            parents = declaration_parents(registry, declaration) if declaration else []
             if declaration is not None and not candidate.gate_reasons:
-                allowed = set(registry["existing_parent_pool"]) | {declaration["symbol"]}
+                allowed = set(parents) | {declaration["symbol"]}
                 sampler = CNLSampler(model, tokenizer, allow_background_axioms=False,
                                      declared_class_terms=allowed, allow_definition_subclass=True,
                                      definition_child=declaration["symbol"])
-                parents = list(registry["existing_parent_pool"])
                 source = row["source_excerpt"]
                 rules_cnl = rules_definition(source, evidence, declaration, parents)
                 arms["rules"] = {"cnl": rules_cnl, "decoder_abstention": None, "error": None,
@@ -109,7 +128,7 @@ def predict(source_path: Path, source_manifest_path: Path, registry_path: Path,
                 base_model_prompt = (
                     f"{source_prompt}\nCurrent source evidence: {evidence}\n"
                     f"Approved class name only: {declaration['declaration']}\n"
-                    f"Available existing classes: {', '.join(registry['existing_parent_pool'])}.\n"
+                    f"Available existing classes: {', '.join(parents)}.\n"
                     "Produce a new claim only if the current source supports it."
                 )
                 for mode, statements in (("baseline", []), ("retrieved", memory)):
@@ -137,7 +156,8 @@ def predict(source_path: Path, source_manifest_path: Path, registry_path: Path,
                 "screened_sentences": screened,
                 "evidence_sentence": evidence,
                 "declaration": declaration,
-                "approved_class_terms": sorted(set(registry["existing_parent_pool"]) | {declaration["symbol"]}) if declaration else [],
+                "approved_class_terms": sorted(set(parents) | {declaration["symbol"]}) if declaration else [],
+                "parent_candidates": parents,
                 "memory": [asdict(statement) for statement in memory],
                 "arms": arms,
             }
@@ -158,9 +178,11 @@ def main() -> None:
     parser.add_argument("--model-path", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--max-new-tokens", type=int, default=64)
+    parser.add_argument("--prior-claims", type=Path, default=None,
+                        help="scored.jsonl of a separate run; its gate-accepted rules claims become memory")
     args = parser.parse_args()
     predict(args.sources, args.source_manifest, args.registry, args.model_path,
-            args.output_dir, max_new_tokens=args.max_new_tokens)
+            args.output_dir, max_new_tokens=args.max_new_tokens, prior_claims_path=args.prior_claims)
 
 
 if __name__ == "__main__":

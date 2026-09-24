@@ -48,3 +48,32 @@ def test_passage_only_declared_gate_rejects_incidental_and_reversed_outputs():
     }
     for mode in ("baseline", "retrieved"):
         assert summary["by_mode"][mode]["declared_gate_accepted_other_formula"] == 0
+
+
+GATE_RUN = ROOT / "results/diagnostics/partial_claim_definition_gate_cpu_20260923"
+
+
+def test_definition_child_decoding_run_and_prior_claim_memory():
+    from src.reasoning.claim_memory import load_prior_claim_memory, render_memory_prompt
+
+    scored, summary = score(
+        SOURCE / "sources.jsonl",
+        SOURCE / "manifest.json",
+        SOURCE / "provisional_declarations.json",
+        ROOT / "data/benchmarks/fm2-0/development_partial_claims_20260923.json",
+        GATE_RUN / "predictions.jsonl",
+        GATE_RUN / "manifest.json",
+    )
+    assert summary["by_mode"]["rules"]["declared_gate_accepted_ai_label_match"] == 2
+    for mode in ("baseline", "retrieved"):
+        assert summary["by_mode"][mode]["declared_gate_accepted"] == 1
+        assert summary["by_mode"][mode]["declared_gate_accepted_other_formula"] == 0
+    assert summary["changed_output_count"] == 0
+    assert not any(row["predicted_cnl"] and row["predicted_cnl"].startswith(("Source ", "Process ")) for row in scored)
+
+    memory = load_prior_claim_memory(GATE_RUN / "scoring/scored.jsonl")
+    assert [statement.kif for statement in memory] == [
+        "(subclass OpenSourceIntelligenceProduct IntelligenceProduct)",
+        "(subclass BiometricsProcess Process)",
+    ]
+    assert "Prior accepted claim: (subclass BiometricsProcess Process)" in render_memory_prompt("x", memory[1:])

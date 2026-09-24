@@ -22,13 +22,13 @@ elif [[ "$run_mode" == "control" ]]; then
     echo "Output directory already exists: $state_dir/outputs/$prefix-control" >&2
     exit 2
   fi
-elif [[ "$run_mode" == "declarations" || "$run_mode" == "definition-gate" ]]; then
+elif [[ "$run_mode" == "declarations" || "$run_mode" == "definition-gate" || "$run_mode" == "unseen-definitions" ]]; then
   if [[ -e "$state_dir/outputs/$prefix-$run_mode" ]]; then
     echo "Output directory already exists: $state_dir/outputs/$prefix-$run_mode" >&2
     exit 2
   fi
 else
-  echo "Expected paired, control, declarations, or definition-gate" >&2
+  echo "Expected paired, control, declarations, definition-gate, or unseen-definitions" >&2
   exit 2
 fi
 for input in sumo_classes.jsonl sumo_relations.jsonl; do
@@ -63,6 +63,23 @@ if [[ "$run_mode" == "control" ]]; then
     research python scripts/run_claim_memory_control.py \
       --model-path /outputs/diagnostic-closed-7k-20260922-01 \
       --output-dir "/outputs/$prefix-control"
+  exit 0
+fi
+if [[ "$run_mode" == "unseen-definitions" ]]; then
+  unseen=/workspace/data/benchmarks/fm2-0/chapters3plus-definition-unseen-source
+  docker --context rootless compose \
+    -f containers/compose.yaml -f containers/rootless.yaml \
+    -f containers/inputs.yaml -f containers/cpu-audit.yaml \
+    run --rm --no-deps \
+    -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 -e OMP_NUM_THREADS=2 \
+    research python scripts/run_partial_claim_declaration_probe.py \
+      --sources "$unseen/sources.jsonl" \
+      --source-manifest "$unseen/manifest.json" \
+      --registry "$unseen/proposed_declarations.json" \
+      --prior-claims /workspace/results/diagnostics/partial_claim_definition_gate_cpu_20260923/scoring/scored.jsonl \
+      --model-path /outputs/diagnostic-closed-7k-20260922-01 \
+      --output-dir "/outputs/$prefix-$run_mode" \
+      --max-new-tokens 64
   exit 0
 fi
 if [[ "$run_mode" == "declarations" || "$run_mode" == "definition-gate" ]]; then

@@ -1,0 +1,60 @@
+{
+  "label_status": "ai_reviewed_development_oracle_not_evaluation",
+  "source_passages": 14,
+  "oracle_declarations_applied": 3,
+  "memory_retrieved_on_declarations": 2,
+  "by_mode": {
+    "rules": {
+      "routes": {
+        "no_declaration": 11,
+        "ai_label_match": 2,
+        "rules_abstain": 1
+      },
+      "exact_ai_label_matches": 2,
+      "compiled_other_formulas": 0,
+      "grounder_accepted": 0,
+      "declared_gate_accepted": 2,
+      "declared_gate_accepted_ai_label_match": 2,
+      "declared_gate_accepted_other_formula": 0,
+      "declared_gate_reasons": {
+        "accepted": 2
+      }
+    },
+    "baseline": {
+      "routes": {
+        "no_declaration": 11,
+        "valid_cnl_other_formula": 2,
+        "ai_label_match": 1
+      },
+      "exact_ai_label_matches": 1,
+      "compiled_other_formulas": 2,
+      "grounder_accepted": 0,
+      "declared_gate_accepted": 1,
+      "declared_gate_accepted_ai_label_match": 1,
+      "declared_gate_accepted_other_formula": 0,
+      "declared_gate_reasons": {
+        "unstated_parent": 2,
+        "accepted": 1
+      }
+    },
+    "retrieved": {
+      "routes": {
+        "no_declaration": 11,
+        "valid_cnl_other_formula": 2,
+        "ai_label_match": 1
+      },
+      "exact_ai_label_matches": 1,
+      "compiled_other_formulas": 2,
+      "grounder_accepted": 0,
+      "declared_gate_accepted": 1,
+      "declared_gate_accepted_ai_label_match": 1,
+      "declared_gate_accepted_other_formula": 0,
+      "declared_gate_reasons": {
+        "unstated_parent": 2,
+        "accepted": 1
+      }
+    }
+  },
+  "interpretation": "Development-only upper-bound probe: provisional declarations and parent pool were informed by AI-reviewed examples. Exact AI-label match is not independent accuracy or final acceptance.",
+  "changed_output_count": 0
+}

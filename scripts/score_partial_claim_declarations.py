@@ -17,6 +17,7 @@ from scripts.validate_claim_packet import validate
 from src.compiler.compiler import CNLCompiler
 from src.eval.comparison import restates_ontology
 from src.ingest.grounding import DoctrineGrounder, assess_declared_definition
+from scripts.run_partial_claim_declaration_probe import declaration_parents
 from src.preprocessing.declarations import load_declaration_registry, match_declaration
 
 
@@ -25,7 +26,7 @@ def score(sources_path: Path, source_manifest_path: Path, registry_path: Path,
     source_manifest = json.loads(source_manifest_path.read_text(encoding="utf-8"))
     run = json.loads(prediction_manifest_path.read_text(encoding="utf-8"))
     if (text_sha256(sources_path) != source_manifest["sources_sha256"]
-            or text_sha256(packet_path) != source_manifest["packet_sha256"]):
+            or ("packet_sha256" in source_manifest and text_sha256(packet_path) != source_manifest["packet_sha256"])):
         raise ValueError("Development source or labels changed")
     if (run["status"] != "completed"
             or run["sources_sha256"] != text_sha256(sources_path)
@@ -33,7 +34,8 @@ def score(sources_path: Path, source_manifest_path: Path, registry_path: Path,
             or run["registry_sha256"] != text_sha256(registry_path)
             or run["predictions_sha256"] != text_sha256(predictions_path)):
         raise ValueError("Declaration prediction run incomplete or inputs/outputs changed")
-    registry = load_declaration_registry(registry_path, source_packet_sha256=source_manifest["packet_sha256"])
+    registry = load_declaration_registry(registry_path, source_packet_sha256=source_manifest.get("packet_sha256"),
+                                         sources_sha256=source_manifest["sources_sha256"])
     packet = json.loads(packet_path.read_text(encoding="utf-8"))
     validate(packet)
     labels = {row["record_id"]: row for row in packet["claims"]}
@@ -44,7 +46,6 @@ def score(sources_path: Path, source_manifest_path: Path, registry_path: Path,
             or set(labels) != set(sources) or set(sources) != {row["record_id"] for row in predictions}):
         raise ValueError("Prediction, source, and label IDs or counts differ")
     grounder = DoctrineGrounder(allow_background_axioms=False)
-    parents = list(registry["existing_parent_pool"])
     modes = ("rules", "baseline", "retrieved") if "rules" in run.get("arms", ()) else ("baseline", "retrieved")
     scored = []
     for prediction in predictions:
@@ -55,12 +56,13 @@ def score(sources_path: Path, source_manifest_path: Path, registry_path: Path,
         extraction = prediction["extraction"]
         declaration = prediction["declaration"]
         evidence = prediction["evidence_sentence"]
+        parents = declaration_parents(registry, declaration) if declaration else []
         if declaration:
             if (extraction["status"] != "candidate"
                     or source[extraction["start"]:extraction["end"]] != extraction["source_span"]
                     or evidence not in source
                     or match_declaration(extraction["candidate_text"], evidence, registry) != declaration
-                    or set(prediction["approved_class_terms"]) != set(registry["existing_parent_pool"]) | {declaration["symbol"]}
+                    or set(prediction["approved_class_terms"]) != set(parents) | {declaration["symbol"]}
                     or set(prediction["arms"]) != set(modes)):
                 raise ValueError(f"{rid}: declaration or source evidence does not match")
         elif prediction["arms"]:

@@ -6,6 +6,7 @@ The module does not add terms to the closed decoder vocabulary.
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -79,8 +80,35 @@ def retrieve_memory(source_text: str, statements: list[MemoryStatement], *, limi
 def render_memory_prompt(source_prompt: str, statements: list[MemoryStatement]) -> str:
     if not statements:
         return source_prompt
-    context = "\n".join(f"Prior ontology statement: {statement.kif}" for statement in statements)
+    labels = {"ontology_background": "Prior ontology statement", "prior_accepted_claim": "Prior accepted claim"}
+    context = "\n".join(f"{labels[statement.kind]}: {statement.kif}" for statement in statements)
     return (
         f"{source_prompt}\n{context}\n"
         "Prior statements are context only. Formalize only what the current source states."
     )
+
+
+def load_prior_claim_memory(scored_path: Path, *, mode: str = "rules") -> list[MemoryStatement]:
+    """Load claims a previous, separate run accepted through the passage-only gate.
+
+    They are context for the encoder only. They are never grounding evidence and
+    carry the provenance of the run that accepted them.
+    """
+    text = scored_path.read_text(encoding="utf-8")
+    source_sha = hashlib.sha256(text.replace("\r\n", "\n").encode("utf-8")).hexdigest()
+    statements = []
+    for line_number, line in enumerate(text.splitlines(), 1):
+        row = json.loads(line) if line.strip() else None
+        if not row or row.get("mode") != mode or row.get("declared_gate_accepted") is not True:
+            continue
+        match = re.fullmatch(r"\(subclass ([A-Za-z][A-Za-z0-9_]*) ([A-Za-z][A-Za-z0-9_]*)\)", row["compiled_kif"])
+        if match is None:
+            raise ValueError(f"Prior accepted claim on line {line_number} is not a subclass claim")
+        child, parent = match.groups()
+        statements.append(MemoryStatement(
+            statement_id=f"prior-claim:{row['record_id']}",
+            kif=row["compiled_kif"], child=child, parent=parent,
+            source_path=scored_path.as_posix(), source_line=line_number,
+            source_sha256=source_sha, kind="prior_accepted_claim",
+        ))
+    return statements
