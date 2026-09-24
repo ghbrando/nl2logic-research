@@ -32,3 +32,13 @@ On clean contrasts, the adapter's likelihoods carry real genus signal.
 - **The model has some genus signal**, but on real passages it is swamped by a fixed preference, whether choices are made by beam or by likelihood. The always-`Process` behavior is partly a decoding effect, but switching to likelihood selection just swaps one default for another.
 - **The research question stays answered in the negative for this adapter.** It does not choose parents more accurately than the passage-stated-genus rules. And because the rules arm tries every candidate against the same gate, the model cannot cover more claims.
 - **The next useful step is training**, for example on genus-contrast pairs like those in diagnostic 1. That is currently ruled out by the project instruction not to train, so it needs the user's decision.
+
+## Addendum: can the model add coverage beyond rule candidates?
+
+Before building the design option "let the model propose parents the rules cannot list", I checked its candidate space without the model. For the 47 source-only declarations across the three queried FM 2-0 sets, I matched each genus head against the first sentence of every SUMO class's documentation.
+
+- **Some heads match far too many classes:** "process" matches 233 and "organization" 1,731.
+- **Some match mostly the wrong senses:** "cell" includes `BloodCell`, "company" includes `AstraZeneca`, "program" includes `ComputerMenu`, and "movement" yields `AlternativeRock`, `Barrier`, … .
+- **Some match nothing:** "echelon", "determination", "enabler", and "provision".
+
+A passage-only gate cannot confirm which sense of such a class is meant. So any extra parent the model proposed from this space would either have to be abstained on or would be unsupported. The precision-safe way to add parents is a **reviewed genus-to-class table**, which is curated rules work (ideally by a subject-matter expert), not model coverage. Under the no-training constraint, this closes design option 2 as a route to beating rules.
