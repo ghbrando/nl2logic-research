@@ -1,0 +1,31 @@
+{
+  "note": "Synthetic subjects only; every item passes the passage-only gate for its parent.",
+  "heldout_classes": [
+    "Product",
+    "Cycle"
+  ],
+  "sense_veto_train.jsonl": {
+    "rows": 2520,
+    "sha256": "b67c860c9d7b37fda0ca7b0aaca3b598ca8b92075591ccf325139f3929bb5506",
+    "labels": {
+      "accept": 1440,
+      "reject": 1080
+    }
+  },
+  "sense_veto_heldout.jsonl": {
+    "rows": 840,
+    "sha256": "776e819c6b32eb595f912f68aebac2c81850d63ae7708b98633605e7f0cdb785",
+    "labels": {
+      "accept": 480,
+      "reject": 360
+    }
+  },
+  "sense_veto_heldout_classes.jsonl": {
+    "rows": 160,
+    "sha256": "164c31eae3330ae5df8314b9f989444d2b18efd5dfcedcb8c6f40ad873fcca52",
+    "labels": {
+      "accept": 80,
+      "reject": 80
+    }
+  }
+}

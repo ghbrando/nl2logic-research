@@ -1,0 +1,213 @@
+{
+  "adapter_sha256": "bbe08f02baed3232c512475e2bf0291a8a2fa941a8e25d265f1f552fdde9eeaf",
+  "git_head": "acbbd1e5f561a94ddaf21c2ee36813016dcbc197",
+  "decision_rule": "veto if logp(not claim) > logp(claim)",
+  "sense_veto_heldout": {
+    "accept_kept": 467,
+    "accept_total": 480,
+    "reject_vetoed": 189,
+    "reject_total": 360,
+    "by_parent": {
+      "Plan": {
+        "accept_kept": 37,
+        "accept_total": 40,
+        "reject_vetoed": 22,
+        "reject_total": 40
+      },
+      "Map": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 3,
+        "reject_total": 40
+      },
+      "Key": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 22,
+        "reject_total": 40
+      },
+      "Report": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 14,
+        "reject_total": 40
+      },
+      "Device": {
+        "accept_kept": 39,
+        "accept_total": 40,
+        "reject_vetoed": 23,
+        "reject_total": 40
+      },
+      "Process": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 0,
+        "reject_total": 0
+      },
+      "Vehicle": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 27,
+        "reject_total": 40
+      },
+      "Weapon": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 26,
+        "reject_total": 40
+      },
+      "Organization": {
+        "accept_kept": 36,
+        "accept_total": 40,
+        "reject_vetoed": 32,
+        "reject_total": 40
+      },
+      "Document": {
+        "accept_kept": 20,
+        "accept_total": 20,
+        "reject_vetoed": 0,
+        "reject_total": 0
+      },
+      "IntelligenceProduct": {
+        "accept_kept": 20,
+        "accept_total": 20,
+        "reject_vetoed": 0,
+        "reject_total": 0
+      },
+      "Meeting": {
+        "accept_kept": 35,
+        "accept_total": 40,
+        "reject_vetoed": 20,
+        "reject_total": 40
+      },
+      "Message": {
+        "accept_kept": 20,
+        "accept_total": 20,
+        "reject_vetoed": 0,
+        "reject_total": 0
+      },
+      "Database": {
+        "accept_kept": 20,
+        "accept_total": 20,
+        "reject_vetoed": 0,
+        "reject_total": 0
+      }
+    }
+  },
+  "sense_veto_heldout_classes": {
+    "accept_kept": 73,
+    "accept_total": 80,
+    "reject_vetoed": 25,
+    "reject_total": 80,
+    "by_parent": {
+      "Product": {
+        "accept_kept": 36,
+        "accept_total": 40,
+        "reject_vetoed": 9,
+        "reject_total": 40
+      },
+      "Cycle": {
+        "accept_kept": 37,
+        "accept_total": 40,
+        "reject_vetoed": 16,
+        "reject_total": 40
+      }
+    }
+  },
+  "development": {
+    "gate_accepted_claims": 7,
+    "label_matches_kept": 6,
+    "label_matches_total": 6,
+    "unsupported_vetoed": 1,
+    "unsupported_total": 1,
+    "claims": [
+      {
+        "run": "partial_claim_definition_gate_cpu_20260923",
+        "paragraph": "1-79",
+        "symbol": "OpenSourceIntelligenceProduct",
+        "parent": "IntelligenceProduct",
+        "label_match": true,
+        "modes": [
+          "rules"
+        ],
+        "veto": false
+      },
+      {
+        "run": "partial_claim_definition_gate_cpu_20260923",
+        "paragraph": "1-93",
+        "symbol": "BiometricsProcess",
+        "parent": "Process",
+        "label_match": true,
+        "modes": [
+          "rules",
+          "baseline",
+          "retrieved"
+        ],
+        "veto": false
+      },
+      {
+        "run": "unseen_definition_cpu_20260923",
+        "paragraph": "3-42",
+        "symbol": "TargetingProcess",
+        "parent": "Process",
+        "label_match": true,
+        "modes": [
+          "rules",
+          "baseline",
+          "retrieved"
+        ],
+        "veto": false
+      },
+      {
+        "run": "unseen_definition_cpu_20260923",
+        "paragraph": "3-54",
+        "symbol": "KnowledgeManagementProcess",
+        "parent": "Process",
+        "label_match": true,
+        "modes": [
+          "rules",
+          "baseline",
+          "retrieved"
+        ],
+        "veto": false
+      },
+      {
+        "run": "appendix_definition_cpu_20260923",
+        "paragraph": "B-18",
+        "symbol": "SituationalUnderstandingProduct",
+        "parent": "Product",
+        "label_match": false,
+        "modes": [
+          "rules"
+        ],
+        "veto": true
+      },
+      {
+        "run": "appendix_definition_cpu_20260923",
+        "paragraph": "B-39",
+        "symbol": "IntelligencePreparationOfTheOperationalEnvironmentProcess",
+        "parent": "Process",
+        "label_match": true,
+        "modes": [
+          "rules",
+          "baseline",
+          "retrieved"
+        ],
+        "veto": false
+      },
+      {
+        "run": "appendix_definition_cpu_20260923",
+        "paragraph": "B-44",
+        "symbol": "SituationDevelopmentProcess",
+        "parent": "Process",
+        "label_match": true,
+        "modes": [
+          "rules",
+          "baseline",
+          "retrieved"
+        ],
+        "veto": false
+      }
+    ]
+  }
+}
