@@ -1,0 +1,84 @@
+{
+  "declared_items": 129,
+  "likelihood_equals_beam": 21,
+  "likelihood_choice_counts": {
+    "Area": 1,
+    "Army": 0,
+    "Cell": 0,
+    "IntelligenceProduct": 107,
+    "Key": 0,
+    "Organic": 1,
+    "Process": 20,
+    "Product": 0
+  },
+  "items_with_one_passage_stated_parent": 7,
+  "likelihood_picks_stated_parent": 5,
+  "beam_picks_stated_parent": 5,
+  "stated_parent_items": [
+    {
+      "run": "partial_claim_definition_gate_cpu_20260923",
+      "paragraph": "1-79",
+      "gate_accepted_parents": [
+        "IntelligenceProduct"
+      ],
+      "likelihood_cnl": "OpenSourceIntelligenceProduct subclass-of IntelligenceProduct",
+      "beam_cnl": "OpenSourceIntelligenceProduct subclass-of Process"
+    },
+    {
+      "run": "partial_claim_definition_gate_cpu_20260923",
+      "paragraph": "1-93",
+      "gate_accepted_parents": [
+        "Process"
+      ],
+      "likelihood_cnl": "BiometricsProcess subclass-of Process",
+      "beam_cnl": "BiometricsProcess subclass-of Process"
+    },
+    {
+      "run": "unseen_definition_cpu_20260923",
+      "paragraph": "3-42",
+      "gate_accepted_parents": [
+        "Process"
+      ],
+      "likelihood_cnl": "TargetingProcess subclass-of Process",
+      "beam_cnl": "TargetingProcess subclass-of Process"
+    },
+    {
+      "run": "unseen_definition_cpu_20260923",
+      "paragraph": "3-54",
+      "gate_accepted_parents": [
+        "Process"
+      ],
+      "likelihood_cnl": "KnowledgeManagementProcess subclass-of Process",
+      "beam_cnl": "KnowledgeManagementProcess subclass-of Process"
+    },
+    {
+      "run": "appendix_definition_cpu_20260923",
+      "paragraph": "B-18",
+      "gate_accepted_parents": [
+        "Product"
+      ],
+      "likelihood_cnl": "SituationalUnderstandingProduct subclass-of Process",
+      "beam_cnl": "SituationalUnderstandingProduct subclass-of Process"
+    },
+    {
+      "run": "appendix_definition_cpu_20260923",
+      "paragraph": "B-39",
+      "gate_accepted_parents": [
+        "Process"
+      ],
+      "likelihood_cnl": "IntelligencePreparationOfTheOperationalEnvironmentProcess subclass-of IntelligenceProduct",
+      "beam_cnl": "IntelligencePreparationOfTheOperationalEnvironmentProcess subclass-of Process"
+    },
+    {
+      "run": "appendix_definition_cpu_20260923",
+      "paragraph": "B-44",
+      "gate_accepted_parents": [
+        "Process"
+      ],
+      "likelihood_cnl": "SituationDevelopmentProcess subclass-of Process",
+      "beam_cnl": "SituationDevelopmentProcess subclass-of Process"
+    }
+  ],
+  "git_head": "c08f9611c35cb0cbcd91b4af9030acf393666137",
+  "interpretation": "Development re-scoring of already-queried outputs; the gate still decides acceptance."
+}

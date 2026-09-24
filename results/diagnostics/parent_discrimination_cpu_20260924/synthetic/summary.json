@@ -1,0 +1,32 @@
+{
+  "aliases": 127,
+  "items": 254,
+  "raw": {
+    "item_accuracy": 0.7716535433070866,
+    "both_in_pair_correct": 0.5433070866141733,
+    "choice_counts": {
+      "Process": 73,
+      "IntelligenceProduct": 181
+    }
+  },
+  "calibrated": {
+    "item_accuracy": 0.6614173228346457,
+    "both_in_pair_correct": 0.33858267716535434,
+    "choice_counts": {
+      "Process": 57,
+      "IntelligenceProduct": 197
+    }
+  },
+  "chance_both_in_pair_for_constant_choice": 0.0,
+  "registries": [
+    "/workspace/data/benchmarks/fm2-0/chapter1-partial-claim-development-source/provisional_declarations.json",
+    "/workspace/data/benchmarks/fm2-0/chapters3plus-definition-unseen-source/proposed_declarations.json",
+    "/workspace/data/benchmarks/fm2-0/appendices-definition-unseen-source/proposed_declarations.json"
+  ],
+  "adapter_sha256": "65fa954c72074f675dc0cdaced4b8d839fd720dad451954fc9e958af1010f927",
+  "git_head": "1799be17b7841e850bf9d9ef66c70b22a6a7c6f0",
+  "torch": "2.10.0a0+b558c986e8.nv25.11",
+  "python": "3.12.3",
+  "device": "cpu",
+  "interpretation": "Synthetic development diagnostic of passage conditioning; not accuracy on doctrine."
+}
