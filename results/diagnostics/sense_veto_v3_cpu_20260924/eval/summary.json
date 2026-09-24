@@ -1,0 +1,303 @@
+{
+  "adapter_sha256": "d8b9f71d3b1dec13e80cdfb2965583a217a5c2f729084903f79340dfad8c1291",
+  "git_head": "939e7016bb1eba7391f1d333be7a441bdd649dc6",
+  "decision_rule": "veto if logp(not claim) > logp(claim)",
+  "sense_veto_heldout": {
+    "accept_kept": 1080,
+    "accept_total": 1080,
+    "reject_vetoed": 960,
+    "reject_total": 960,
+    "by_parent": {
+      "Bridge": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Weapon": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Map": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Pipeline": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Storm": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Organization": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Island": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Lens": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Filter": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Device": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Vehicle": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Wall": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Barrier": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Process": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 0,
+        "reject_total": 0
+      },
+      "Mirror": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Database": {
+        "accept_kept": 20,
+        "accept_total": 20,
+        "reject_vetoed": 0,
+        "reject_total": 0
+      },
+      "Window": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Report": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "IntelligenceProduct": {
+        "accept_kept": 20,
+        "accept_total": 20,
+        "reject_vetoed": 0,
+        "reject_total": 0
+      },
+      "Meeting": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Plan": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Shield": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Key": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Road": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Anchor": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Ladder": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Magnet": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      },
+      "Document": {
+        "accept_kept": 20,
+        "accept_total": 20,
+        "reject_vetoed": 0,
+        "reject_total": 0
+      },
+      "Message": {
+        "accept_kept": 20,
+        "accept_total": 20,
+        "reject_vetoed": 0,
+        "reject_total": 0
+      }
+    }
+  },
+  "sense_veto_heldout_classes": {
+    "accept_kept": 80,
+    "accept_total": 80,
+    "reject_vetoed": 60,
+    "reject_total": 80,
+    "by_parent": {
+      "Product": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 20,
+        "reject_total": 40
+      },
+      "Cycle": {
+        "accept_kept": 40,
+        "accept_total": 40,
+        "reject_vetoed": 40,
+        "reject_total": 40
+      }
+    }
+  },
+  "development": {
+    "gate_accepted_claims": 7,
+    "label_matches_kept": 3,
+    "label_matches_total": 6,
+    "unsupported_vetoed": 1,
+    "unsupported_total": 1,
+    "claims": [
+      {
+        "run": "partial_claim_definition_gate_cpu_20260923",
+        "paragraph": "1-79",
+        "symbol": "OpenSourceIntelligenceProduct",
+        "parent": "IntelligenceProduct",
+        "label_match": true,
+        "modes": [
+          "rules"
+        ],
+        "veto": false
+      },
+      {
+        "run": "partial_claim_definition_gate_cpu_20260923",
+        "paragraph": "1-93",
+        "symbol": "BiometricsProcess",
+        "parent": "Process",
+        "label_match": true,
+        "modes": [
+          "rules",
+          "baseline",
+          "retrieved"
+        ],
+        "veto": true
+      },
+      {
+        "run": "unseen_definition_cpu_20260923",
+        "paragraph": "3-42",
+        "symbol": "TargetingProcess",
+        "parent": "Process",
+        "label_match": true,
+        "modes": [
+          "rules",
+          "baseline",
+          "retrieved"
+        ],
+        "veto": false
+      },
+      {
+        "run": "unseen_definition_cpu_20260923",
+        "paragraph": "3-54",
+        "symbol": "KnowledgeManagementProcess",
+        "parent": "Process",
+        "label_match": true,
+        "modes": [
+          "rules",
+          "baseline",
+          "retrieved"
+        ],
+        "veto": true
+      },
+      {
+        "run": "appendix_definition_cpu_20260923",
+        "paragraph": "B-18",
+        "symbol": "SituationalUnderstandingProduct",
+        "parent": "Product",
+        "label_match": false,
+        "modes": [
+          "rules"
+        ],
+        "veto": true
+      },
+      {
+        "run": "appendix_definition_cpu_20260923",
+        "paragraph": "B-39",
+        "symbol": "IntelligencePreparationOfTheOperationalEnvironmentProcess",
+        "parent": "Process",
+        "label_match": true,
+        "modes": [
+          "rules",
+          "baseline",
+          "retrieved"
+        ],
+        "veto": false
+      },
+      {
+        "run": "appendix_definition_cpu_20260923",
+        "paragraph": "B-44",
+        "symbol": "SituationDevelopmentProcess",
+        "parent": "Process",
+        "label_match": true,
+        "modes": [
+          "rules",
+          "baseline",
+          "retrieved"
+        ],
+        "veto": true
+      }
+    ]
+  }
+}

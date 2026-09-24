@@ -51,3 +51,18 @@ The v2 veto has learned what synthetic sentences look like, not word sense. Real
 - **v1's clean development result is not reliable.** It was also trained only on synthetic text, and v2 shows how far such a model can drift on real doctrine.
 - **Synthetic-only training won't produce a reliable veto.** It needs accept examples that look like doctrine but do not come from the development or evaluation passages. For example, sense-verified definitions from other public doctrine, or reviewed ontology documentation sentences. That calls for a new, reviewed data source and is a decision for the user.
 - **The research answer is unchanged:** there is no reliable evidence that the constrained model beats rules.
+
+## v3 result (pre-registered criteria: failed)
+
+v3 used the v2 data plus label-independent doctrine-style tails and citations. It trained CPU-only with a final validation loss of 0.000077. Adapter SHA-256: `d8b9f71d3b1dec13e80cdfb2965583a217a5c2f729084903f79340dfad8c1291`. See the [v3 evaluation](sense_veto_v3_cpu_20260924/eval/summary.json).
+
+| Set | Correct kept | Wrong-sense vetoed |
+| --- | --- | --- |
+| Synthetic held-out subjects | 1080 / 1080 | 960 / 960 |
+| Held-out classes `Product` / `Cycle` | 40/40 · 40/40 | **20/40** · 40/40 |
+| **Development gate-accepted claims** | **3 / 6** | 1 / 1 |
+
+- **Held-out classes: failed.** Only 50% of wrong-sense `Product` uses were vetoed.
+- **Development: failed.** Three correct claims were vetoed: 1-93 Biometrics, 3-54 Knowledge Management, and B-44 Situation Development, all `⊂ Process`.
+
+Randomizing style removed v2's blanket rejection of real text, but the veto still does not track sense on real doctrine. Three synthetic-data attempts have failed on real text (v1 by margins, v2 and v3 on the pre-registered criteria), so the synthetic-only route is closed. A useful veto needs real, doctrine-style, sense-reviewed training examples from outside every queried or reserved set. The DOD Dictionary was requested for this. Its site blocks scripted download, so the user needs to supply it.
