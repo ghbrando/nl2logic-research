@@ -16,3 +16,17 @@ The user authorized training (lifting "do not train yet") and chose a **sense ve
   - **Also reported:** synthetic held-out accuracy, and held-out-class (`Product` and `Cycle`) accuracy.
 
 This is development evidence only. The one unqueried source is ATP 2-01.3, which stays reserved, so any claim that the model beats rules on independent data would need the user's separate approval to use it.
+
+## v2 (fixed before v2 training)
+
+v1 transferred poorly to the held-out classes: it vetoed only 31% of wrong-sense uses, and `Product` margins did not separate the two senses. v2 changes only the training data:
+- 16 more classes with literal and figurative contrasts: Bridge, Window, Road, Ladder, Barrier, Lens, Mirror, Magnet, Wall, Pipeline, Storm, Island, Anchor, Shield, and Filter.
+- **Literal** "the N of …" phrasings, so that construction alone cannot signal a veto.
+
+`Seed` was dropped because the extractor treats "-ed" heads as verbs. The held-out `Product`/`Cycle` file is byte-identical to v1's. The training recipe, decision rule, and development claims are unchanged.
+
+**v2 success (pre-registered):**
+- **Held-out classes:** at least 60% of wrong-sense uses vetoed and at least 90% of literal uses kept, reported separately for `Product` and `Cycle`.
+- **Development:** all 6 label matches kept and B-18 vetoed.
+
+If v2 fails, the result is reported as is, with no further tuning against the held-out classes.
