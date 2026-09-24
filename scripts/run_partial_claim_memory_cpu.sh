@@ -22,13 +22,13 @@ elif [[ "$run_mode" == "control" ]]; then
     echo "Output directory already exists: $state_dir/outputs/$prefix-control" >&2
     exit 2
   fi
-elif [[ "$run_mode" == "declarations" || "$run_mode" == "definition-gate" || "$run_mode" == "unseen-definitions" || "$run_mode" == "appendix-definitions" || "$run_mode" == "parent-discrimination" ]]; then
+elif [[ "$run_mode" == "declarations" || "$run_mode" == "definition-gate" || "$run_mode" == "unseen-definitions" || "$run_mode" == "appendix-definitions" || "$run_mode" == "parent-discrimination" || "$run_mode" == "sense-veto" ]]; then
   if [[ -e "$state_dir/outputs/$prefix-$run_mode" ]]; then
     echo "Output directory already exists: $state_dir/outputs/$prefix-$run_mode" >&2
     exit 2
   fi
 else
-  echo "Expected paired, control, declarations, definition-gate, unseen-definitions, appendix-definitions, or parent-discrimination" >&2
+  echo "Expected paired, control, declarations, definition-gate, unseen-definitions, appendix-definitions, parent-discrimination, or sense-veto" >&2
   exit 2
 fi
 for input in sumo_classes.jsonl sumo_relations.jsonl; do
@@ -63,6 +63,35 @@ if [[ "$run_mode" == "control" ]]; then
     research python scripts/run_claim_memory_control.py \
       --model-path /outputs/diagnostic-closed-7k-20260922-01 \
       --output-dir "/outputs/$prefix-control"
+  exit 0
+fi
+if [[ "$run_mode" == "sense-veto" ]]; then
+  # CPU-only: no GPU override; the default service limits apply (4 CPUs, 12 GB).
+  data="/outputs/$prefix-$run_mode/data"
+  mkdir -p "$state_dir/outputs/$prefix-$run_mode"
+  docker --context rootless compose \
+    -f containers/compose.yaml -f containers/rootless.yaml -f containers/inputs.yaml \
+    run --rm --no-deps \
+    -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 -e OMP_NUM_THREADS=4 \
+    research python scripts/build_sense_veto_pairs.py --output-dir "$data"
+  docker --context rootless compose \
+    -f containers/compose.yaml -f containers/rootless.yaml -f containers/inputs.yaml \
+    run --rm --no-deps \
+    -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 -e OMP_NUM_THREADS=4 \
+    research python -m src.training.train \
+      --train-file "$data/sense_veto_train.jsonl" --limit 0 \
+      --output-dir "/outputs/$prefix-$run_mode/adapter"
+  R=/workspace/results/diagnostics
+  docker --context rootless compose \
+    -f containers/compose.yaml -f containers/rootless.yaml -f containers/inputs.yaml \
+    run --rm --no-deps \
+    -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 -e OMP_NUM_THREADS=4 \
+    research python scripts/run_sense_veto.py --adapter "/outputs/$prefix-$run_mode/adapter" \
+      --synthetic "$data/sense_veto_heldout.jsonl" "$data/sense_veto_heldout_classes.jsonl" \
+      --scored "$R/partial_claim_definition_gate_cpu_20260923/scoring/scored.jsonl" \
+        "$R/unseen_definition_cpu_20260923/scoring_head_gate/scored.jsonl" \
+        "$R/appendix_definition_cpu_20260923/scoring/scored.jsonl" \
+      --output-dir "/outputs/$prefix-$run_mode/eval"
   exit 0
 fi
 if [[ "$run_mode" == "parent-discrimination" ]]; then

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from functools import lru_cache
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Sequence
@@ -625,6 +626,12 @@ _GENUS_BOUNDARY = frozenset("""
     provides provide can may will most more less least
 """.split())
 _ARTICLES = frozenset({"a", "an", "the"})
+
+
+@lru_cache(maxsize=1)
+def _declared_known_classes() -> frozenset[str]:
+    """The default closed vocabulary, parsed once per process."""
+    return frozenset(load_closed_class_terms())
 _PASCAL_WORD_RE = re.compile(r"[A-Z][a-z0-9]*|[a-z0-9]+")
 
 
@@ -700,7 +707,7 @@ def assess_declared_definition(
             return verdict("reversed_direction",
                            f"Declared term {symbol} must be the child of its definition, not the parent.")
         return verdict("undeclared_child", f"Child {child} is not the declared definiendum {symbol}.")
-    if parent == symbol or parent not in parents or parent not in load_closed_class_terms():
+    if parent == symbol or parent not in parents or parent not in _declared_known_classes():
         return verdict("parent_not_existing_class",
                        f"Parent {parent} is not an existing ontology class offered for this definition.")
     if not evidence_sentence or evidence_sentence not in passage:
