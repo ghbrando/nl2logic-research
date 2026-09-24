@@ -20,7 +20,7 @@ This is development evidence only. The one unqueried source is ATP 2-01.3, which
 ## v2 (fixed before v2 training)
 
 v1 transferred poorly to the held-out classes: it vetoed only 31% of wrong-sense uses, and `Product` margins did not separate the two senses. v2 changes only the training data:
-- 16 more classes with literal and figurative contrasts: Bridge, Window, Road, Ladder, Barrier, Lens, Mirror, Magnet, Wall, Pipeline, Storm, Island, Anchor, Shield, and Filter.
+- 15 more classes with literal and figurative contrasts: Bridge, Window, Road, Ladder, Barrier, Lens, Mirror, Magnet, Wall, Pipeline, Storm, Island, Anchor, Shield, and Filter.
 - **Literal** "the N of …" phrasings, so that construction alone cannot signal a veto.
 
 `Seed` was dropped because the extractor treats "-ed" heads as verbs. The held-out `Product`/`Cycle` file is byte-identical to v1's. The training recipe, decision rule, and development claims are unchanged.
