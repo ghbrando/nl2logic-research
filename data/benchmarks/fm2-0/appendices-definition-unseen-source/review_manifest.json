@@ -1,0 +1,10 @@
+{
+  "label_packet": "ai_reviewed_claims_20260923.json",
+  "label_packet_sha256": "08f32d2f2f78e6a899e60813795da385624be5b9d060b3bd8d2318cdb38dcd97",
+  "label_status": "ai_reviewed_frozen_pre_target_query",
+  "reviewer": "Claude (claude-opus-5-5); also author of the grounding gate, so labels are not independent",
+  "claims": 52,
+  "positive": 2,
+  "notes": "B-18 is labeled abstain: SUMO Product is a manufactured artifact, not the product of analysis.",
+  "target_nl2logic_model_queries_before_freeze": 0
+}
