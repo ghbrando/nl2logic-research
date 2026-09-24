@@ -31,13 +31,14 @@ def propose(source_path: Path, source_manifest_path: Path, output_path: Path) ->
     known = load_closed_class_terms()
     declarations, skipped = [], []
     for row in rows:
-        candidate, _ = extract_paragraph_candidate(row["source_excerpt"], row["source_sentence"])
+        candidate, screened = extract_paragraph_candidate(row["source_excerpt"], row["source_sentence"])
         if candidate.status != "candidate" or candidate.gate_reasons:
             continue
-        entry = propose_declaration(candidate.candidate_text, known)
+        evidence = row["source_excerpt"][screened[-1]["start"]:screened[-1]["end"]]
+        entry = propose_declaration(candidate.candidate_text, known, evidence)
         if entry is None:
             skipped.append({"record_id": row["record_id"], "candidate_text": candidate.candidate_text,
-                            "reason": "existing_class_or_unparsed"})
+                            "reason": "declined_existing_class_or_non_kind_genus"})
         elif any(existing["symbol"] == entry["symbol"] or existing["alias"].casefold() == entry["alias"].casefold()
                  for existing in declarations):
             skipped.append({"record_id": row["record_id"], "candidate_text": candidate.candidate_text,
@@ -51,7 +52,7 @@ def propose(source_path: Path, source_manifest_path: Path, output_path: Path) ->
         "existing_parent_pool": PARENT_POOL,
         "declarations": declarations,
         "skipped": skipped,
-        "limitation": "Source-only proposal: symbols join the defined phrase and its head noun. They are unreviewed and assert no parent.",
+        "limitation": "Source-only proposal: symbols join the defined phrase and the head of its article-introduced genus noun phrase. They are unreviewed and assert no parent.",
     }
     output_path.write_text(json.dumps(registry, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     load_declaration_registry(output_path, sources_sha256=registry["sources_sha256"])

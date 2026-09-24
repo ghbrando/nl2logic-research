@@ -615,6 +615,54 @@ _DECLARED_GENUS_PHRASES: dict[str, tuple[tuple[str, str | None], ...]] = {
         ("intelligence", r"intelligence\s+(?:that|which)\s+(?:is|are)\s+produced\b"),
     ),
 }
+# Words that end a genus noun phrase ("the process OF ...", "intelligence THAT
+# ..."). Coordinators are deliberately absent: a coordinated genus stays in the
+# phrase and then matches no single parent.
+_GENUS_BOUNDARY = frozenset("""
+    of that which who whose whereby where when used to for in on at by within with
+    from designed derived produced performed conducted tasked intended responsible
+    through between among than as it they we he she is are was were be has have
+    provides provide can may will most more less least
+""".split())
+_ARTICLES = frozenset({"a", "an", "the"})
+_PASCAL_WORD_RE = re.compile(r"[A-Z][a-z0-9]*|[a-z0-9]+")
+
+
+def _pascal_words(text: str) -> str:
+    return "".join(word[:1].upper() + word[1:].lower() for word in re.findall(r"[A-Za-z0-9]+", text))
+
+
+def genus_noun_phrase(predicate: str) -> tuple[bool, list[str], list[str]]:
+    """Split a normalized copular predicate into its genus noun phrase.
+
+    Returns whether an article introduced it, the noun-phrase tokens (whose last
+    token is the head), and all tokens from the noun phrase onward. "the army s
+    primary process for ..." has head "process", not "army"; "organic to ..."
+    has no article and so names no kind.
+    """
+    tokens = predicate.split()
+    has_article = bool(tokens) and tokens[0] in _ARTICLES
+    if has_article:
+        tokens = tokens[1:]
+    if len(tokens) >= 2 and tokens[0] in {"type", "kind", "form"} and tokens[1] == "of":
+        tokens = tokens[2:]
+    phrase: list[str] = []
+    for token in tokens:
+        if token in _GENUS_BOUNDARY:
+            break
+        phrase.append(token)
+    return has_article, phrase, tokens
+
+
+def _phrase_is_tail(phrase: list[str], parent_tokens: list[str], *, whole: bool) -> bool:
+    """Whether ``parent_tokens`` end the genus phrase (or are all of it)."""
+    if not phrase or len(parent_tokens) > len(phrase) or (whole and len(parent_tokens) != len(phrase)):
+        return False
+    if any(token in {"and", "or", "nor", "but"} for token in phrase):
+        return False
+    tail = phrase[len(phrase) - len(parent_tokens):]
+    return (tail[:-1] == parent_tokens[:-1]
+            and re.fullmatch(_plural_tolerant(parent_tokens[-1]), tail[-1]) is not None)
 
 
 def assess_declared_definition(
@@ -668,15 +716,31 @@ def assess_declared_definition(
     if not re.match(rf"(?:(?:a|an|the)\s+)?{re.escape(alias)}\s+{re.escape(cue)}(?![a-z0-9])", sentence):
         return verdict("declaration_sense_not_in_passage",
                        "Declared sense cue does not follow the defined phrase in the passage.")
-    predicate = sentence[subject.end():]
-    predicate = re.sub(r"^(?:a|an|the)\s+(?:(?:type|kind|form)\s+of\s+)?", "", predicate)
+    has_article, genus, tokens = genus_noun_phrase(sentence[subject.end():])
+    # A reviewed genus phrase may carry modifiers before it ("the Army's primary
+    # process"); any other parent must be named by the whole article-introduced
+    # noun phrase, so a modifier ("a key component") or an adjective predicate
+    # ("organic to") never stands in for a class.
+    reviewed = parent in _DECLARED_GENUS_PHRASES
     stated, ambiguous = False, False
     for phrase, sense_cue in _DECLARED_GENUS_PHRASES.get(parent, ((_naturalize_term(parent), None),)):
-        if re.match(rf"{re.escape(phrase)}(?![a-z0-9])", predicate):
-            if sense_cue is None or re.match(sense_cue, predicate):
+        parent_tokens = phrase.split()
+        if not reviewed and not has_article:
+            continue
+        if _phrase_is_tail(genus, parent_tokens, whole=not reviewed):
+            rest = " ".join(tokens[len(genus) - len(parent_tokens):])
+            if sense_cue is None or re.match(sense_cue, rest):
                 stated = True
                 break
             ambiguous = True
+    # The symbol may qualify the defined phrase only by what the passage states
+    # it is: the genus head or the parent ("Biometrics" -> BiometricsProcess).
+    stem = _pascal_words(declaration["alias"])
+    qualifier = symbol[len(stem):] if symbol.startswith(stem) else None
+    allowed = {"", _pascal_words(genus[-1]) if genus else "", _PASCAL_WORD_RE.findall(parent)[-1]}
+    if stated and qualifier not in allowed:
+        return verdict("symbol_sense_mismatch",
+                       f"Symbol {symbol} qualifies '{declaration['alias']}' by a sense the passage does not state.")
     if not stated:
         if ambiguous:
             return verdict("ambiguous_genus_sense",

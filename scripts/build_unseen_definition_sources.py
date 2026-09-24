@@ -29,12 +29,14 @@ EXCLUDE = [
     FM / "chapter1-2023-review/candidates.jsonl",
     FM / "chapter2-2023-claim-eval-source/selected_passages.jsonl",
     FM / "seed_positive.jsonl", FM / "seed_review.jsonl", FM / "seed_abstain.jsonl",
+    FM / "chapters3plus-definition-unseen-source/selected_passages.jsonl",
 ]
 EDITION = "01 October 2023"
 _PARAGRAPH = re.compile(r"^(\d+)-\d+\.\s", re.MULTILINE)
+_APPENDIX_PARAGRAPH = re.compile(r"^([A-Z])-\d+\.\s", re.MULTILINE)
 
 
-def build(pdf_path: Path, output_dir: Path, *, first_chapter: int = 3) -> dict:
+def build(pdf_path: Path, output_dir: Path, *, first_chapter: int = 3, appendices: bool = False) -> dict:
     import pdfplumber
 
     excluded = set()
@@ -48,7 +50,10 @@ def build(pdf_path: Path, output_dir: Path, *, first_chapter: int = 3) -> dict:
     with pdfplumber.open(pdf_path) as pdf:
         for number, page in enumerate(pdf.pages, 1):
             text = page.extract_text() or ""
-            chapters = sorted({int(c) for c in _PARAGRAPH.findall(text) if int(c) >= first_chapter})
+            if appendices:
+                chapters = sorted(set(_APPENDIX_PARAGRAPH.findall(text)))
+            else:
+                chapters = sorted({int(c) for c in _PARAGRAPH.findall(text) if int(c) >= first_chapter})
             for chapter in chapters:
                 for row in page_candidates(text, pdf_page=number, chapter=chapter, doc_id="fm2-0-2023"):
                     scanned += 1
@@ -82,12 +87,14 @@ def build(pdf_path: Path, output_dir: Path, *, first_chapter: int = 3) -> dict:
         "pdf_sha256": hashlib.sha256(pdf_path.read_bytes()).hexdigest(),
         "doc_id": "fm2-0-2023",
         "edition": EDITION,
-        "chapters": f">= {first_chapter} (numbered paragraphs only; appendices excluded)",
+        "chapters": "appendices (lettered paragraphs only)" if appendices
+                    else f">= {first_chapter} (numbered paragraphs only; appendices excluded)",
         "selected_count": len(selected),
         "source_count": len(selected),
         "scanned_paragraph_count": scanned,
         "excluded_first_sentence_overlap_count": overlaps,
-        "selection_rule": "All numbered paragraphs in chapter 3 or later whose page_candidates first sentence has at least six words and for which extract_paragraph_candidate returns a candidate with no input-gate reasons; first-sentence overlaps with earlier sources excluded. No labels, predictions, or manual choice.",
+        "selection_rule": ("All lettered appendix paragraphs" if appendices else "All numbered paragraphs in chapter 3 or later") + " whose page_candidates first sentence has at least six words and for which extract_paragraph_candidate returns a candidate with no input-gate reasons; first-sentence overlaps with earlier sources excluded. No labels, predictions, or manual choice.",
+        "section_overlap_note": "Excluded sources include chapter 1 development, chapter 2 evaluation, chapter 3+ unseen, and seed files.",
         "extraction": "pdfplumber extract_text via scripts.prepare_benchmark_review.page_candidates",
         "status": "source_selected_unreviewed",
         "training_use": False,
@@ -112,8 +119,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pdf", type=Path, default=ROOT / "src/data/ARMY FM_2-0.pdf")
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--appendices", action="store_true", help="select lettered appendix paragraphs instead")
     args = parser.parse_args()
-    manifest = build(args.pdf.resolve(), args.output_dir)
+    manifest = build(args.pdf.resolve(), args.output_dir, appendices=args.appendices)
     print(json.dumps({key: manifest[key] for key in (
         "selected_count", "scanned_paragraph_count", "excluded_first_sentence_overlap_count")}))
 

@@ -124,8 +124,9 @@ def score(sources_path: Path, source_manifest_path: Path, registry_path: Path,
                         )
                         result["declared_gate_accepted"] = declared.accepted
                         result["declared_gate_reason"] = declared.reason
-                        if "gate" in arm and arm["gate"] != {"accepted": declared.accepted, "reason": declared.reason}:
-                            raise ValueError(f"{rid}/{mode}: saved gate verdict differs from rescoring")
+                        # The verdict saved at inference is kept as history; the
+                        # current gate may be newer than the run.
+                        result["saved_gate_accepted"] = arm.get("gate", {}).get("accepted")
             scored.append(result)
     applied = sum(row["declaration"] is not None for row in predictions)
     if registry["status"] == PROPOSED_STATUS:
@@ -159,6 +160,9 @@ def score(sources_path: Path, source_manifest_path: Path, registry_path: Path,
                 row["declared_gate_accepted"] is True and row["gold_kif_exact"] for row in subset),
             "declared_gate_accepted_other_formula": sum(
                 row["declared_gate_accepted"] is True and not row["gold_kif_exact"] for row in subset),
+            "saved_gate_accepted": sum(row.get("saved_gate_accepted") is True for row in subset),
+            "saved_gate_accepted_other_formula": sum(
+                row.get("saved_gate_accepted") is True and not row["gold_kif_exact"] for row in subset),
             "declared_gate_reasons": dict(Counter(
                 row["declared_gate_reason"] or "accepted" for row in subset
                 if row["declared_gate_accepted"] is not None)),

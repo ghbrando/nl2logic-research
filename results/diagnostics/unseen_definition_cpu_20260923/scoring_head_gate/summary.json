@@ -1,0 +1,71 @@
+{
+  "label_status": "ai_reviewed_frozen_pre_target_query",
+  "registry_status": "source_only_proposed_not_reviewed",
+  "source_passages": 123,
+  "declarations_applied": 101,
+  "memory_retrieved_on_declarations": 29,
+  "by_mode": {
+    "rules": {
+      "routes": {
+        "rules_abstain": 93,
+        "valid_cnl_other_formula": 6,
+        "ai_label_match": 2,
+        "no_declaration": 22
+      },
+      "exact_ai_label_matches": 2,
+      "compiled_other_formulas": 6,
+      "grounder_accepted": 0,
+      "declared_gate_accepted": 2,
+      "declared_gate_accepted_ai_label_match": 2,
+      "declared_gate_accepted_other_formula": 0,
+      "saved_gate_accepted": 8,
+      "saved_gate_accepted_other_formula": 6,
+      "declared_gate_reasons": {
+        "unstated_parent": 6,
+        "accepted": 2
+      }
+    },
+    "baseline": {
+      "routes": {
+        "valid_cnl_other_formula": 99,
+        "ai_label_match": 2,
+        "no_declaration": 22
+      },
+      "exact_ai_label_matches": 2,
+      "compiled_other_formulas": 99,
+      "grounder_accepted": 0,
+      "declared_gate_accepted": 2,
+      "declared_gate_accepted_ai_label_match": 2,
+      "declared_gate_accepted_other_formula": 0,
+      "saved_gate_accepted": 3,
+      "saved_gate_accepted_other_formula": 1,
+      "declared_gate_reasons": {
+        "unstated_parent": 97,
+        "accepted": 2,
+        "symbol_sense_mismatch": 2
+      }
+    },
+    "retrieved": {
+      "routes": {
+        "valid_cnl_other_formula": 99,
+        "ai_label_match": 2,
+        "no_declaration": 22
+      },
+      "exact_ai_label_matches": 2,
+      "compiled_other_formulas": 99,
+      "grounder_accepted": 0,
+      "declared_gate_accepted": 2,
+      "declared_gate_accepted_ai_label_match": 2,
+      "declared_gate_accepted_other_formula": 0,
+      "saved_gate_accepted": 4,
+      "saved_gate_accepted_other_formula": 2,
+      "declared_gate_reasons": {
+        "unstated_parent": 97,
+        "accepted": 2,
+        "symbol_sense_mismatch": 2
+      }
+    }
+  },
+  "interpretation": "Unseen-passage run with source-only declarations and provisional AI labels frozen before query. The label reviewer also wrote the gate; exact AI-label match is not independent accuracy or expert agreement.",
+  "changed_output_count": 1
+}

@@ -112,3 +112,19 @@ def load_prior_claim_memory(scored_path: Path, *, mode: str = "rules") -> list[M
             source_sha256=source_sha, kind="prior_accepted_claim",
         ))
     return statements
+
+
+def retrieve_prior_by_genus(genus_phrase: str, statements: list[MemoryStatement], *, limit: int = 1) -> list[MemoryStatement]:
+    """Return prior accepted claims whose parent is named by the current genus head.
+
+    New definitions rarely share a child word with earlier ones, but often share
+    a genus ("the process of ..."). This only chooses encoder context.
+    """
+    words = genus_phrase.split()
+    if limit < 0:
+        raise ValueError("Memory limit cannot be negative")
+    if not words:
+        return []
+    head = words[-1]
+    matches = [s for s in statements if _PASCAL_BOUNDARY.sub(" ", s.parent).lower().split()[-1] == head]
+    return sorted(matches, key=lambda s: (s.source_path, s.source_line))[:limit]

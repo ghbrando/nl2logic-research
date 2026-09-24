@@ -88,12 +88,17 @@ def test_unseen_run_reports_unsupported_gate_acceptances():
     )
     assert summary["label_status"] == "ai_reviewed_frozen_pre_target_query"
     assert summary["declarations_applied"] == 101
-    counts = {mode: (values["declared_gate_accepted_ai_label_match"], values["declared_gate_accepted_other_formula"])
-              for mode, values in summary["by_mode"].items()}
-    assert counts == {"rules": (2, 6), "baseline": (2, 1), "retrieved": (2, 2)}
+    saved = {mode: (values["saved_gate_accepted"], values["saved_gate_accepted_other_formula"])
+             for mode, values in summary["by_mode"].items()}
+    assert saved == {"rules": (8, 6), "baseline": (3, 1), "retrieved": (4, 2)}
+    # The head-noun gate, fixed afterwards on synthetic frames, keeps the two
+    # label matches and rejects every unsupported acceptance.
+    current = {mode: (values["declared_gate_accepted_ai_label_match"], values["declared_gate_accepted_other_formula"])
+               for mode, values in summary["by_mode"].items()}
+    assert current == {"rules": (2, 0), "baseline": (2, 0), "retrieved": (2, 0)}
     assert summary["changed_output_count"] == 1
     # Modifier heads named existing classes and passed the frozen gate.
-    assert {row["predicted_cnl"] for row in scored if row["mode"] == "rules" and row["declared_gate_accepted"]
+    assert {row["predicted_cnl"] for row in scored if row["mode"] == "rules" and row.get("saved_gate_accepted")
             and not row["gold_kif_exact"]} == {
         "StaffKey subclass-of Key", "RiskManagementArmy subclass-of Army",
         "StructureOfATacticalCpOrganic subclass-of Organic", "CorpsArmy subclass-of Army",

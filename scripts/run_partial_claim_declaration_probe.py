@@ -26,6 +26,7 @@ from src.preprocessing.declarations import (
 from src.preprocessing.partial_claims import extract_paragraph_candidate
 from src.reasoning.claim_memory import (
     load_ontology_memory, load_prior_claim_memory, render_memory_prompt, retrieve_memory,
+    retrieve_prior_by_genus,
 )
 from src.training.train import format_prompt
 
@@ -57,7 +58,7 @@ def declaration_parents(registry: dict, declaration: dict) -> list[str]:
 
 def predict(source_path: Path, source_manifest_path: Path, registry_path: Path,
             model_path: Path, output_dir: Path, *, max_new_tokens: int = 64,
-            prior_claims_path: Path | None = None) -> None:
+            prior_claims_paths: list[Path] | None = None) -> None:
     if max_new_tokens <= 0:
         raise ValueError("max_new_tokens must be positive")
     source_manifest = json.loads(source_manifest_path.read_text(encoding="utf-8"))
@@ -83,7 +84,7 @@ def predict(source_path: Path, source_manifest_path: Path, registry_path: Path,
     if model is not None:
         model.eval()
     memory_statements = load_ontology_memory()
-    prior_claims = load_prior_claim_memory(prior_claims_path) if prior_claims_path else []
+    prior_claims = [statement for path in prior_claims_paths or [] for statement in load_prior_claim_memory(path)]
     output_dir.mkdir(parents=True, exist_ok=False)
     manifest = {
         "status": "running",
@@ -95,8 +96,8 @@ def predict(source_path: Path, source_manifest_path: Path, registry_path: Path,
         "source_manifest_sha256": text_sha256(source_manifest_path),
         "registry_sha256": text_sha256(registry_path),
         "memory_source_sha256": memory_statements[0].source_sha256,
-        "prior_claims_path": prior_claims_path.as_posix() if prior_claims_path else None,
-        "prior_claims_sha256": prior_claims[0].source_sha256 if prior_claims else None,
+        "prior_claims_paths": [path.as_posix() for path in prior_claims_paths or []],
+        "prior_claims_sha256": sorted({statement.source_sha256 for statement in prior_claims}),
         "prior_claim_count": len(prior_claims),
         "adapter_sha256": hashlib.sha256((model_path / "adapter_model.safetensors").read_bytes()).hexdigest(),
         "device": "cpu",
@@ -112,8 +113,10 @@ def predict(source_path: Path, source_manifest_path: Path, registry_path: Path,
     with prediction_path.open("x", encoding="utf-8") as handle:
         for row, candidate, screened, evidence, declaration in prepared:
             arms = {}
-            memory = (retrieve_memory(candidate.candidate_text, memory_statements, limit=1)
-                      + retrieve_memory(candidate.candidate_text, prior_claims, limit=1)) if declaration else []
+            prior = retrieve_memory(candidate.candidate_text, prior_claims, limit=1) if declaration else []
+            if declaration and not prior and declaration.get("genus_phrase"):
+                prior = retrieve_prior_by_genus(declaration["genus_phrase"], prior_claims, limit=1)
+            memory = (retrieve_memory(candidate.candidate_text, memory_statements, limit=1) + prior) if declaration else []
             parents = declaration_parents(registry, declaration) if declaration else []
             if declaration is not None and not candidate.gate_reasons:
                 allowed = set(parents) | {declaration["symbol"]}
@@ -178,11 +181,11 @@ def main() -> None:
     parser.add_argument("--model-path", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--max-new-tokens", type=int, default=64)
-    parser.add_argument("--prior-claims", type=Path, default=None,
-                        help="scored.jsonl of a separate run; its gate-accepted rules claims become memory")
+    parser.add_argument("--prior-claims", type=Path, nargs="*", default=None,
+                        help="scored.jsonl files of separate runs; their gate-accepted rules claims become memory")
     args = parser.parse_args()
     predict(args.sources, args.source_manifest, args.registry, args.model_path,
-            args.output_dir, max_new_tokens=args.max_new_tokens, prior_claims_path=args.prior_claims)
+            args.output_dir, max_new_tokens=args.max_new_tokens, prior_claims_paths=args.prior_claims)
 
 
 if __name__ == "__main__":

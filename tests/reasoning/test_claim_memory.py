@@ -16,3 +16,15 @@ def test_generic_overlap_does_not_invent_context():
     assert retrieve_memory("Biometrics is the process", statements, limit=1) == []
     source = "translate to CNL: Biometrics is the process"
     assert render_memory_prompt(source, []) == source
+
+
+def test_prior_claims_are_retrieved_by_genus_head_only():
+    from src.reasoning.claim_memory import MemoryStatement, retrieve_prior_by_genus
+
+    prior = [MemoryStatement("p:1", "(subclass BiometricsProcess Process)", "BiometricsProcess", "Process",
+                             "prior.jsonl", 1, "0" * 64, kind="prior_accepted_claim"),
+             MemoryStatement("p:2", "(subclass OsintProduct IntelligenceProduct)", "OsintProduct",
+                             "IntelligenceProduct", "prior.jsonl", 2, "0" * 64, kind="prior_accepted_claim")]
+    assert [s.statement_id for s in retrieve_prior_by_genus("army s primary process", prior)] == ["p:1"]
+    assert [s.statement_id for s in retrieve_prior_by_genus("intelligence product", prior)] == ["p:2"]
+    assert retrieve_prior_by_genus("display", prior) == []

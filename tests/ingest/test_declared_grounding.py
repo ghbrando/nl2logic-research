@@ -77,3 +77,55 @@ def test_scope_inside_the_evidence_sentence_is_not_accepted():
     sentence = "Biometrics is the process of recognizing an individual who may be hostile."
     result = _assess("BiometricsProcess subclass-of Process", sentence, BIOMETRICS)
     assert result.reason == "unverified_scope"
+
+
+def _declared(alias, cue, symbol, sentence, cnl, parents=("Process", "IntelligenceProduct")):
+    return assess_declared_definition(
+        cnl, passage=sentence, evidence_sentence=sentence,
+        declaration={"alias": alias, "evidence_cue": cue, "symbol": symbol}, parent_terms=parents,
+    )
+
+
+# Synthetic frames; they reproduce the failure shapes seen on chapter 3+ without
+# reusing those sentences, so the fix is not fitted to the queried passages.
+@pytest.mark.parametrize("sentence, cue, parent", [
+    ("The ledger is a key record of unit expenditures.", "is a key", "Key"),
+    ("A relay post is the Army's forward signal node.", "is the Army", "Army"),
+    ("The drill design is organic to each squadron.", "is organic", "Organic"),
+    ("The two support methods are area coverage and point coverage.", "are area", "Area"),
+    ("A watch cell is a process team within the staff.", "is a process", "Process"),
+])
+def test_modifier_possessive_and_adjective_heads_are_not_genus(sentence, cue, parent):
+    alias = sentence.split(" is ")[0].split(" are ")[0].removeprefix("The ").removeprefix("A ")
+    result = _declared(alias, cue, "NewThing", sentence, f"NewThing subclass-of {parent}",
+                       parents=("Process", "IntelligenceProduct", parent))
+    assert (result.accepted, result.reason) == (False, "unstated_parent")
+
+
+def test_reviewed_genus_head_may_carry_modifiers_but_not_coordination():
+    accepted = _declared("Risk review", "is the unit", "RiskReviewProcess",
+                         "Risk review is the unit's primary process for weighing hazards.",
+                         "RiskReviewProcess subclass-of Process")
+    assert accepted.accepted, accepted.detail
+    coordinated = _declared("Liaison", "is a process", "LiaisonProcess",
+                            "Liaison is a process and a product of coordination.",
+                            "LiaisonProcess subclass-of Process")
+    assert coordinated.reason == "unstated_parent"
+
+
+def test_unreviewed_parent_must_be_the_whole_article_introduced_genus():
+    whole = _declared("Rally cycle", "is a cycle", "RallyCycle",
+                      "A rally cycle is a cycle of regrouping used by convoys.",
+                      "RallyCycle subclass-of Cycle", parents=("Process", "Cycle"))
+    assert whole.accepted, whole.detail
+    modified = _declared("Rally cycle", "is a daily", "RallyCycle",
+                         "A rally cycle is a daily cycle of regrouping.",
+                         "RallyCycle subclass-of Cycle", parents=("Process", "Cycle"))
+    assert modified.reason == "unstated_parent"
+
+
+def test_symbol_may_not_import_a_sense_the_passage_does_not_state():
+    result = _declared("Risk review", "is the unit", "RiskReviewUnit",
+                       "Risk review is the unit's primary process for weighing hazards.",
+                       "RiskReviewUnit subclass-of Process")
+    assert result.reason == "symbol_sense_mismatch"
