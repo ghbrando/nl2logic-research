@@ -1,0 +1,346 @@
+{
+  "status": "source_only_proposed_not_reviewed",
+  "sources_sha256": "797f3cf2b77131e68cd448882c94409a9e390c498d5a7266cc6d33de1b0e8d5e",
+  "generator": "scripts/propose_declarations.py",
+  "existing_parent_pool": [
+    "Process",
+    "IntelligenceProduct"
+  ],
+  "declarations": [
+    {
+      "alias": "Tear line",
+      "evidence_cue": "is a",
+      "symbol": "TearLine",
+      "declaration": "(instance TearLine Class)",
+      "genus_phrase": "visible line",
+      "sense": "what the source defines as 'Tear line' with genus 'visible line'"
+    },
+    {
+      "alias": "key consideration",
+      "evidence_cue": "is the",
+      "symbol": "KeyConsiderationApportionment",
+      "declaration": "(instance KeyConsiderationApportionment Class)",
+      "genus_phrase": "apportionment",
+      "sense": "what the source defines as 'key consideration' with genus 'apportionment'"
+    },
+    {
+      "alias": "Force generation",
+      "evidence_cue": "is an",
+      "symbol": "ForceGenerationElement",
+      "declaration": "(instance ForceGenerationElement Class)",
+      "genus_phrase": "element",
+      "sense": "what the source defines as 'Force generation' with genus 'element'"
+    },
+    {
+      "alias": "Foundry Intelligence Training Program",
+      "evidence_cue": "is a",
+      "symbol": "FoundryIntelligenceTrainingProgramEnabler",
+      "declaration": "(instance FoundryIntelligenceTrainingProgramEnabler Class)",
+      "genus_phrase": "critical enabler",
+      "sense": "what the source defines as 'Foundry Intelligence Training Program' with genus 'critical enabler'"
+    },
+    {
+      "alias": "IEWTPT",
+      "evidence_cue": "is the",
+      "symbol": "IewtptProgram",
+      "declaration": "(instance IewtptProgram Class)",
+      "genus_phrase": "army s program",
+      "sense": "what the source defines as 'IEWTPT' with genus 'army s program'"
+    },
+    {
+      "alias": "Situational understanding",
+      "evidence_cue": "is the",
+      "symbol": "SituationalUnderstandingProduct",
+      "declaration": "(instance SituationalUnderstandingProduct Class)",
+      "genus_phrase": "product",
+      "sense": "what the source defines as 'Situational understanding' with genus 'product'"
+    },
+    {
+      "alias": "Conduct pre-mission analysis",
+      "evidence_cue": "is a",
+      "symbol": "ConductPreMissionAnalysisDriven",
+      "declaration": "(instance ConductPreMissionAnalysisDriven Class)",
+      "genus_phrase": "continuous task driven",
+      "sense": "what the source defines as 'Conduct pre-mission analysis' with genus 'continuous task driven'"
+    },
+    {
+      "alias": "Pre-mission analysis",
+      "evidence_cue": "is the",
+      "symbol": "PreMissionAnalysisFoundation",
+      "declaration": "(instance PreMissionAnalysisFoundation Class)",
+      "genus_phrase": "foundation",
+      "sense": "what the source defines as 'Pre-mission analysis' with genus 'foundation'"
+    },
+    {
+      "alias": "Intelligence preparation of the operational environment",
+      "evidence_cue": "is the",
+      "symbol": "IntelligencePreparationOfTheOperationalEnvironmentProcess",
+      "declaration": "(instance IntelligencePreparationOfTheOperationalEnvironmentProcess Class)",
+      "genus_phrase": "systematic process",
+      "sense": "what the source defines as 'Intelligence preparation of the operational environment' with genus 'systematic process'"
+    },
+    {
+      "alias": "Situation development",
+      "evidence_cue": "is a",
+      "symbol": "SituationDevelopmentProcess",
+      "declaration": "(instance SituationDevelopmentProcess Class)",
+      "genus_phrase": "process",
+      "sense": "what the source defines as 'Situation development' with genus 'process'"
+    },
+    {
+      "alias": "Conducting police intelligence operations",
+      "evidence_cue": "is a",
+      "symbol": "ConductingPoliceIntelligenceOperationsIntegrated",
+      "declaration": "(instance ConductingPoliceIntelligenceOperationsIntegrated Class)",
+      "genus_phrase": "continuous military police mp task integrated",
+      "sense": "what the source defines as 'Conducting police intelligence operations' with genus 'continuous military police mp task integrated'"
+    },
+    {
+      "alias": "Police intelligence",
+      "evidence_cue": "is the",
+      "symbol": "PoliceIntelligenceResulting",
+      "declaration": "(instance PoliceIntelligenceResulting Class)",
+      "genus_phrase": "product resulting",
+      "sense": "what the source defines as 'Police intelligence' with genus 'product resulting'"
+    },
+    {
+      "alias": "Collection of police information",
+      "evidence_cue": "is a",
+      "symbol": "CollectionOfPoliceInformationActivity",
+      "declaration": "(instance CollectionOfPoliceInformationActivity Class)",
+      "genus_phrase": "continuous activity",
+      "sense": "what the source defines as 'Collection of police information' with genus 'continuous activity'"
+    },
+    {
+      "alias": "collection management plan",
+      "evidence_cue": "is the",
+      "symbol": "CollectionManagementPlanInput",
+      "declaration": "(instance CollectionManagementPlanInput Class)",
+      "genus_phrase": "primary input",
+      "sense": "what the source defines as 'collection management plan' with genus 'primary input'"
+    },
+    {
+      "alias": "Explosive ordnance disposal",
+      "evidence_cue": "is the",
+      "symbol": "ExplosiveOrdnanceDisposalIdentification",
+      "declaration": "(instance ExplosiveOrdnanceDisposalIdentification Class)",
+      "genus_phrase": "detection identification",
+      "sense": "what the source defines as 'Explosive ordnance disposal' with genus 'detection identification'"
+    },
+    {
+      "alias": "Army personnel recovery",
+      "evidence_cue": "is the",
+      "symbol": "ArmyPersonnelRecoveryTaken",
+      "declaration": "(instance ArmyPersonnelRecoveryTaken Class)",
+      "genus_phrase": "military efforts taken",
+      "sense": "what the source defines as 'Army personnel recovery' with genus 'military efforts taken'"
+    },
+    {
+      "alias": "current operations integration cell",
+      "evidence_cue": "is the",
+      "symbol": "CurrentOperationsIntegrationCell",
+      "declaration": "(instance CurrentOperationsIntegrationCell Class)",
+      "genus_phrase": "primary cell",
+      "sense": "what the source defines as 'current operations integration cell' with genus 'primary cell'"
+    },
+    {
+      "alias": "Combat assessment",
+      "evidence_cue": "is the",
+      "symbol": "CombatAssessmentDetermination",
+      "declaration": "(instance CombatAssessmentDetermination Class)",
+      "genus_phrase": "determination",
+      "sense": "what the source defines as 'Combat assessment' with genus 'determination'"
+    },
+    {
+      "alias": "Battle damage assessment",
+      "evidence_cue": "is the",
+      "symbol": "BattleDamageAssessmentEstimate",
+      "declaration": "(instance BattleDamageAssessmentEstimate Class)",
+      "genus_phrase": "estimate",
+      "sense": "what the source defines as 'Battle damage assessment' with genus 'estimate'"
+    },
+    {
+      "alias": "Physical damage assessment",
+      "evidence_cue": "is the",
+      "symbol": "PhysicalDamageAssessmentEstimate",
+      "declaration": "(instance PhysicalDamageAssessmentEstimate Class)",
+      "genus_phrase": "estimate",
+      "sense": "what the source defines as 'Physical damage assessment' with genus 'estimate'"
+    },
+    {
+      "alias": "Force projection",
+      "evidence_cue": "is the",
+      "symbol": "ForceProjectionEnabler",
+      "declaration": "(instance ForceProjectionEnabler Class)",
+      "genus_phrase": "enabler",
+      "sense": "what the source defines as 'Force projection' with genus 'enabler'"
+    },
+    {
+      "alias": "Deployment",
+      "evidence_cue": "is the",
+      "symbol": "DeploymentMovement",
+      "declaration": "(instance DeploymentMovement Class)",
+      "genus_phrase": "movement",
+      "sense": "what the source defines as 'Deployment' with genus 'movement'"
+    },
+    {
+      "alias": "smooth and effective deployment",
+      "evidence_cue": "is a",
+      "symbol": "SmoothAndEffectiveDeploymentChallenge",
+      "declaration": "(instance SmoothAndEffectiveDeploymentChallenge Class)",
+      "genus_phrase": "challenge",
+      "sense": "what the source defines as 'smooth and effective deployment' with genus 'challenge'"
+    },
+    {
+      "alias": "Sustainment",
+      "evidence_cue": "is the",
+      "symbol": "SustainmentProvision",
+      "declaration": "(instance SustainmentProvision Class)",
+      "genus_phrase": "provision",
+      "sense": "what the source defines as 'Sustainment' with genus 'provision'"
+    }
+  ],
+  "skipped": [
+    {
+      "record_id": "fm2-0-2023-p237-A-2",
+      "candidate_text": "There is a high",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p239-A-11",
+      "candidate_text": "Multinational operations are common",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p239-A-12",
+      "candidate_text": "Intelligence unity of effort is critical",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p239-A-13",
+      "candidate_text": "These leaders are the commander",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p239-A-14",
+      "candidate_text": "Interoperability is the ability",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p241-A-21",
+      "candidate_text": "Sharing information and mutual support are key",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p248-B-11",
+      "candidate_text": "As much as is feasible",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p249-B-16",
+      "candidate_text": "Intelligence overwatch is creating",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p251-B-22",
+      "candidate_text": "A domain is a physically",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p259-B-51",
+      "candidate_text": "Criminal analysis and crime analysis are interdependent",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p259-B-54",
+      "candidate_text": "Information collection is an activity",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p260-B-55",
+      "candidate_text": "Collection management is driven",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p261-B-60",
+      "candidate_text": "The collection management plan is the basis",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p261-B-61",
+      "candidate_text": "Assessing collection is particularly",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p261-B-62",
+      "candidate_text": "Collection management is continuous",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p262-B-63",
+      "candidate_text": "Tasking and directing information collection are vital",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p266-B-85",
+      "candidate_text": "Target intelligence folders are both",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p267-B-88",
+      "candidate_text": "The HVT list is the result",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p267-B-89",
+      "candidate_text": "HPTs are critical",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p267-B-91",
+      "candidate_text": "Target tracking is inherent",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p268-B-95",
+      "candidate_text": "Producing BDA is primarily",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p271-C-11",
+      "candidate_text": "This is critical",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p272-C-15",
+      "candidate_text": "This is also",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p274-C-24",
+      "candidate_text": "These systems are critical",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p275-C-30",
+      "candidate_text": "Employment is the strategic",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p276-C-36",
+      "candidate_text": "Homeland defense and DSCA are critical",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p277-C-40",
+      "candidate_text": "Interorganizational cooperation is critical",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    },
+    {
+      "record_id": "fm2-0-2023-p280-D-6",
+      "candidate_text": "These specific authorities are often",
+      "reason": "declined_existing_class_or_non_kind_genus"
+    }
+  ],
+  "limitation": "Source-only proposal: symbols join the defined phrase and the head of its article-introduced genus noun phrase. They are unreviewed and assert no parent."
+}
