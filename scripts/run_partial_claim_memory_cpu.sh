@@ -22,13 +22,13 @@ elif [[ "$run_mode" == "control" ]]; then
     echo "Output directory already exists: $state_dir/outputs/$prefix-control" >&2
     exit 2
   fi
-elif [[ "$run_mode" == "declarations" || "$run_mode" == "definition-gate" || "$run_mode" == "unseen-definitions" || "$run_mode" == "appendix-definitions" ]]; then
+elif [[ "$run_mode" == "declarations" || "$run_mode" == "definition-gate" || "$run_mode" == "unseen-definitions" || "$run_mode" == "appendix-definitions" || "$run_mode" == "parent-discrimination" ]]; then
   if [[ -e "$state_dir/outputs/$prefix-$run_mode" ]]; then
     echo "Output directory already exists: $state_dir/outputs/$prefix-$run_mode" >&2
     exit 2
   fi
 else
-  echo "Expected paired, control, declarations, definition-gate, unseen-definitions, or appendix-definitions" >&2
+  echo "Expected paired, control, declarations, definition-gate, unseen-definitions, appendix-definitions, or parent-discrimination" >&2
   exit 2
 fi
 for input in sumo_classes.jsonl sumo_relations.jsonl; do
@@ -63,6 +63,22 @@ if [[ "$run_mode" == "control" ]]; then
     research python scripts/run_claim_memory_control.py \
       --model-path /outputs/diagnostic-closed-7k-20260922-01 \
       --output-dir "/outputs/$prefix-control"
+  exit 0
+fi
+if [[ "$run_mode" == "parent-discrimination" ]]; then
+  fm=/workspace/data/benchmarks/fm2-0
+  docker --context rootless compose \
+    -f containers/compose.yaml -f containers/rootless.yaml \
+    -f containers/inputs.yaml -f containers/cpu-audit.yaml \
+    run --rm --no-deps \
+    -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 -e OMP_NUM_THREADS=2 \
+    research python scripts/probe_parent_discrimination.py \
+      --registries \
+        "$fm/chapter1-partial-claim-development-source/provisional_declarations.json" \
+        "$fm/chapters3plus-definition-unseen-source/proposed_declarations.json" \
+        "$fm/appendices-definition-unseen-source/proposed_declarations.json" \
+      --model-path /outputs/diagnostic-closed-7k-20260922-01 \
+      --output-dir "/outputs/$prefix-$run_mode"
   exit 0
 fi
 if [[ "$run_mode" == "appendix-definitions" ]]; then
