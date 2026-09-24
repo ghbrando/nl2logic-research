@@ -66,6 +66,8 @@ if [[ "$run_mode" == "control" ]]; then
   exit 0
 fi
 if [[ "$run_mode" == "sense-veto" || "$run_mode" == "sense-veto-v2" || "$run_mode" == "sense-veto-v3" ]]; then
+  style=""
+  if [[ "$run_mode" == "sense-veto-v3" ]]; then style="--doctrine-style"; fi
   # CPU-only: no GPU override; the default service limits apply (4 CPUs, 12 GB).
   data="/outputs/$prefix-$run_mode/data"
   mkdir -p "$state_dir/outputs/$prefix-$run_mode"
