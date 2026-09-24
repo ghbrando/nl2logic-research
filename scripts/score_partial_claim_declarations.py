@@ -18,7 +18,7 @@ from src.compiler.compiler import CNLCompiler
 from src.eval.comparison import restates_ontology
 from src.ingest.grounding import DoctrineGrounder, assess_declared_definition
 from scripts.run_partial_claim_declaration_probe import declaration_parents
-from src.preprocessing.declarations import load_declaration_registry, match_declaration
+from src.preprocessing.declarations import PROPOSED_STATUS, load_declaration_registry, match_declaration
 
 
 def score(sources_path: Path, source_manifest_path: Path, registry_path: Path,
@@ -127,14 +127,26 @@ def score(sources_path: Path, source_manifest_path: Path, registry_path: Path,
                         if "gate" in arm and arm["gate"] != {"accepted": declared.accepted, "reason": declared.reason}:
                             raise ValueError(f"{rid}/{mode}: saved gate verdict differs from rescoring")
             scored.append(result)
-    summary = {
-        "label_status": "ai_reviewed_development_oracle_not_evaluation",
-        "source_passages": len(predictions),
-        "oracle_declarations_applied": sum(row["declaration"] is not None for row in predictions),
-        "memory_retrieved_on_declarations": sum(bool(row["memory"]) for row in predictions if row["declaration"]),
-        "by_mode": {},
-        "interpretation": "Development-only upper-bound probe: provisional declarations and parent pool were informed by AI-reviewed examples. Exact AI-label match is not independent accuracy or final acceptance.",
-    }
+    applied = sum(row["declaration"] is not None for row in predictions)
+    if registry["status"] == PROPOSED_STATUS:
+        summary = {
+            "label_status": packet["label_status"],
+            "registry_status": registry["status"],
+            "source_passages": len(predictions),
+            "declarations_applied": applied,
+            "memory_retrieved_on_declarations": sum(bool(row["memory"]) for row in predictions if row["declaration"]),
+            "by_mode": {},
+            "interpretation": "Unseen-passage run with source-only declarations and provisional AI labels frozen before query. The label reviewer also wrote the gate; exact AI-label match is not independent accuracy or expert agreement.",
+        }
+    else:
+        summary = {
+            "label_status": "ai_reviewed_development_oracle_not_evaluation",
+            "source_passages": len(predictions),
+            "oracle_declarations_applied": applied,
+            "memory_retrieved_on_declarations": sum(bool(row["memory"]) for row in predictions if row["declaration"]),
+            "by_mode": {},
+            "interpretation": "Development-only upper-bound probe: provisional declarations and parent pool were informed by AI-reviewed examples. Exact AI-label match is not independent accuracy or final acceptance.",
+        }
     for mode in modes:
         subset = [row for row in scored if row["mode"] == mode]
         summary["by_mode"][mode] = {

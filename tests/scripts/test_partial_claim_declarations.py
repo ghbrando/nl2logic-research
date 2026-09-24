@@ -77,3 +77,25 @@ def test_definition_child_decoding_run_and_prior_claim_memory():
         "(subclass BiometricsProcess Process)",
     ]
     assert "Prior accepted claim: (subclass BiometricsProcess Process)" in render_memory_prompt("x", memory[1:])
+
+
+def test_unseen_run_reports_unsupported_gate_acceptances():
+    unseen = ROOT / "data/benchmarks/fm2-0/chapters3plus-definition-unseen-source"
+    run = ROOT / "results/diagnostics/unseen_definition_cpu_20260923"
+    scored, summary = score(
+        unseen / "sources.jsonl", unseen / "manifest.json", unseen / "proposed_declarations.json",
+        unseen / "ai_reviewed_claims_20260923.json", run / "predictions.jsonl", run / "manifest.json",
+    )
+    assert summary["label_status"] == "ai_reviewed_frozen_pre_target_query"
+    assert summary["declarations_applied"] == 101
+    counts = {mode: (values["declared_gate_accepted_ai_label_match"], values["declared_gate_accepted_other_formula"])
+              for mode, values in summary["by_mode"].items()}
+    assert counts == {"rules": (2, 6), "baseline": (2, 1), "retrieved": (2, 2)}
+    assert summary["changed_output_count"] == 1
+    # Modifier heads named existing classes and passed the frozen gate.
+    assert {row["predicted_cnl"] for row in scored if row["mode"] == "rules" and row["declared_gate_accepted"]
+            and not row["gold_kif_exact"]} == {
+        "StaffKey subclass-of Key", "RiskManagementArmy subclass-of Army",
+        "StructureOfATacticalCpOrganic subclass-of Organic", "CorpsArmy subclass-of Army",
+        "BctArmy subclass-of Army", "ThreeBasicFriendlyDefensiveOperationsArea subclass-of Area",
+    }

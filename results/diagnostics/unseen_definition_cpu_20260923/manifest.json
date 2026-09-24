@@ -1,0 +1,32 @@
+{
+  "status": "completed",
+  "protocol": "Development-only oracle class declarations, no subclass assertions; full current evidence sentence plus source head in encoder; source-head gate; decoder fixes the declared term as child and offers only the existing parent pool; rules-only, no-memory, and ontology-memory arms each reviewed by the passage-only declared-definition gate. Labels read only after predictions are saved.",
+  "decoder_constraint": "definition_child",
+  "gate": "assess_declared_definition",
+  "arms": [
+    "rules",
+    "baseline",
+    "retrieved"
+  ],
+  "sources_sha256": "f0eb1896dd3b1b2ecd119bbac38407da82c5d6c6e0ae7c252d5c831c29e5744d",
+  "source_manifest_sha256": "da891cfdd2e6ef88ad88052c23dc2678acd30d6ef5f1e1e1c97f5b5c8a4a51c7",
+  "registry_sha256": "ac5aca2944aec29fab00ebf2c8139141b1ef0b87f08ae901c26c206ad16657da",
+  "memory_source_sha256": "bcbe64de82cec3ea5bb60d3211ae38e82ed175bc8ba858898bf726451ca74f92",
+  "prior_claims_path": "/workspace/results/diagnostics/partial_claim_definition_gate_cpu_20260923/scoring/scored.jsonl",
+  "prior_claims_sha256": "8222ae223f816558ad144cef1f76515bf2f8167536909073805c73307195c2a1",
+  "prior_claim_count": 2,
+  "adapter_sha256": "65fa954c72074f675dc0cdaced4b8d839fd720dad451954fc9e958af1010f927",
+  "device": "cpu",
+  "generation": {
+    "decoder": "CNLSampler",
+    "num_beams": 4,
+    "max_new_tokens": 64
+  },
+  "source_count": 123,
+  "eligible_count": 101,
+  "git_head": "dad87465aecbc61d2c183f689feb23496eb525eb",
+  "python": "3.12.3",
+  "torch": "2.10.0a0+b558c986e8.nv25.11",
+  "prediction_count": 123,
+  "predictions_sha256": "77cc9eca54742e568de56ab137b86d0395cd258212e3b73c8950bfa417748a0c"
+}
