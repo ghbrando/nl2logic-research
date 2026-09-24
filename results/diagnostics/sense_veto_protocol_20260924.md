@@ -30,3 +30,11 @@ v1 transferred poorly to the held-out classes: it vetoed only 31% of wrong-sense
 - **Development:** all 6 label matches kept and B-18 vetoed.
 
 If v2 fails, the result is reported as is, with no further tuning against the held-out classes.
+
+## v3 (fixed before v3 training)
+
+v2 vetoed every real development claim. It had learned the synthetic surface style, not sense. v3 keeps the v2 classes, templates, recipe, and decision rule, and adds `--doctrine-style`. Each training and same-class held-out item randomly gets a doctrine-style tail (staff/echelon/operations clauses) and/or a doctrine citation such as "(JP 3-0)", **independently of its label**, so style no longer predicts accept or reject. The held-out `Product`/`Cycle` file is unchanged (same hash).
+
+**Caveat:** this change was prompted by v2's development result, so a v3 development pass is weaker evidence than v1's pre-registered check. An independent test remains necessary.
+
+**v3 success (pre-registered):** the same as v2. On held-out classes, at least 60% of wrong-sense uses vetoed and at least 90% of literal uses kept, for each of `Product` and `Cycle`. On development, 6/6 label matches kept and B-18 vetoed. A failure is reported as is.

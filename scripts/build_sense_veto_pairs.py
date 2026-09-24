@@ -106,7 +106,29 @@ HELDOUT_WORDS = (["harvest", "mountain", "river", "winter", "canal", "orchard", 
 FILLERS = ["field", "local", "coastal", "night", "urban", "remote", "weekly", "border"]
 
 
-def build(senses, words, *, seed: int, per_template: int) -> list[dict]:
+# v3: doctrine-style trimmings applied at random regardless of label, so that
+# citation, length, and staff vocabulary cannot predict accept or reject.
+# None contains a scope or modality word the gate would reject.
+TAILS = [
+    ", and it is conducted by staff sections at every echelon",
+    " throughout the conduct of operations in the area of operations",
+    ", which supports the commander's decision making during large-scale combat operations",
+    " as part of the operations process at the division and corps levels",
+    ", integrating information from multiple sources for the supported unit",
+]
+CITATIONS = ["(JP 3-0)", "(JP 2-0)", "(ADP 2-0)", "(FM 3-55)", "(ADP 5-0)", "(FM 6-0)", "(ATP 2-19.4)"]
+
+
+def decorate(sentence: str, rng: random.Random) -> str:
+    body = sentence[:-1]
+    if rng.random() < 0.6:
+        body += rng.choice(TAILS)
+    if rng.random() < 0.6:
+        body += " " + rng.choice(CITATIONS)
+    return body + "."
+
+
+def build(senses, words, *, seed: int, per_template: int, doctrine_style: bool = False) -> list[dict]:
     known = load_closed_class_terms()
     rng = random.Random(seed)
     subjects = [f"{m} {n}" for m in words[0] for n in words[1]]
@@ -119,6 +141,8 @@ def build(senses, words, *, seed: int, per_template: int) -> list[dict]:
                     if made == per_template:
                         break
                     sentence = template.format(S=subject[:1].upper() + subject[1:], x=rng.choice(FILLERS))
+                    if doctrine_style:
+                        sentence = decorate(sentence, rng)
                     candidate, _ = extract_paragraph_candidate(sentence, sentence)
                     if candidate.status != "candidate" or candidate.gate_reasons:
                         continue
@@ -156,9 +180,13 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--per-template", type=int, default=60)
     parser.add_argument("--heldout-per-template", type=int, default=20)
+    parser.add_argument("--doctrine-style", action="store_true",
+                        help="v3: add label-independent citations and doctrine-style tails")
     args = parser.parse_args()
-    train_rows = build(TRAIN_SENSES, TRAIN_WORDS, seed=7, per_template=args.per_template)
-    heldout_rows = build(TRAIN_SENSES, HELDOUT_WORDS, seed=11, per_template=args.heldout_per_template)
+    style = args.doctrine_style
+    train_rows = build(TRAIN_SENSES, TRAIN_WORDS, seed=7, per_template=args.per_template, doctrine_style=style)
+    heldout_rows = build(TRAIN_SENSES, HELDOUT_WORDS, seed=11, per_template=args.heldout_per_template,
+                         doctrine_style=style)
     heldout_class_rows = build(HELDOUT_CLASS_SENSES, HELDOUT_WORDS, seed=13, per_template=args.heldout_per_template)
     if {r["symbol"] for r in train_rows} & {r["symbol"] for r in heldout_rows + heldout_class_rows}:
         raise ValueError("Held-out subjects overlap training")

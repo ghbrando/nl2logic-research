@@ -22,13 +22,13 @@ elif [[ "$run_mode" == "control" ]]; then
     echo "Output directory already exists: $state_dir/outputs/$prefix-control" >&2
     exit 2
   fi
-elif [[ "$run_mode" == "declarations" || "$run_mode" == "definition-gate" || "$run_mode" == "unseen-definitions" || "$run_mode" == "appendix-definitions" || "$run_mode" == "parent-discrimination" || "$run_mode" == "sense-veto" || "$run_mode" == "sense-veto-v2" ]]; then
+elif [[ "$run_mode" == "declarations" || "$run_mode" == "definition-gate" || "$run_mode" == "unseen-definitions" || "$run_mode" == "appendix-definitions" || "$run_mode" == "parent-discrimination" || "$run_mode" == "sense-veto" || "$run_mode" == "sense-veto-v2" || "$run_mode" == "sense-veto-v3" ]]; then
   if [[ -e "$state_dir/outputs/$prefix-$run_mode" ]]; then
     echo "Output directory already exists: $state_dir/outputs/$prefix-$run_mode" >&2
     exit 2
   fi
 else
-  echo "Expected paired, control, declarations, definition-gate, unseen-definitions, appendix-definitions, parent-discrimination, sense-veto, or sense-veto-v2" >&2
+  echo "Expected paired, control, declarations, definition-gate, unseen-definitions, appendix-definitions, parent-discrimination, sense-veto, sense-veto-v2, or sense-veto-v3" >&2
   exit 2
 fi
 for input in sumo_classes.jsonl sumo_relations.jsonl; do
@@ -65,7 +65,7 @@ if [[ "$run_mode" == "control" ]]; then
       --output-dir "/outputs/$prefix-control"
   exit 0
 fi
-if [[ "$run_mode" == "sense-veto" || "$run_mode" == "sense-veto-v2" ]]; then
+if [[ "$run_mode" == "sense-veto" || "$run_mode" == "sense-veto-v2" || "$run_mode" == "sense-veto-v3" ]]; then
   # CPU-only: no GPU override; the default service limits apply (4 CPUs, 12 GB).
   data="/outputs/$prefix-$run_mode/data"
   mkdir -p "$state_dir/outputs/$prefix-$run_mode"
@@ -73,7 +73,7 @@ if [[ "$run_mode" == "sense-veto" || "$run_mode" == "sense-veto-v2" ]]; then
     -f containers/compose.yaml -f containers/rootless.yaml -f containers/inputs.yaml \
     run --rm --no-deps \
     -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 -e OMP_NUM_THREADS=4 \
-    research python scripts/build_sense_veto_pairs.py --output-dir "$data"
+    research python scripts/build_sense_veto_pairs.py --output-dir "$data" $style
   docker --context rootless compose \
     -f containers/compose.yaml -f containers/rootless.yaml -f containers/inputs.yaml \
     run --rm --no-deps \
