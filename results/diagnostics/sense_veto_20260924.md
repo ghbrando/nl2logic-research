@@ -31,3 +31,23 @@ The pre-registered development criterion was met. Adding the veto to the rules a
 
 - **Improve transfer on development data before any independent test:** more varied sense contrasts across many more classes, and possibly glosses that state what a class is *not*.
 - **Then, with approval,** pre-register ATP 2-01.3 as a paired rules versus rules + veto comparison.
+
+## v2 result (pre-registered criteria: failed)
+
+v2 used the same recipe as v1 with broader synthetic contrasts ([protocol](sense_veto_protocol_20260924.md)). It trained CPU-only in 2,067 steps, with a final validation loss of 0.00012. Adapter SHA-256: `fe38543ddb9129415590f961d7a73c7a51af36763aa4b0c197d6e064301f276a`. See the [v2 evaluation](sense_veto_v2_cpu_20260924/eval/summary.json).
+
+| Set | Correct kept | Wrong-sense vetoed |
+| --- | --- | --- |
+| Synthetic held-out subjects | 1080 / 1080 | 960 / 960 |
+| Held-out classes `Product` / `Cycle` | 40/40 · 40/40 | 24/40 · 40/40 |
+| **Development gate-accepted claims** | **0 / 6** | 1 / 1 |
+
+- **Held-out classes: met, barely.** The median margin now separates the senses: `Product` −11.1 for literal uses against +5.5 for wrong-sense uses, and `Cycle` −13.6 against +12.6.
+- **Development: failed badly.** v2 vetoes every real doctrine claim, including all 6 correct ones, at margins of +2.1 to +20.4.
+
+The v2 veto has learned what synthetic sentences look like, not word sense. Real doctrine sentences are long, cite sources ("(JP 2-0)"), and resemble none of its training accepts, so it rejects them all. Its near-zero validation loss fits that overfitting. By the pre-registered rule, no further tuning was done against the held-out classes.
+
+**Implications.**
+- **v1's clean development result is not reliable.** It was also trained only on synthetic text, and v2 shows how far such a model can drift on real doctrine.
+- **Synthetic-only training won't produce a reliable veto.** It needs accept examples that look like doctrine but do not come from the development or evaluation passages. For example, sense-verified definitions from other public doctrine, or reviewed ontology documentation sentences. That calls for a new, reviewed data source and is a decision for the user.
+- **The research answer is unchanged:** there is no reliable evidence that the constrained model beats rules.
