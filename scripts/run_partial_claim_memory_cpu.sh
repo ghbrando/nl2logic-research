@@ -22,13 +22,13 @@ elif [[ "$run_mode" == "control" ]]; then
     echo "Output directory already exists: $state_dir/outputs/$prefix-control" >&2
     exit 2
   fi
-elif [[ "$run_mode" == "declarations" ]]; then
-  if [[ -e "$state_dir/outputs/$prefix-declarations" ]]; then
-    echo "Output directory already exists: $state_dir/outputs/$prefix-declarations" >&2
+elif [[ "$run_mode" == "declarations" || "$run_mode" == "definition-gate" ]]; then
+  if [[ -e "$state_dir/outputs/$prefix-$run_mode" ]]; then
+    echo "Output directory already exists: $state_dir/outputs/$prefix-$run_mode" >&2
     exit 2
   fi
 else
-  echo "Expected paired, control, or declarations" >&2
+  echo "Expected paired, control, declarations, or definition-gate" >&2
   exit 2
 fi
 for input in sumo_classes.jsonl sumo_relations.jsonl; do
@@ -65,7 +65,7 @@ if [[ "$run_mode" == "control" ]]; then
       --output-dir "/outputs/$prefix-control"
   exit 0
 fi
-if [[ "$run_mode" == "declarations" ]]; then
+if [[ "$run_mode" == "declarations" || "$run_mode" == "definition-gate" ]]; then
   docker --context rootless compose \
     -f containers/compose.yaml -f containers/rootless.yaml \
     -f containers/inputs.yaml -f containers/cpu-audit.yaml \
@@ -76,7 +76,7 @@ if [[ "$run_mode" == "declarations" ]]; then
       --source-manifest /workspace/data/benchmarks/fm2-0/chapter1-partial-claim-development-source/manifest.json \
       --registry /workspace/data/benchmarks/fm2-0/chapter1-partial-claim-development-source/provisional_declarations.json \
       --model-path /outputs/diagnostic-closed-7k-20260922-01 \
-      --output-dir "/outputs/$prefix-declarations" \
+      --output-dir "/outputs/$prefix-$run_mode" \
       --max-new-tokens 64
   exit 0
 fi
