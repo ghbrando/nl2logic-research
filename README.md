@@ -4,8 +4,8 @@
   <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white" alt="PyTorch" />
   <img src="https://img.shields.io/badge/T5-constrained_decoding-0b0b0b?style=flat-square&logo=huggingface&logoColor=white" alt="T5-constrained decoding" />
-  <img src="https://img.shields.io/badge/Vampire-theorem_prover-6A1B9A?style=flat-square&logo=checkmarx&logoColor=white" alt="Vampire-theorem prover" />
-  <img src="https://img.shields.io/badge/KIF%2FSUMO-555555?style=flat-square&logo=semanticweb&logoColor=white" alt="KIF%2FSUMO" />
+  <img src="https://img.shields.io/badge/Vampire-theorem_prover-6A1B9A?style=flat-square" alt="Vampire-theorem prover" />
+  <img src="https://img.shields.io/badge/KIF%2FSUMO-555555?style=flat-square" alt="KIF%2FSUMO" />
 </p>
 
 Research code for a precision-first `NL -> CNL -> KIF` pipeline for military doctrine formalization.
