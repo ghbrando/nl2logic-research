@@ -8,6 +8,8 @@
   <img src="https://img.shields.io/badge/KIF%2FSUMO-555555?style=flat-square" alt="KIF%2FSUMO" />
 </p>
 
+<p align="center"><img src="docs/demo/demo.gif" width="860" alt="Terminal demo: a doctrine query comes back PROVEN with its cited source passage, and a second query comes back UNKNOWN" /></p>
+
 Research code for a precision-first `NL -> CNL -> KIF` pipeline for military doctrine formalization.
 
 The active architecture is centered on constrained seq2seq decoding, CNL compilation, and grounding-based acceptance. See [ARCHITECTURE.md](ARCHITECTURE.md) for the problem statement, solution proposal, primary pipeline, and archived baseline notes.
